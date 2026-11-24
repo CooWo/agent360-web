@@ -1,0 +1,27 @@
+{# 상담사 360 공용 조각 #}
+
+{% macro score_badge(score) -%}
+<span class="score {{ 's-high' if score >= 5 else ('s-mid' if score >= 3 else 's-low') }}" title="신호 점수">{{ score }}</span>
+{%- endmacro %}
+
+{% macro signal_chip(s) -%}
+<span class="chip sev-{{ s.severity }} {{ 'done' if s.status == '해당 없음' }}" data-chip-for="{{ s.signal_id }}">
+  <span class="dot"></span>{{ s.label }}<span class="muted small">· {{ s.severity }}</span>
+</span>
+{%- endmacro %}
+
+{% macro status_ctl(s, statuses, can_write) -%}
+<span class="status-ctl" data-signal-id="{{ s.signal_id }}">
+  {% for st in statuses %}
+  <button type="button" data-status="{{ st }}" class="{{ 'on' if s.status == st }}" {{ 'disabled' if not can_write }}>{{ st }}</button>
+  {% endfor %}
+</span>
+{%- endmacro %}
+
+{% macro delta(v, better, digits=1, suffix='') -%}
+{% if v is none %}<span class="delta flat">–</span>
+{% else %}
+{% set good = (v > 0 and better == 'up') or (v < 0 and better == 'down') %}
+<span class="delta {{ 'flat' if v|abs < 0.05 else ('good' if good else 'bad') }}">{{ v|signed(digits, suffix) }}</span>
+{% endif %}
+{%- endmacro %}

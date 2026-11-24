@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% macro err(k) %}{% if errors.get(k) %}<div class="field-error">{{ errors[k] }}</div>{% endif %}{% endmacro %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.title }}</h1>
+    <p class="muted">면담 내용을 기록하면 후속 확인일에 다시 알려 드립니다.</p>
+  </div>
+</div>
+
+<div class="split">
+  <section class="card">
+    <h2>새 코칭 기록</h2>
+    {% if errors %}<div class="notice" style="background:var(--danger-weak);color:var(--danger)">입력값을 확인해 주세요.</div>{% endif %}
+    <form method="post" action="/agent360/coaching">
+      <div class="form-grid">
+        <div class="full {{ 'has-error' if errors.raw_note }}">
+          <label for="raw_note">면담 메모 (자유 입력)</label>
+          <textarea id="raw_note" name="raw_note" placeholder="예) 환불 정책 오안내 2건, 재교육 진행, 다음 주 금요일까지 KB 숙지 확인">{{ form.raw_note }}</textarea>
+          {{ err('raw_note') }}
+          <div class="toolbar" style="margin-top:6px">
+            <button class="btn sm" type="button" disabled title="6단계에서 Gemini 연결">AI로 아래 칸 채우기 (준비 중)</button>
+            <span class="muted small">주민번호·연락처 같은 개인정보는 입력하지 마세요.</span>
+          </div>
+        </div>
+        <div class="{{ 'has-error' if errors.agent_id }}">
+          <label for="agent_id">상담사</label>
+          <select id="agent_id" name="agent_id">
+            <option value="">선택</option>
+            {% for a in agents %}<option value="{{ a.agent_id }}" {{ 'selected' if a.agent_id == form.agent_id }}>{{ a.name }} · {{ a.agent_id }}</option>{% endfor %}
+          </select>
+          {{ err('agent_id') }}
+        </div>
+        <div class="{{ 'has-error' if errors.issue_type }}">
+          <label for="issue_type">이슈 유형</label>
+          <select id="issue_type" name="issue_type">
+            <option value="">선택</option>
+            {% for t in issue_types %}<option {{ 'selected' if t == form.issue_type }}>{{ t }}</option>{% endfor %}
+          </select>
+          {{ err('issue_type') }}
+        </div>
+        <div class="{{ 'has-error' if errors.date }}">
+          <label for="date">코칭 일자</label>
+          <input id="date" type="date" name="date" value="{{ form.date }}">{{ err('date') }}
+        </div>
+        <div class="{{ 'has-error' if errors.follow_up_date }}">
+          <label for="follow_up_date">후속 확인일</label>
+          <input id="follow_up_date" type="date" name="follow_up_date" value="{{ form.follow_up_date }}">{{ err('follow_up_date') }}
+        </div>
+        <div class="full {{ 'has-error' if errors.summary }}">
+          <label for="summary">요약</label>
+          <textarea id="summary" name="summary" style="min-height:60px">{{ form.summary }}</textarea>{{ err('summary') }}
+        </div>
+        <div class="full {{ 'has-error' if errors.agreed_action }}">
+          <label for="agreed_action">합의 행동</label>
+          <textarea id="agreed_action" name="agreed_action" style="min-height:60px">{{ form.agreed_action }}</textarea>{{ err('agreed_action') }}
+        </div>
+      </div>
+      <div class="toolbar" style="margin-top:14px"><button class="btn primary" type="submit">저장</button></div>
+    </form>
+  </section>
+
+  <aside class="stack">
+    <section class="card">
+      <h2>후속 확인</h2>
+      {% for c in followups.overdue %}
+      <div class="small" style="margin-bottom:8px">
+        <span class="badge danger">지남</span> <a href="/agent360/agents/{{ c.agent_id }}#coaching">{{ names.get(c.agent_id, c.agent_id) }}</a>
+        · {{ c.issue_type }} <span class="muted">· {{ c.follow_up_date }}</span>
+        <form method="post" action="/agent360/coaching/{{ c.coaching_id }}/complete" style="display:inline"><button class="btn sm">완료</button></form>
+      </div>
+      {% endfor %}
+      {% for c in followups.soon %}
+      <div class="small" style="margin-bottom:8px">
+        <span class="badge neutral">예정</span> <a href="/agent360/agents/{{ c.agent_id }}#coaching">{{ names.get(c.agent_id, c.agent_id) }}</a>
+        · {{ c.issue_type }} <span class="muted">· {{ c.follow_up_date }}</span>
+      </div>
+      {% endfor %}
+      {% if not followups.overdue and not followups.soon %}<div class="muted small">7일 안 후속 확인이 없습니다.</div>{% endif %}
+    </section>
+    <section class="card">
+      <h2>최근 기록</h2>
+      {% for c in recent[:10] %}
+      <div class="small" style="margin-bottom:6px">{{ c.date }} · <a href="/agent360/agents/{{ c.agent_id }}#coaching">{{ names.get(c.agent_id, c.agent_id) }}</a> · {{ c.issue_type }}
+        {% if c.done %}<span class="badge ok">완료</span>{% endif %}</div>
+      {% else %}<div class="muted small">기록이 없습니다.</div>{% endfor %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

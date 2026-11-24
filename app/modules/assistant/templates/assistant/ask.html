@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_ai_chat.html" import ai_chat %}
+{% block title %}{{ screen.title }} · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ screen.title }} <span class="muted small">{{ agent_label }}</span></h1>
+    <p class="muted">{{ screen.subtitle }}</p>
+  </div>
+  <div class="toolbar">
+    <button class="btn sm ai-ping" type="button" {{ 'disabled' if not ai_enabled }}>연결 점검</button>
+    <button class="btn sm ai-new" type="button" {{ 'disabled' if not ai_enabled }}>새 대화</button>
+  </div>
+</div>
+
+{% if not ai_enabled %}
+<div class="notice" style="background:var(--warn-weak);color:var(--warn)">
+  AI 연결이 설정되지 않았습니다. <code>.env</code> 의 <code>AI_AGENT_PROJECT</code>, <code>AI_AGENT_ID</code> 를 확인하세요.
+</div>
+{% endif %}
+
+<section class="card ai-page">
+  {{ ai_chat(screen.examples, screen.max_question, ai_enabled) }}
+</section>
+{% endblock %}

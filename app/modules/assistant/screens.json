@@ -1,0 +1,42 @@
+{
+  "module": "assistant",
+  "title": "AI 질문",
+  "base_path": "/assistant",
+  "menu": [
+    {
+      "id": "ask",
+      "label": "데이터 에이전트에게 묻기",
+      "path": "/assistant",
+      "roles": [
+        "admin",
+        "manager",
+        "sv",
+        "viewer"
+      ]
+    }
+  ],
+  "screens": {
+    "ask": {
+      "title": "AI 질문",
+      "subtitle": "회사 BigQuery 데이터 에이전트가 SQL 로 조회해서 답합니다. 숫자는 조회 결과 그대로입니다.",
+      "roles": [
+        "admin",
+        "manager",
+        "sv",
+        "viewer"
+      ],
+      "max_question": 1000,
+      "examples": [
+        "지난주 R1, R2 NPS 와 응답 수",
+        "최근 4주 R2 AHT 추이",
+        "지난주 R2 조기신호 있는 것만",
+        "지난주 R2 디트랙터 고객 코멘트 주요 내용"
+      ],
+      "dock_examples": [
+        "지난주 R1, R2 NPS 와 응답 수",
+        "지난주 R2 조기신호 있는 것만",
+        "최근 4주 R2 AHT 추이"
+      ]
+    }
+  }
+}

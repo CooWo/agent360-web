@@ -1,0 +1,17 @@
+[
+ {
+  "team": "R1-A",
+  "label": "R1 A팀",
+  "sector": "Resolutions 1"
+ },
+ {
+  "team": "R1-B",
+  "label": "R1 B팀",
+  "sector": "Resolutions 1"
+ },
+ {
+  "team": "R2-A",
+  "label": "R2 A팀",
+  "sector": "Resolutions 2"
+ }
+]

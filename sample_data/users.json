@@ -1,0 +1,47 @@
+[
+ {
+  "email": "admin@example.com",
+  "name": "관리자",
+  "role": "admin",
+  "teams": []
+ },
+ {
+  "email": "manager@example.com",
+  "name": "최매니저",
+  "role": "manager",
+  "teams": []
+ },
+ {
+  "email": "sv.kim@example.com",
+  "name": "김SV",
+  "role": "sv",
+  "teams": [
+   "R1-A"
+  ]
+ },
+ {
+  "email": "sv.lee@example.com",
+  "name": "이SV",
+  "role": "sv",
+  "teams": [
+   "R1-B"
+  ]
+ },
+ {
+  "email": "sv.park@example.com",
+  "name": "박SV",
+  "role": "sv",
+  "teams": [
+   "R2-A"
+  ]
+ },
+ {
+  "email": "viewer@example.com",
+  "name": "조회자",
+  "role": "viewer",
+  "teams": [
+   "R1-A",
+   "R1-B"
+  ]
+ }
+]

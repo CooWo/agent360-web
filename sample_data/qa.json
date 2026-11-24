@@ -1,0 +1,1106 @@
+[
+ {
+  "qa_id": "QA00001",
+  "agent_id": "E240001",
+  "date": "2026-09-14",
+  "score": 80.5,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00002",
+  "agent_id": "E240001",
+  "date": "2026-09-28",
+  "score": 86.6,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00003",
+  "agent_id": "E240001",
+  "date": "2026-10-12",
+  "score": 90.4,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00004",
+  "agent_id": "E240001",
+  "date": "2026-10-26",
+  "score": 81.4,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00005",
+  "agent_id": "E240001",
+  "date": "2026-11-09",
+  "score": 88.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00006",
+  "agent_id": "E240002",
+  "date": "2026-09-14",
+  "score": 88.3,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00007",
+  "agent_id": "E240002",
+  "date": "2026-09-28",
+  "score": 86.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00008",
+  "agent_id": "E240002",
+  "date": "2026-10-12",
+  "score": 90.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00009",
+  "agent_id": "E240002",
+  "date": "2026-10-26",
+  "score": 93.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00010",
+  "agent_id": "E240002",
+  "date": "2026-11-09",
+  "score": 94.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00011",
+  "agent_id": "E240003",
+  "date": "2026-09-14",
+  "score": 92.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00012",
+  "agent_id": "E240003",
+  "date": "2026-09-28",
+  "score": 95.4,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00013",
+  "agent_id": "E240003",
+  "date": "2026-10-12",
+  "score": 89.0,
+  "error_types": [
+   "공감 표현 부족"
+  ]
+ },
+ {
+  "qa_id": "QA00014",
+  "agent_id": "E240003",
+  "date": "2026-10-26",
+  "score": 81.0,
+  "error_types": [
+   "환불 정책 오안내"
+  ]
+ },
+ {
+  "qa_id": "QA00015",
+  "agent_id": "E240003",
+  "date": "2026-11-09",
+  "score": 80.4,
+  "error_types": [
+   "환불 정책 오안내"
+  ]
+ },
+ {
+  "qa_id": "QA00016",
+  "agent_id": "E240004",
+  "date": "2026-10-12",
+  "score": 92.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00017",
+  "agent_id": "E240004",
+  "date": "2026-10-26",
+  "score": 88.4,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00018",
+  "agent_id": "E240004",
+  "date": "2026-11-09",
+  "score": 93.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00019",
+  "agent_id": "E240005",
+  "date": "2026-09-14",
+  "score": 83.8,
+  "error_types": [
+   "공감 표현 부족"
+  ]
+ },
+ {
+  "qa_id": "QA00020",
+  "agent_id": "E240005",
+  "date": "2026-09-28",
+  "score": 80.3,
+  "error_types": [
+   "환불 정책 오안내"
+  ]
+ },
+ {
+  "qa_id": "QA00021",
+  "agent_id": "E240005",
+  "date": "2026-10-12",
+  "score": 89.3,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00022",
+  "agent_id": "E240005",
+  "date": "2026-10-26",
+  "score": 89.0,
+  "error_types": [
+   "환불 정책 오안내"
+  ]
+ },
+ {
+  "qa_id": "QA00023",
+  "agent_id": "E240005",
+  "date": "2026-11-09",
+  "score": 90.5,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00024",
+  "agent_id": "E240006",
+  "date": "2026-09-14",
+  "score": 92.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00025",
+  "agent_id": "E240006",
+  "date": "2026-09-28",
+  "score": 90.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00026",
+  "agent_id": "E240006",
+  "date": "2026-10-12",
+  "score": 90.3,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00027",
+  "agent_id": "E240006",
+  "date": "2026-10-26",
+  "score": 90.2,
+  "error_types": [
+   "공감 표현 부족"
+  ]
+ },
+ {
+  "qa_id": "QA00028",
+  "agent_id": "E240006",
+  "date": "2026-11-09",
+  "score": 87.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00029",
+  "agent_id": "E240007",
+  "date": "2026-09-14",
+  "score": 85.6,
+  "error_types": [
+   "본인 확인 누락"
+  ]
+ },
+ {
+  "qa_id": "QA00030",
+  "agent_id": "E240007",
+  "date": "2026-09-28",
+  "score": 86.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00031",
+  "agent_id": "E240007",
+  "date": "2026-10-12",
+  "score": 97.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00032",
+  "agent_id": "E240007",
+  "date": "2026-10-26",
+  "score": 87.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00033",
+  "agent_id": "E240007",
+  "date": "2026-11-09",
+  "score": 86.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00034",
+  "agent_id": "E240008",
+  "date": "2026-09-14",
+  "score": 94.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00035",
+  "agent_id": "E240008",
+  "date": "2026-09-28",
+  "score": 86.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00036",
+  "agent_id": "E240008",
+  "date": "2026-10-12",
+  "score": 94.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00037",
+  "agent_id": "E240008",
+  "date": "2026-10-26",
+  "score": 94.5,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00038",
+  "agent_id": "E240008",
+  "date": "2026-11-09",
+  "score": 93.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00039",
+  "agent_id": "E240009",
+  "date": "2026-09-14",
+  "score": 81.0,
+  "error_types": [
+   "환불 정책 오안내"
+  ]
+ },
+ {
+  "qa_id": "QA00040",
+  "agent_id": "E240009",
+  "date": "2026-09-28",
+  "score": 88.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00041",
+  "agent_id": "E240009",
+  "date": "2026-10-12",
+  "score": 95.3,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00042",
+  "agent_id": "E240009",
+  "date": "2026-10-26",
+  "score": 97.3,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00043",
+  "agent_id": "E240009",
+  "date": "2026-11-09",
+  "score": 91.9,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00044",
+  "agent_id": "E240010",
+  "date": "2026-09-14",
+  "score": 81.5,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00045",
+  "agent_id": "E240010",
+  "date": "2026-09-28",
+  "score": 87.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00046",
+  "agent_id": "E240010",
+  "date": "2026-10-12",
+  "score": 84.8,
+  "error_types": [
+   "본인 확인 누락"
+  ]
+ },
+ {
+  "qa_id": "QA00047",
+  "agent_id": "E240010",
+  "date": "2026-10-26",
+  "score": 89.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00048",
+  "agent_id": "E240010",
+  "date": "2026-11-09",
+  "score": 86.9,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00049",
+  "agent_id": "E240011",
+  "date": "2026-09-14",
+  "score": 90.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00050",
+  "agent_id": "E240011",
+  "date": "2026-09-28",
+  "score": 91.7,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00051",
+  "agent_id": "E240011",
+  "date": "2026-10-12",
+  "score": 85.5,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00052",
+  "agent_id": "E240011",
+  "date": "2026-10-26",
+  "score": 93.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00053",
+  "agent_id": "E240011",
+  "date": "2026-11-09",
+  "score": 80.1,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00054",
+  "agent_id": "E240012",
+  "date": "2026-09-14",
+  "score": 91.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00055",
+  "agent_id": "E240012",
+  "date": "2026-09-28",
+  "score": 89.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00056",
+  "agent_id": "E240012",
+  "date": "2026-10-12",
+  "score": 90.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00057",
+  "agent_id": "E240012",
+  "date": "2026-10-26",
+  "score": 92.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00058",
+  "agent_id": "E240012",
+  "date": "2026-11-09",
+  "score": 85.2,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00059",
+  "agent_id": "E240013",
+  "date": "2026-09-14",
+  "score": 85.2,
+  "error_types": [
+   "본인 확인 누락"
+  ]
+ },
+ {
+  "qa_id": "QA00060",
+  "agent_id": "E240013",
+  "date": "2026-09-28",
+  "score": 97.4,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00061",
+  "agent_id": "E240013",
+  "date": "2026-10-12",
+  "score": 94.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00062",
+  "agent_id": "E240013",
+  "date": "2026-10-26",
+  "score": 89.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00063",
+  "agent_id": "E240013",
+  "date": "2026-11-09",
+  "score": 86.2,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00064",
+  "agent_id": "E240014",
+  "date": "2026-09-14",
+  "score": 83.7,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00065",
+  "agent_id": "E240014",
+  "date": "2026-09-28",
+  "score": 82.3,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00066",
+  "agent_id": "E240014",
+  "date": "2026-10-12",
+  "score": 92.0,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00067",
+  "agent_id": "E240014",
+  "date": "2026-10-26",
+  "score": 92.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00068",
+  "agent_id": "E240014",
+  "date": "2026-11-09",
+  "score": 96.4,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00069",
+  "agent_id": "E240015",
+  "date": "2026-10-12",
+  "score": 87.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00070",
+  "agent_id": "E240015",
+  "date": "2026-10-26",
+  "score": 95.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00071",
+  "agent_id": "E240015",
+  "date": "2026-11-09",
+  "score": 85.6,
+  "error_types": [
+   "환불 정책 오안내"
+  ]
+ },
+ {
+  "qa_id": "QA00072",
+  "agent_id": "E240016",
+  "date": "2026-09-14",
+  "score": 96.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00073",
+  "agent_id": "E240016",
+  "date": "2026-09-28",
+  "score": 88.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00074",
+  "agent_id": "E240016",
+  "date": "2026-10-12",
+  "score": 84.6,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00075",
+  "agent_id": "E240016",
+  "date": "2026-10-26",
+  "score": 96.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00076",
+  "agent_id": "E240016",
+  "date": "2026-11-09",
+  "score": 82.6,
+  "error_types": [
+   "공감 표현 부족"
+  ]
+ },
+ {
+  "qa_id": "QA00077",
+  "agent_id": "E240017",
+  "date": "2026-09-14",
+  "score": 92.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00078",
+  "agent_id": "E240017",
+  "date": "2026-09-28",
+  "score": 96.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00079",
+  "agent_id": "E240017",
+  "date": "2026-10-12",
+  "score": 92.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00080",
+  "agent_id": "E240017",
+  "date": "2026-10-26",
+  "score": 82.4,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00081",
+  "agent_id": "E240017",
+  "date": "2026-11-09",
+  "score": 91.8,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00082",
+  "agent_id": "E240018",
+  "date": "2026-09-14",
+  "score": 87.2,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00083",
+  "agent_id": "E240018",
+  "date": "2026-09-28",
+  "score": 93.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00084",
+  "agent_id": "E240018",
+  "date": "2026-10-12",
+  "score": 80.7,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00085",
+  "agent_id": "E240018",
+  "date": "2026-10-26",
+  "score": 92.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00086",
+  "agent_id": "E240018",
+  "date": "2026-11-09",
+  "score": 94.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00087",
+  "agent_id": "E240019",
+  "date": "2026-09-14",
+  "score": 94.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00088",
+  "agent_id": "E240019",
+  "date": "2026-09-28",
+  "score": 95.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00089",
+  "agent_id": "E240019",
+  "date": "2026-10-12",
+  "score": 97.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00090",
+  "agent_id": "E240019",
+  "date": "2026-10-26",
+  "score": 89.1,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00091",
+  "agent_id": "E240019",
+  "date": "2026-11-09",
+  "score": 86.5,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00092",
+  "agent_id": "E240020",
+  "date": "2026-09-14",
+  "score": 89.3,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00093",
+  "agent_id": "E240020",
+  "date": "2026-09-28",
+  "score": 95.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00094",
+  "agent_id": "E240020",
+  "date": "2026-10-12",
+  "score": 95.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00095",
+  "agent_id": "E240020",
+  "date": "2026-10-26",
+  "score": 91.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00096",
+  "agent_id": "E240020",
+  "date": "2026-11-09",
+  "score": 86.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00097",
+  "agent_id": "E240021",
+  "date": "2026-09-14",
+  "score": 94.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00098",
+  "agent_id": "E240021",
+  "date": "2026-09-28",
+  "score": 86.8,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00099",
+  "agent_id": "E240021",
+  "date": "2026-10-12",
+  "score": 95.5,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00100",
+  "agent_id": "E240021",
+  "date": "2026-10-26",
+  "score": 86.8,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00101",
+  "agent_id": "E240021",
+  "date": "2026-11-09",
+  "score": 89.0,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00102",
+  "agent_id": "E240022",
+  "date": "2026-09-14",
+  "score": 92.3,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00103",
+  "agent_id": "E240022",
+  "date": "2026-09-28",
+  "score": 93.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00104",
+  "agent_id": "E240022",
+  "date": "2026-10-12",
+  "score": 87.1,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00105",
+  "agent_id": "E240022",
+  "date": "2026-10-26",
+  "score": 82.3,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00106",
+  "agent_id": "E240022",
+  "date": "2026-11-09",
+  "score": 92.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00107",
+  "agent_id": "E240023",
+  "date": "2026-09-14",
+  "score": 92.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00108",
+  "agent_id": "E240023",
+  "date": "2026-09-28",
+  "score": 88.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00109",
+  "agent_id": "E240023",
+  "date": "2026-10-12",
+  "score": 96.5,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00110",
+  "agent_id": "E240023",
+  "date": "2026-10-26",
+  "score": 95.3,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00111",
+  "agent_id": "E240023",
+  "date": "2026-11-09",
+  "score": 91.9,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00112",
+  "agent_id": "E240024",
+  "date": "2026-09-14",
+  "score": 94.5,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00113",
+  "agent_id": "E240024",
+  "date": "2026-09-28",
+  "score": 94.0,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00114",
+  "agent_id": "E240024",
+  "date": "2026-10-12",
+  "score": 87.0,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00115",
+  "agent_id": "E240024",
+  "date": "2026-10-26",
+  "score": 82.3,
+  "error_types": [
+   "환불 정책 오안내"
+  ]
+ },
+ {
+  "qa_id": "QA00116",
+  "agent_id": "E240024",
+  "date": "2026-11-09",
+  "score": 90.1,
+  "error_types": [
+   "환불 정책 오안내"
+  ]
+ },
+ {
+  "qa_id": "QA00117",
+  "agent_id": "E240025",
+  "date": "2026-09-14",
+  "score": 90.5,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00118",
+  "agent_id": "E240025",
+  "date": "2026-09-28",
+  "score": 82.6,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00119",
+  "agent_id": "E240025",
+  "date": "2026-10-12",
+  "score": 90.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00120",
+  "agent_id": "E240025",
+  "date": "2026-10-26",
+  "score": 92.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00121",
+  "agent_id": "E240025",
+  "date": "2026-11-09",
+  "score": 88.1,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00122",
+  "agent_id": "E240026",
+  "date": "2026-09-14",
+  "score": 96.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00123",
+  "agent_id": "E240026",
+  "date": "2026-09-28",
+  "score": 87.3,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00124",
+  "agent_id": "E240026",
+  "date": "2026-10-12",
+  "score": 97.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00125",
+  "agent_id": "E240026",
+  "date": "2026-10-26",
+  "score": 91.3,
+  "error_types": [
+   "케이스 메모 미흡"
+  ]
+ },
+ {
+  "qa_id": "QA00126",
+  "agent_id": "E240026",
+  "date": "2026-11-09",
+  "score": 93.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00127",
+  "agent_id": "E240027",
+  "date": "2026-10-12",
+  "score": 90.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00128",
+  "agent_id": "E240027",
+  "date": "2026-10-26",
+  "score": 88.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00129",
+  "agent_id": "E240027",
+  "date": "2026-11-09",
+  "score": 80.5,
+  "error_types": [
+   "템플릿 오사용"
+  ]
+ },
+ {
+  "qa_id": "QA00130",
+  "agent_id": "E240028",
+  "date": "2026-09-14",
+  "score": 88.9,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00131",
+  "agent_id": "E240028",
+  "date": "2026-09-28",
+  "score": 95.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00132",
+  "agent_id": "E240028",
+  "date": "2026-10-12",
+  "score": 96.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00133",
+  "agent_id": "E240028",
+  "date": "2026-10-26",
+  "score": 91.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00134",
+  "agent_id": "E240028",
+  "date": "2026-11-09",
+  "score": 91.4,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00135",
+  "agent_id": "E240029",
+  "date": "2026-09-14",
+  "score": 84.7,
+  "error_types": [
+   "에스컬레이션 기준 위반"
+  ]
+ },
+ {
+  "qa_id": "QA00136",
+  "agent_id": "E240029",
+  "date": "2026-09-28",
+  "score": 93.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00137",
+  "agent_id": "E240029",
+  "date": "2026-10-12",
+  "score": 81.4,
+  "error_types": [
+   "본인 확인 누락"
+  ]
+ },
+ {
+  "qa_id": "QA00138",
+  "agent_id": "E240029",
+  "date": "2026-10-26",
+  "score": 90.4,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00139",
+  "agent_id": "E240029",
+  "date": "2026-11-09",
+  "score": 94.7,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00140",
+  "agent_id": "E240030",
+  "date": "2026-09-14",
+  "score": 97.1,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00141",
+  "agent_id": "E240030",
+  "date": "2026-09-28",
+  "score": 94.2,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00142",
+  "agent_id": "E240030",
+  "date": "2026-10-12",
+  "score": 91.8,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00143",
+  "agent_id": "E240030",
+  "date": "2026-10-26",
+  "score": 92.6,
+  "error_types": []
+ },
+ {
+  "qa_id": "QA00144",
+  "agent_id": "E240030",
+  "date": "2026-11-09",
+  "score": 87.6,
+  "error_types": [
+   "본인 확인 누락"
+  ]
+ }
+]

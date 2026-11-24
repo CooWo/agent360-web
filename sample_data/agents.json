@@ -1,0 +1,452 @@
+[
+ {
+  "agent_id": "E240001",
+  "ldap": "ub_sample01",
+  "name": "윤채원",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2024-12-23",
+  "cohort": "24-4기",
+  "nesting_end": "2025-01-20",
+  "skill_tags": [
+   "취소",
+   "에스컬레이션",
+   "일본어"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240002",
+  "ldap": "ub_sample02",
+  "name": "정현우",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2025-04-19",
+  "cohort": "25-2기",
+  "nesting_end": "2025-05-17",
+  "skill_tags": [
+   "호스트"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240003",
+  "ldap": "ub_sample03",
+  "name": "박하은",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2024-07-06",
+  "cohort": "24-3기",
+  "nesting_end": "2024-08-03",
+  "skill_tags": [
+   "온트립",
+   "결제"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240004",
+  "ldap": "ub_sample04",
+  "name": "홍은우",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2026-09-29",
+  "cohort": "26-3기",
+  "nesting_end": "2026-10-27",
+  "skill_tags": [
+   "결제",
+   "일본어"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240005",
+  "ldap": "ub_sample05",
+  "name": "정시우",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2024-04-17",
+  "cohort": "24-2기",
+  "nesting_end": "2024-05-15",
+  "skill_tags": [
+   "호스트",
+   "온트립"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240006",
+  "ldap": "ub_sample06",
+  "name": "권지호",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2025-03-18",
+  "cohort": "25-1기",
+  "nesting_end": "2025-04-15",
+  "skill_tags": [
+   "영어",
+   "온트립"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240007",
+  "ldap": "ub_sample07",
+  "name": "최은우",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2023-05-11",
+  "cohort": "23-2기",
+  "nesting_end": "2023-06-08",
+  "skill_tags": [
+   "환불"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240008",
+  "ldap": "ub_sample08",
+  "name": "한주원",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2024-08-06",
+  "cohort": "24-3기",
+  "nesting_end": "2024-09-03",
+  "skill_tags": [
+   "에스컬레이션"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240009",
+  "ldap": "ub_sample09",
+  "name": "최민준",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2023-12-20",
+  "cohort": "23-4기",
+  "nesting_end": "2024-01-17",
+  "skill_tags": [
+   "취소",
+   "환불",
+   "에스컬레이션"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240010",
+  "ldap": "ub_sample10",
+  "name": "오지호",
+  "team": "R1-A",
+  "sv_email": "sv.kim@example.com",
+  "hire_date": "2024-06-05",
+  "cohort": "24-2기",
+  "nesting_end": "2024-07-03",
+  "skill_tags": [
+   "취소"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240011",
+  "ldap": "ub_sample11",
+  "name": "서수아",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2025-02-07",
+  "cohort": "25-1기",
+  "nesting_end": "2025-03-07",
+  "skill_tags": [
+   "취소",
+   "일본어"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240012",
+  "ldap": "ub_sample12",
+  "name": "황하은",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2024-10-25",
+  "cohort": "24-4기",
+  "nesting_end": "2024-11-22",
+  "skill_tags": [
+   "환불",
+   "일본어",
+   "결제"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240013",
+  "ldap": "ub_sample13",
+  "name": "송서진",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2024-10-15",
+  "cohort": "24-4기",
+  "nesting_end": "2024-11-12",
+  "skill_tags": [
+   "호스트",
+   "일본어"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240014",
+  "ldap": "ub_sample14",
+  "name": "조지호",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2025-07-14",
+  "cohort": "25-3기",
+  "nesting_end": "2025-08-11",
+  "skill_tags": [
+   "환불",
+   "일본어",
+   "호스트"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240015",
+  "ldap": "ub_sample15",
+  "name": "류하은",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2026-10-02",
+  "cohort": "26-4기",
+  "nesting_end": "2026-10-30",
+  "skill_tags": [
+   "일본어"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240016",
+  "ldap": "ub_sample16",
+  "name": "김소윤",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2025-05-16",
+  "cohort": "25-2기",
+  "nesting_end": "2025-06-13",
+  "skill_tags": [
+   "취소",
+   "에스컬레이션",
+   "온트립"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240017",
+  "ldap": "ub_sample17",
+  "name": "안지안",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2025-08-18",
+  "cohort": "25-3기",
+  "nesting_end": "2025-09-15",
+  "skill_tags": [
+   "환불",
+   "에스컬레이션"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240018",
+  "ldap": "ub_sample18",
+  "name": "한예준",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2025-08-15",
+  "cohort": "25-3기",
+  "nesting_end": "2025-09-12",
+  "skill_tags": [
+   "영어",
+   "호스트",
+   "일본어"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240019",
+  "ldap": "ub_sample19",
+  "name": "장채원",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2024-01-05",
+  "cohort": "24-1기",
+  "nesting_end": "2024-02-02",
+  "skill_tags": [
+   "환불",
+   "일본어"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240020",
+  "ldap": "ub_sample20",
+  "name": "박하준",
+  "team": "R1-B",
+  "sv_email": "sv.lee@example.com",
+  "hire_date": "2023-01-26",
+  "cohort": "23-1기",
+  "nesting_end": "2023-02-23",
+  "skill_tags": [
+   "결제"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240021",
+  "ldap": "ub_sample21",
+  "name": "이은우",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2025-01-23",
+  "cohort": "25-1기",
+  "nesting_end": "2025-02-20",
+  "skill_tags": [
+   "온트립"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240022",
+  "ldap": "ub_sample22",
+  "name": "최유진",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2024-04-13",
+  "cohort": "24-2기",
+  "nesting_end": "2024-05-11",
+  "skill_tags": [
+   "취소",
+   "호스트",
+   "온트립"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240023",
+  "ldap": "ub_sample23",
+  "name": "김다은",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2024-08-07",
+  "cohort": "24-3기",
+  "nesting_end": "2024-09-04",
+  "skill_tags": [
+   "에스컬레이션",
+   "일본어",
+   "결제"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240024",
+  "ldap": "ub_sample24",
+  "name": "안지호",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2024-03-05",
+  "cohort": "24-1기",
+  "nesting_end": "2024-04-02",
+  "skill_tags": [
+   "취소",
+   "온트립",
+   "에스컬레이션"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240025",
+  "ldap": "ub_sample25",
+  "name": "강시우",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2023-09-13",
+  "cohort": "23-3기",
+  "nesting_end": "2023-10-11",
+  "skill_tags": [
+   "환불"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240026",
+  "ldap": "ub_sample26",
+  "name": "이지호",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2025-03-30",
+  "cohort": "25-1기",
+  "nesting_end": "2025-04-27",
+  "skill_tags": [
+   "영어"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240027",
+  "ldap": "ub_sample27",
+  "name": "윤도윤",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2026-09-30",
+  "cohort": "26-3기",
+  "nesting_end": "2026-10-28",
+  "skill_tags": [
+   "취소",
+   "호스트"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240028",
+  "ldap": "ub_sample28",
+  "name": "박지안",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2025-08-13",
+  "cohort": "25-3기",
+  "nesting_end": "2025-09-10",
+  "skill_tags": [
+   "결제",
+   "환불"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240029",
+  "ldap": "ub_sample29",
+  "name": "이예준",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2025-08-16",
+  "cohort": "25-3기",
+  "nesting_end": "2025-09-13",
+  "skill_tags": [
+   "영어",
+   "취소"
+  ],
+  "status": "재직"
+ },
+ {
+  "agent_id": "E240030",
+  "ldap": "ub_sample30",
+  "name": "서시우",
+  "team": "R2-A",
+  "sv_email": "sv.park@example.com",
+  "hire_date": "2023-06-26",
+  "cohort": "23-2기",
+  "nesting_end": "2023-07-24",
+  "skill_tags": [
+   "결제",
+   "호스트"
+  ],
+  "status": "재직"
+ }
+]

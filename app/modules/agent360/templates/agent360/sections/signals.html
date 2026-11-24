@@ -1,0 +1,12 @@
+{% from "agent360/_macros.html" import signal_chip, status_ctl %}
+<section class="card">
+  <h2>오늘 신호 <span class="muted small">{{ as_of }}</span></h2>
+  {% for s in signals %}
+  <div class="sig" style="margin-bottom:8px">
+    <div class="sig-main">{{ signal_chip(s) }}<span class="evidence">{{ s.evidence }}</span></div>
+    {{ status_ctl(s, statuses, can_write) }}
+  </div>
+  {% else %}
+  <div class="muted">오늘 신호가 없습니다.</div>
+  {% endfor %}
+</section>

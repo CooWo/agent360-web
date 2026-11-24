@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "agent360/_macros.html" import signal_chip %}
+{% block title %}{{ agent.name }} · {{ app_title }}{% endblock %}
+{% block content %}
+{% if saved %}<div class="notice ok">코칭 기록을 저장했습니다.</div>{% endif %}
+<div class="page-head">
+  <div>
+    <h1>{{ agent.name }} <span class="muted small mono">{{ agent.agent_id }}{% if agent.ldap %} · {{ agent.ldap }}{% endif %}</span></h1>
+    <p class="muted">
+      {{ team_label }} · 입사 {{ agent.hire_date }} · {{ agent.cohort }} · 네스팅 종료 {{ agent.nesting_end }}
+      · <span class="badge {{ 'ok' if agent.status == '재직' else 'neutral' }}">{{ agent.status }}</span>
+    </p>
+    <div>{% for t in agent.skill_tags %}<span class="tag">{{ t }}</span>{% endfor %}
+      {% for s in signals %}{{ signal_chip(s) }} {% endfor %}</div>
+  </div>
+  {% if can_write %}<a class="btn primary" href="/agent360/coaching?agent_id={{ agent.agent_id }}">코칭 기록하기</a>{% endif %}
+</div>
+
+<div class="stack">
+{# 섹션 순서·노출은 screens.json → agent_detail.sections 에서 바꾼다 #}
+{% for sec in cfg.sections %}
+  {% include "agent360/sections/" ~ sec ~ ".html" %}
+{% endfor %}
+</div>
+{% endblock %}

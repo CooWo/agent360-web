@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% from "agent360/_macros.html" import score_badge, signal_chip, status_ctl %}
+{% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.title }}</h1>
+    <p class="muted">{{ as_of }} 기준 · {{ cfg.subtitle }} · 담당 {{ total_agents }}명 중 신호 {{ ranked_total }}명</p>
+  </div>
+</div>
+
+<div class="split">
+  <section class="card">
+    <h2>먼저 볼 상담사 상위 {{ ranked|length }}명</h2>
+    {% for r in ranked %}
+    <div class="agent-row">
+      <div>{{ score_badge(r.score) }}</div>
+      <div class="who-cell">
+        <a class="name" href="/agent360/agents/{{ r.agent.agent_id }}">{{ r.agent.name }}</a>
+        <div class="muted small">{{ teams.get(r.agent.team, r.agent.team) }} · {{ r.agent.agent_id }}</div>
+        {% if r.open %}<div class="small"><span class="badge warn">미확인 {{ r.open }}</span></div>{% endif %}
+      </div>
+      <div class="sig-list">
+        {% for s in r.signals %}
+        <div class="sig">
+          <div class="sig-main">{{ signal_chip(s) }}<span class="evidence">{{ s.evidence }}</span></div>
+          {{ status_ctl(s, statuses, can_write) }}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="empty">오늘 확인할 신호가 없습니다.</div>
+    {% endfor %}
+    {% if ranked_total > ranked|length %}
+    <p class="muted small">나머지 {{ ranked_total - ranked|length }}명은 <a href="/agent360/agents">상담사 목록</a>에서 신호 점수 순으로 볼 수 있습니다.</p>
+    {% endif %}
+  </section>
+
+  <aside class="stack">
+    <section class="card">
+      <h2>코칭 후속 확인</h2>
+      {% if followups.overdue %}
+      <h3 class="small" style="color:var(--danger)">기한 지남 {{ followups.overdue|length }}건</h3>
+      {% for c in followups.overdue %}
+      <div class="small" style="margin-bottom:6px">
+        <a href="/agent360/agents/{{ c.agent_id }}#coaching">{{ names.get(c.agent_id, c.agent_id) }}</a>
+        · {{ c.issue_type }} <span class="muted">· {{ c.follow_up_date }} ({{ days_ago(c.follow_up_date, as_of) }})</span>
+      </div>
+      {% endfor %}
+      {% endif %}
+      <h3 class="small" style="margin-top:10px">{{ cfg.followup_days }}일 안 예정 {{ followups.soon|length }}건</h3>
+      {% for c in followups.soon %}
+      <div class="small" style="margin-bottom:6px">
+        <a href="/agent360/agents/{{ c.agent_id }}#coaching">{{ names.get(c.agent_id, c.agent_id) }}</a>
+        · {{ c.issue_type }} <span class="muted">· {{ c.follow_up_date }}</span>
+      </div>
+      {% else %}
+      <div class="muted small">예정 없음</div>
+      {% endfor %}
+    </section>
+    <section class="card">
+      <h2>아침 브리핑</h2>
+      <p class="muted small" style="margin:0">6단계에서 Gemini 가 위 신호를 문장으로 요약해 이 자리에 보여 줍니다. (숫자는 SQL 결과 그대로)</p>
+    </section>
+  </aside>
+</div>
+{% endblock %}

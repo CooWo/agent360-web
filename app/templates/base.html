@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ app_title }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ static('css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ static('css/app.css') }}">
+  {% if ai_dock %}<script>try{if(localStorage.getItem('a360.aiDock')==='closed'||(!localStorage.getItem('a360.aiDock')&&innerWidth<1440))document.documentElement.classList.add('ai-closed')}catch(e){}</script>{% endif %}
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/">{{ app_title }}</a>
+    <nav class="modnav">
+      {% for n in nav %}<a href="{{ n.path }}" class="{{ 'current' if n.current }}">{{ n.title }}</a>{% endfor %}
+    </nav>
+    <div class="who">
+      {% if is_local and users_for_switch %}
+      <label class="devswitch" title="로컬 개발 전용: 다른 역할로 화면 확인">
+        <select id="devswitch">
+          {% for u in users_for_switch %}
+          <option value="{{ u.email }}" {{ 'selected' if user and u.email == user.email }}>{{ u.name }} · {{ ROLE_LABEL[u.role] }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      {% endif %}
+      {% if user %}<span>{{ user.name }}</span><span class="role">{{ user.role_label }}</span>{% endif %}
+    </div>
+  </header>
+  <div class="layout{{ ' with-ai' if ai_dock }}">
+    <aside class="side">
+      {% for m in side %}<a href="{{ m.path }}" class="{{ 'active' if m.id == active }}">{{ m.label }}</a>{% endfor %}
+    </aside>
+    <main>
+      {% block content %}{% endblock %}
+    </main>
+    {% if ai_dock %}
+    {% from "_ai_chat.html" import ai_chat %}
+    <aside class="ai-dock" aria-label="AI 질문 패널">
+      <div class="ai-dock-head">
+        <div><b>AI 질문</b> <span class="muted small">{{ ai_dock.label }}</span></div>
+        <div class="toolbar">
+          <button class="btn sm ai-ping" type="button" title="연결 점검" {{ 'disabled' if not ai_dock.enabled }}>점검</button>
+          <button class="btn sm ai-new" type="button" title="새 대화" {{ 'disabled' if not ai_dock.enabled }}>새 대화</button>
+          <a class="btn sm" href="/assistant" title="넓은 화면으로">크게</a>
+          <button class="btn sm ai-dock-toggle" type="button" title="패널 접기" aria-label="AI 패널 접기">›</button>
+        </div>
+      </div>
+      {% if not ai_dock.enabled %}<div class="notice small" style="margin:0 12px;background:var(--warn-weak);color:var(--warn)">AI 연결이 설정되지 않았습니다 (.env AI_AGENT_*)</div>{% endif %}
+      {{ ai_chat(ai_dock.examples, ai_dock.max_len, ai_dock.enabled, compact=true) }}
+    </aside>
+    <button class="ai-dock-open ai-dock-toggle" type="button" title="AI 질문 열기" aria-label="AI 질문 열기">AI<span>질문</span></button>
+    {% endif %}
+  </div>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="{{ static('js/app.js') }}"></script>
+</body>
+</html>

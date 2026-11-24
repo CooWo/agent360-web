@@ -1,0 +1,72 @@
+"""웹 서버 전체 경로 테스트 — FastAPI 가 설치된 환경(내 PC, CI)에서 실행된다."""
+import pytest
+
+pytest.importorskip("fastapi")
+pytest.importorskip("httpx")
+
+
+@pytest.fixture()
+def client(backend):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+    return TestClient(app)
+
+
+def _as(client, email):
+    client.cookies.set("dev_user", email)
+    return client
+
+
+def test_pages_ok(client):
+    c = _as(client, "sv.kim@example.com")
+    for path in ("/agent360", "/agent360/agents", "/agent360/coaching", "/healthz"):
+        assert c.get(path).status_code == 200, path
+    assert c.get("/agent360/admin").status_code == 403
+
+
+def test_api_signal_status_and_coaching(client):
+    c = _as(client, "sv.kim@example.com")
+    ranked = c.get("/api/agent360/signals/today").json()
+    sid = ranked[0]["signals"][0]["signal_id"]
+    r = c.post(f"/api/agent360/signals/{sid}/status", json={"status": "확인"})
+    assert r.status_code == 200 and r.json()["status"] == "확인"
+    aid = c.get("/api/agent360/agents").json()[0]["agent_id"]
+    body = {"agent_id": aid, "date": "2026-11-20", "issue_type": "정책 오안내", "summary": "s",
+            "agreed_action": "a", "follow_up_date": "2026-11-27"}
+    r = c.post("/api/agent360/coaching", json=body)
+    assert r.status_code == 201
+    bad = c.post("/api/agent360/coaching", json={**body, "issue_type": "x"})
+    assert bad.status_code == 400 and "issue_type" in bad.json()["errors"]
+
+
+def test_outside_scope_404_and_viewer_forbidden(client):
+    c = _as(client, "sv.kim@example.com")
+    assert c.get("/agent360/agents/E240025").status_code == 404      # R2 상담사
+    v = _as(client, "viewer@example.com")
+    assert v.get("/agent360/coaching").status_code == 403
+
+
+def test_form_post_redirects(client):
+    c = _as(client, "sv.kim@example.com")
+    aid = c.get("/api/agent360/agents").json()[0]["agent_id"]
+    r = c.post("/agent360/coaching", data={"agent_id": aid, "date": "2026-11-20", "issue_type": "근태",
+                                           "summary": "s", "agreed_action": "a", "follow_up_date": "2026-11-27"},
+               follow_redirects=False)
+    assert r.status_code == 303 and f"/agent360/agents/{aid}" in r.headers["location"]
+
+
+def test_assistant_page_and_api(client, monkeypatch):
+    from tests.test_assistant import CHAT_RESP, FakeSession
+    from app.core.ai.data_agent import DataAgent
+    import app.modules.assistant.api as api_mod
+    agent = DataAgent("v11-2026", "global", "agent_x",
+                      session=FakeSession([(200, {"name": "n/c1"}), (200, CHAT_RESP)]))
+    monkeypatch.setattr(api_mod, "get_data_agent", lambda: agent)
+    m = _as(client, "manager@example.com")
+    assert m.get("/assistant").status_code == 200
+    r = m.post("/api/assistant/ask", json={"question": "지난주 NPS"})
+    assert r.status_code == 200 and "<table" in r.json()["html"] and r.json()["conversation"] == "n/c1"
+    assert m.post("/api/assistant/ask", json={"question": " "}).status_code == 400
+    s = _as(client, "sv.kim@example.com")
+    assert s.get("/assistant").status_code == 200                   # SV 도 사용 가능

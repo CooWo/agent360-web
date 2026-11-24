@@ -1,0 +1,14 @@
+<section class="card">
+  <h2>QA 평가 · 최근 {{ cfg.qa_days }}일 <span class="muted small">평균 {{ qa_avg|num(1) }}점</span></h2>
+  {% if qa %}
+  <table>
+    <thead><tr><th>평가일</th><th class="r">총점</th><th>오류 유형</th></tr></thead>
+    <tbody>
+      {% for q in qa %}
+      <tr><td>{{ q.date }}</td><td class="r num">{{ q.score|num(1) }}</td>
+        <td>{% for e in q.error_types %}<span class="badge danger">{{ e }}</span> {% else %}<span class="muted">–</span>{% endfor %}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<div class="muted">평가 기록이 없습니다.</div>{% endif %}
+</section>

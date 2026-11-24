@@ -1,0 +1,37 @@
+/* 디자인 토큰 — Capacity Web 과 같은 파일을 쓴다. 색·간격·글꼴은 여기서만 바꾼다. */
+:root {
+  --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --surface-2: #f1f3f6;
+  --border: #e3e6eb;
+  --text: #1d2330;
+  --text-2: #5b6474;
+  --text-3: #8a93a3;
+
+  --primary: #2f5bea;
+  --primary-weak: #e8eefe;
+  --ok: #1f8a4c;
+  --ok-weak: #e3f4ea;
+  --warn: #b26a00;
+  --warn-weak: #fff3dc;
+  --danger: #c63b3b;
+  --danger-weak: #fde8e8;
+
+  --sev-high: var(--danger);
+  --sev-mid: var(--warn);
+  --sev-low: #6b7280;
+
+  --att-ok: #dfe7f5;
+  --att-absent: #e25555;
+  --att-late: #f0a33a;
+  --att-leave: #8fb8f2;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --gap: 16px;
+  --shadow: 0 1px 2px rgba(16, 24, 40, .06);
+  --side-w: 208px;
+}

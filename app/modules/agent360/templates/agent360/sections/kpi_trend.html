@@ -1,0 +1,11 @@
+<section class="card">
+  <h2>KPI 추이 · 최근 {{ weekly|length }}주 <span class="muted small">(주차 = 토요일 마감, 점선 = 직전 4주 평균, 마지막 주는 진행 중)</span></h2>
+  <div class="grid g3">
+    {% for c in charts %}
+    <div>
+      <h3>{{ c.label }}{% if c.unit %} <span class="muted small">({{ c.unit }})</span>{% endif %}</h3>
+      {{ c.svg|safe }}
+    </div>
+    {% endfor %}
+  </div>
+</section>

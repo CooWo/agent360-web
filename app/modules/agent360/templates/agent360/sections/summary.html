@@ -1,0 +1,15 @@
+{% from "agent360/_macros.html" import delta %}
+<section class="grid g4">
+  {% for c in charts %}
+  <div class="card kpi-card">
+    <div class="label">{{ c.label }} · 최근 4주</div>
+    <div class="value num">{{ c.recent|num(c.digits) }}<span class="small muted"> {{ c.unit }}</span></div>
+    <div class="small muted">직전 4주 {{ c.prior|num(c.digits) }} {{ delta(c.delta, c.better, c.digits) }}</div>
+  </div>
+  {% endfor %}
+  <div class="card kpi-card">
+    <div class="label">최근 30일 근태 · QA</div>
+    <div class="value num">결근 {{ attendance.absent }}<span class="small muted"> · 지각 {{ attendance.late }}</span></div>
+    <div class="small muted">QA 평균 {{ qa_avg|num(1) }}점 ({{ qa|length }}건) · 코칭 {{ coaching_count }}회{% if last_coaching %}, 마지막 {{ days_ago(last_coaching, as_of) }}{% endif %}</div>
+  </div>
+</section>

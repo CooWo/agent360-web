@@ -1,0 +1,24 @@
+# 매니저 그룹 — 상담사 360 웹 접속 + manager 역할 (전체 팀 조회·코칭/신호 처리)
+# 반영: python scripts\deploy.py grant --project v12-2027 --file access\managers.txt --role manager
+# 사람을 추가/수정하면 같은 명령을 다시 실행 (이미 있는 사람은 그대로, 새 사람만 추가됨)
+shintae.kim@ubase.co.kr
+narae.kang4@ubase.co.kr
+daok.kim@ubase.co.kr
+seoyoung.tak@ubase.co.kr
+mayuri.saegusa@ubase.co.kr
+donghwan.kim@ubase.co.kr
+hyeonsu.park1@ubase.co.kr
+cheng.si@ubase.co.kr
+chunkyung.park@ubase.co.kr
+gihun.nam@ubase.co.kr
+youngdae.kwon01@ubase.co.kr
+choi.wonyoung@ubase.co.kr
+junhwa.yoo@ubase.co.kr
+yoseop.song@ubase.co.kr
+myeongjin.han1@ubase.co.kr
+sungwoo.park@ubase.co.kr
+sanguk.lee8@ubase.co.kr
+sangeun.kim@ubase.co.kr
+seonggyun.hong@ubase.co.kr
+yujung.jo@ubase.co.kr
+juam.back@ubase.co.kr

@@ -1,0 +1,11 @@
+<section class="card">
+  <h2>인센티브</h2>
+  {% if not sensitive %}
+  <div class="locked">인센티브는 담당 SV와 매니저만 볼 수 있습니다.</div>
+  {% elif incentive %}
+  <table>
+    <thead><tr><th>월</th><th>등급</th><th>산정 기준</th></tr></thead>
+    <tbody>{% for i in incentive %}<tr><td>{{ i.month }}</td><td><b>{{ i.grade }}</b></td><td class="muted">{{ i.note }}</td></tr>{% endfor %}</tbody>
+  </table>
+  {% else %}<div class="muted">인센티브 기록이 없습니다.</div>{% endif %}
+</section>

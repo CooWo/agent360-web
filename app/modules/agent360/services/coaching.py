@@ -1,0 +1,80 @@
+"""코칭 기록 — 기획안 6-3.
+
+1단계: SV 가 직접 칸을 채워 저장 (자유 입력 원문 raw_note 도 같이 저장).
+6단계: Gemini 가 raw_note 를 같은 스키마(상담사·이슈 유형·요약·합의 행동·후속 확인일)로 채워 주고,
+       SV 는 미리보기를 고쳐서 저장한다. → validate() 는 그대로 재사용.
+"""
+from __future__ import annotations
+
+from datetime import date, timedelta
+
+from app.core.audit import audit
+from app.core.errors import InvalidInput, NotFound, PermissionDenied
+from app.core.permissions import User
+
+FIELDS = ("agent_id", "date", "issue_type", "summary", "agreed_action", "follow_up_date", "raw_note")
+
+
+def validate(backend, user: User, form: dict) -> dict:
+    """입력값 검사 + 정리. 오류는 칸별 메시지로 InvalidInput."""
+    if not user.can_write:
+        raise PermissionDenied("코칭 기록은 SV·매니저만 저장할 수 있습니다.")
+    f = {k: (str(form.get(k) or "")).strip() for k in FIELDS}
+    err: dict[str, str] = {}
+    agent = backend.get_agent(user.scope, f["agent_id"]) if f["agent_id"] else None
+    if not agent:
+        err["agent_id"] = "상담사를 선택해 주세요 (담당 팀만 가능)."
+    elif not user.can_view_sensitive(agent["team"]):
+        err["agent_id"] = "담당 팀 상담사만 기록할 수 있습니다."
+    if f["issue_type"] not in backend.issue_types():
+        err["issue_type"] = "이슈 유형을 목록에서 선택해 주세요."
+    for k, label in (("summary", "요약"), ("agreed_action", "합의 행동")):
+        if not f[k]:
+            err[k] = f"{label}을(를) 입력해 주세요."
+        elif len(f[k]) > 1000:
+            err[k] = f"{label}은(는) 1,000자 이내로 입력해 주세요."
+    try:
+        d = date.fromisoformat(f["date"])
+    except ValueError:
+        err["date"] = "코칭 일자를 입력해 주세요."
+        d = None
+    try:
+        fu = date.fromisoformat(f["follow_up_date"])
+        if d and fu < d:
+            err["follow_up_date"] = "후속 확인일은 코칭 일자 이후여야 합니다."
+    except ValueError:
+        err["follow_up_date"] = "후속 확인일을 입력해 주세요."
+    if len(f["raw_note"]) > 4000:
+        err["raw_note"] = "원문 메모는 4,000자 이내로 입력해 주세요."
+    if err:
+        raise InvalidInput(err)
+    return f
+
+
+def create(backend, user: User, form: dict) -> dict:
+    f = validate(backend, user, form)
+    rec = backend.add_coaching({**f, "sv_email": user.email})
+    audit(backend, user, "coaching_create", "coaching", rec["coaching_id"],
+          {"agent_id": rec["agent_id"], "issue_type": rec["issue_type"], "follow_up_date": rec["follow_up_date"]})
+    return rec
+
+
+def complete(backend, user: User, coaching_id: str) -> dict:
+    if not user.can_write:
+        raise PermissionDenied("후속 완료 처리는 SV·매니저만 할 수 있습니다.")
+    rows = [c for c in backend.coaching(user.scope) if c["coaching_id"] == coaching_id]
+    if not rows or not user.can_view_sensitive(rows[0]["team"]):
+        raise NotFound("코칭 기록을 찾을 수 없거나 권한 밖입니다.")
+    rec = backend.complete_coaching(coaching_id, user.email)
+    audit(backend, user, "coaching_complete", "coaching", coaching_id, {"agent_id": rows[0]["agent_id"]})
+    return rec
+
+
+def followups(backend, user: User, as_of: str, within_days: int) -> dict:
+    """후속 확인: 지난 것(미완료)과 곧 다가오는 것."""
+    t = date.fromisoformat(as_of)
+    rows = [c for c in backend.coaching(user.scope) if not c["done"] and user.can_view_sensitive(c["team"])]
+    overdue = [c for c in rows if date.fromisoformat(c["follow_up_date"]) < t]
+    soon = [c for c in rows if t <= date.fromisoformat(c["follow_up_date"]) <= t + timedelta(days=within_days)]
+    key = lambda c: c["follow_up_date"]  # noqa: E731
+    return {"overdue": sorted(overdue, key=key), "soon": sorted(soon, key=key)}

@@ -1,0 +1,9 @@
+<section class="card">
+  <h2>교육 이력</h2>
+  {% if training %}
+  <table>
+    <thead><tr><th>교육</th><th>구분</th><th>수료일</th></tr></thead>
+    <tbody>{% for t in training %}<tr><td>{{ t.course }}</td><td><span class="tag">{{ t.kind }}</span></td><td>{{ t.completed_on }}</td></tr>{% endfor %}</tbody>
+  </table>
+  {% else %}<div class="muted">교육 이력이 없습니다.</div>{% endif %}
+</section>

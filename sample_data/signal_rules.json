@@ -1,0 +1,54 @@
+[
+ {
+  "rule": "kpi_drop",
+  "label": "KPI 급락",
+  "severity": "중",
+  "description": "최근 2주 평균이 본인 직전 8주 평균보다 기준% 이상 나빠짐 (처리 건수·NPS)",
+  "params": {
+   "drop_pct": 15
+  }
+ },
+ {
+  "rule": "absence_pattern",
+  "label": "결근 패턴",
+  "severity": "중",
+  "description": "30일 내 결근 기준 횟수 이상",
+  "params": {
+   "absences_30d": 3
+  }
+ },
+ {
+  "rule": "qa_repeat",
+  "label": "QA 반복 오류",
+  "severity": "상",
+  "description": "같은 오류 유형이 30일 내 기준 횟수 이상",
+  "params": {
+   "repeat_30d": 2
+  }
+ },
+ {
+  "rule": "coaching_overdue",
+  "label": "코칭 후속 미이행",
+  "severity": "중",
+  "description": "후속 확인일 경과 + 미완료",
+  "params": {}
+ },
+ {
+  "rule": "new_hire",
+  "label": "신입 주의",
+  "severity": "중",
+  "description": "네스팅 종료 기준일 이내 + 처리 건수가 기수 평균 미만",
+  "params": {
+   "weeks_after_nesting": 4
+  }
+ },
+ {
+  "rule": "no_coaching",
+  "label": "장기 미코칭",
+  "severity": "하",
+  "description": "마지막 코칭 후 기준일 경과 (코칭 이력 없음 포함)",
+  "params": {
+   "days": 45
+  }
+ }
+]

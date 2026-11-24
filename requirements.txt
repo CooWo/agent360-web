@@ -1,0 +1,7 @@
+# 실행
+fastapi>=0.115
+uvicorn[standard]>=0.30
+jinja2>=3.1
+python-multipart>=0.0.9      # 화면 폼(POST) 처리
+google-cloud-bigquery>=3.25  # DATA_BACKEND=bigquery 일 때
+google-auth>=2.30            # IAP JWT 검증 (IAP_AUDIENCE 설정 시)

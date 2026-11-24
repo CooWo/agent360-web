@@ -1,0 +1,542 @@
+[
+ {
+  "agent_id": "E240001",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240001",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240001",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240002",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240002",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240002",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240003",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240003",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240003",
+  "month": "2026-08",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240004",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240004",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240004",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240005",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240005",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240005",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240006",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240006",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240006",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240007",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240007",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240007",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240008",
+  "month": "2026-10",
+  "grade": "S",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240008",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240008",
+  "month": "2026-08",
+  "grade": "S",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240009",
+  "month": "2026-10",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240009",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240009",
+  "month": "2026-08",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240010",
+  "month": "2026-10",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240010",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240010",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240011",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240011",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240011",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240012",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240012",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240012",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240013",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240013",
+  "month": "2026-09",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240013",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240014",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240014",
+  "month": "2026-09",
+  "grade": "S",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240014",
+  "month": "2026-08",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240015",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240015",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240015",
+  "month": "2026-08",
+  "grade": "S",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240016",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240016",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240016",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240017",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240017",
+  "month": "2026-09",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240017",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240018",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240018",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240018",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240019",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240019",
+  "month": "2026-09",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240019",
+  "month": "2026-08",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240020",
+  "month": "2026-10",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240020",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240020",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240021",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240021",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240021",
+  "month": "2026-08",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240022",
+  "month": "2026-10",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240022",
+  "month": "2026-09",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240022",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240023",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240023",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240023",
+  "month": "2026-08",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240024",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240024",
+  "month": "2026-09",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240024",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240025",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240025",
+  "month": "2026-09",
+  "grade": "B",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240025",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240026",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240026",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240026",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240027",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240027",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240027",
+  "month": "2026-08",
+  "grade": "C",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240028",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240028",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240028",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240029",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240029",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240029",
+  "month": "2026-08",
+  "grade": "S",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240030",
+  "month": "2026-10",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240030",
+  "month": "2026-09",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ },
+ {
+  "agent_id": "E240030",
+  "month": "2026-08",
+  "grade": "A",
+  "note": "처리 건수·NPS·QA 가중 합산"
+ }
+]

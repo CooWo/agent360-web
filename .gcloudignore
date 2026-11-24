@@ -1,0 +1,16 @@
+# gcloud run deploy --source . 때 올리지 않을 것
+.gcloudignore
+.git
+.gitignore
+.env
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+preview/
+tests/
+docs/
+sql/
+scripts/
+sample_data/runtime/
+access/

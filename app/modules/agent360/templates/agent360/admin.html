@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}관리 · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>관리</h1><p class="muted">1단계는 조회만 됩니다. 기준값 수정·권한 편집은 2·5단계에서 감사 로그와 함께 붙입니다.</p></div>
+</div>
+<div class="stack">
+  <section class="card">
+    <h2>신호 규칙 · 기준값</h2>
+    <table>
+      <thead><tr><th>신호</th><th>심각도</th><th>규칙</th><th>기준값</th></tr></thead>
+      <tbody>{% for r in rules %}
+        <tr><td><b>{{ r.label }}</b><div class="muted small mono">{{ r.rule }}</div></td><td>{{ r.severity }}</td>
+          <td>{{ r.description }}</td>
+          <td class="mono">{% for k, v in r.params.items() %}{{ k }} = {{ v }}<br>{% else %}–{% endfor %}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+  </section>
+  <section class="card">
+    <h2>사용자 · 역할</h2>
+    <table>
+      <thead><tr><th>이메일</th><th>이름</th><th>역할</th><th>팀</th></tr></thead>
+      <tbody>{% for u in users %}
+        <tr><td class="mono">{{ u.email }}</td><td>{{ u.name }}</td><td>{{ ROLE_LABEL[u.role] }}</td>
+          <td>{% for t in u.teams %}<span class="tag">{{ teams.get(t, t) }}</span>{% else %}<span class="muted">계정 전체</span>{% endfor %}</td></tr>
+      {% endfor %}</tbody>
+    </table>
+  </section>
+  <section class="card">
+    <h2>코칭 이슈 유형</h2>
+    {% for t in issue_types %}<span class="tag">{{ t }}</span>{% endfor %}
+  </section>
+</div>
+{% endblock %}

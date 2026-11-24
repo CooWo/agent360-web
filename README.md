@@ -8,9 +8,9 @@ SV가 매일 "오늘 누구를 봐야 하는지"를 바로 알 수 있도록, �
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate            # Windows PowerShell: .\.venv\Scripts\Activate.ps1
+source .venv/bin/activate            
 pip install -r requirements-dev.txt
-cp .env.example .env                 # 그대로 두면 샘플 데이터 + 가짜 로그인
+cp .env.example .env                
 uvicorn app.main:app --reload
 ```
 
@@ -42,7 +42,7 @@ pytest -q
 ## 3. 서버 없이 화면 미리보기
 
 ```bash
-python scripts/preview.py            # preview/*.html 로 역할별 20개 화면 생성
+python scripts/preview.py         
 ```
 
 ## 4. BigQuery 연결 (2단계)
@@ -51,19 +51,19 @@ python scripts/preview.py            # preview/*.html 로 역할별 20개 화면
 
 ```powershell
 gcloud auth application-default login
-python scripts\bq_setup.py ddl    --project v12-2027   # 테이블 만들기
-python scripts\bq_setup.py sample --project v12-2027   # 샘플 올리기
-python scripts\bq_setup.py check  --project v12-2027   # 앱 조회 점검
+python scripts\bq_setup.py ddl    
+python scripts\bq_setup.py sample 
+python scripts\bq_setup.py check  
 # .env: DATA_BACKEND=bigquery, GCP_PROJECT=v12-2027
 ```
 
 ## 5. 배포 (Cloud Run + IAP, 3단계)
 
 ```bat
-python scripts\deploy.py setup  --project v12-2027      # 처음 한 번
-python scripts\deploy.py deploy --project v12-2027      # 코드 바꿀 때마다
-python scripts\deploy.py grant  --project v12-2027 --member user:이메일@ubase.co.kr
-python scripts\bq_setup.py user --project v12-2027 --email 이메일@ubase.co.kr --role manager
+python scripts\deploy.py setup  --project v12-2027     
+python scripts\deploy.py deploy --project v12-2027     
+python scripts\deploy.py grant  --project v12-2027 
+python scripts\bq_setup.py user --project v12-2027
 ```
 
 접속 허용(IAP)과 앱 안 역할(`agent360.user_roles`)은 따로입니다. 자세한 순서는 [docs/3단계-배포가이드.md](docs/3단계-배포가이드.md).

@@ -94,3 +94,7 @@ docs/Info테이블-설계.md     상담사 마스터(사번 기준, LDAP 연결)
 ```
 
 AI 질문 연결은 [docs/AI연결가이드.md](docs/AI연결가이드.md). 처음 실행은 [docs/1단계-로컬실행가이드.md](docs/1단계-로컬실행가이드.md), 개발 규칙은 [docs/개발가이드.md](docs/개발가이드.md)를 보세요.
+
+## 다음 작업: Capacity Web & AI (기획안 1)
+
+Claude Code 로 진행합니다. `CLAUDE.md` → `docs/capacity/00-분석.md` → `01-설계.md` → `02-작업목록.md` 순서로 읽고, 작업목록의 C-01 부터 하나씩 진행합니다. 원본 기획안은 `docs/plans/기획안1-capacity-web-ai.md`.

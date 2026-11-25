@@ -115,6 +115,21 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.info_edits` (
 );
 
 -- 지금 상태 = 시트 마트 + 웹 수정분 (같은 칸은 가장 최근 수정). BI·다른 모듈은 이 뷰를 읽는다.
+-- 팀 구성 (시트 'OPS TL') — 불러올 때마다 통째로 바꾼다. 상담사 360 의 팀(TL 한글 이름)·명단 기준.
+CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.team_roster` (
+  tl_name      STRING NOT NULL OPTIONS (description = 'TL 한글 이름 (시트 블록 위 이름)'),
+  sort_order   INT64           OPTIONS (description = '시트 왼쪽부터 TL 순서'),
+  shift        STRING,
+  emp_id       STRING NOT NULL,
+  name         STRING          OPTIONS (description = '한글 이름'),
+  e_name       STRING,
+  display_name STRING,
+  load_id      STRING,
+  loaded_at    TIMESTAMP,
+  loaded_by    STRING,
+  source       STRING
+);
+
 CREATE OR REPLACE VIEW `${PROJECT}.roster.v_agent_info` AS
 WITH latest AS (
   SELECT * FROM `${PROJECT}.roster.info_edits` WHERE active

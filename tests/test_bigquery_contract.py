@@ -135,6 +135,8 @@ def test_every_sql_param_is_bound(fake_backend):
     b.complete_coaching("C1", "s@ubase.co.kr")
     b.signals(sv, "2026-11-20"); b.set_signal_status("S1", "확인", "s@ubase.co.kr")
     b.signal_rules(); b.issue_types()
+    b.qa_coaching(); b.deactivate_qa_coaching("CH1")
+    b.add_qa_coaching([{"row_id": "Q1", "change_id": "CH1", "agent_id": "E1", "qa_avg": 80.5, "evaluations": 2}])
     b.write_audit({"ts": "2026-11-20T00:00:00+00:00", "actor": "a", "role": "sv", "action": "x",
                    "target_type": "agent", "target_id": "E1", "detail": {}})
     assert len(fake.calls) >= 20

@@ -34,6 +34,11 @@ class RosterBigQuery:
                                   duplicates, issues FROM {self.d}.info_loads ORDER BY loaded_at DESC LIMIT @limit""",
                        limit=limit)
 
+    def team_roster(self) -> list[dict]:
+        return self._q(f"""SELECT tl_name, sort_order, shift, emp_id, name, e_name, display_name, load_id,
+                                  CAST(loaded_at AS STRING) loaded_at, loaded_by
+                           FROM {self.d}.team_roster ORDER BY sort_order, emp_id""")
+
     def info_edits(self) -> list[dict]:
         return self._q(f"""SELECT edit_id, change_id, emp_id, field, value, is_new, edited_at, edited_by
                            FROM {self.d}.info_edits WHERE active ORDER BY edited_at, edit_id""")

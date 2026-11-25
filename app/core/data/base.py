@@ -62,6 +62,13 @@ class AuditStore(Protocol):
     def write_audit(self, event: dict) -> None: ...
 
 
+class QaCoachingStore(Protocol):
+    """코칭 대시보드 내보내기(zip)에서 올린 상담사별 QA·코칭 — 가장 최근에 저장한 묶음(change_id)만 화면에 쓴다."""
+    def qa_coaching(self) -> list[dict]: ...
+    def add_qa_coaching(self, rows: list[dict]) -> None: ...
+    def deactivate_qa_coaching(self, change_id: str) -> None: ...
+
+
 class DataBackend(AsOfSource, UserDirectory, TeamDirectory, AgentDirectory, AgentFacts,
-                  CoachingStore, SignalStore, AuditStore, Protocol):
+                  CoachingStore, SignalStore, AuditStore, QaCoachingStore, Protocol):
     """모든 인터페이스를 합친 백엔드 (상담사 360 기본 데이터)."""

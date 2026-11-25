@@ -51,6 +51,21 @@ class SampleBackend:
     def _write_runtime(self, name, data):
         (self.runtime / f"{name}.json").write_text(json.dumps(data, ensure_ascii=False, indent=1), encoding="utf-8")
 
+    # ── QA · 코칭 올리기 ────────────────────────────
+    def qa_coaching(self) -> list[dict]:
+        rows = [r for r in self._read_runtime("qa_coaching", []) if r.get("active", True)]
+        if not rows:
+            return []
+        last = max(rows, key=lambda r: r["uploaded_at"])["change_id"]
+        return [r for r in rows if r["change_id"] == last]
+
+    def add_qa_coaching(self, rows: list[dict]) -> None:
+        self._write_runtime("qa_coaching", self._read_runtime("qa_coaching", []) + [{**r, "active": True} for r in rows])
+
+    def deactivate_qa_coaching(self, change_id: str) -> None:
+        self._write_runtime("qa_coaching", [{**r, "active": r.get("active", True) and r["change_id"] != change_id}
+                                            for r in self._read_runtime("qa_coaching", [])])
+
     def _team_of(self, agent_id: str) -> str | None:
         a = self._agents.get(agent_id)
         return a["team"] if a else None

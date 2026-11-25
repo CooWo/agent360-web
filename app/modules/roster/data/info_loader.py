@@ -81,3 +81,52 @@ def info_loader(store):
     if s.data_backend == "bigquery":
         return InfoMartLoader(s.gcp_project, s.bq_location, s.roster_dataset)
     return SampleInfoLoader(store)
+
+
+class TeamRosterLoader:
+    """팀 구성(OPS TL) → roster.team_roster 통째로 바꾸기 (load job)."""
+
+    def __init__(self, project: str, location: str, dataset: str, client=None):
+        from google.cloud import bigquery  # 지연 import
+
+        self._bq = bigquery
+        self.client = client or bigquery.Client(project=project or None, location=location)
+        self.base = f"{self.client.project}.{dataset}"
+
+    def save(self, rows: list[dict], source: str, by: str, force: bool = False) -> str:
+        from app.modules.roster.services.team_sync import MIN_KEEP, new_load_id
+        cur = list(self.client.query(f"SELECT COUNT(*) AS n FROM `{self.base}.team_roster`").result())
+        cur = int(cur[0]["n"]) if cur else 0
+        if cur and len(rows) < cur * MIN_KEEP and not force:
+            raise LoadRefused(f"새 명단 {len(rows)}명 < 지금 {cur}명의 절반. 시트를 확인하거나 강제로 진행하세요.")
+        load_id, now = new_load_id(), datetime.now(timezone.utc).isoformat()
+        bq = self._bq
+        t = self.client.get_table(f"{self.base}.team_roster")
+        cfg = bq.LoadJobConfig(schema=t.schema, source_format=bq.SourceFormat.NEWLINE_DELIMITED_JSON,
+                               write_disposition=bq.WriteDisposition.WRITE_TRUNCATE)
+        self.client.load_table_from_json([{**r, "load_id": load_id, "loaded_at": now, "loaded_by": by, "source": source}
+                                          for r in rows], t, job_config=cfg).result()
+        return load_id
+
+
+class SampleTeamRosterLoader:
+    def __init__(self, store):
+        self.store = store
+
+    def save(self, rows: list[dict], source: str, by: str, force: bool = False) -> str:
+        from app.modules.roster.services.team_sync import MIN_KEEP, new_load_id
+        cur = len(self.store.team_roster())
+        if cur and len(rows) < cur * MIN_KEEP and not force:
+            raise LoadRefused(f"새 명단 {len(rows)}명 < 지금 {cur}명의 절반. 시트를 확인하거나 강제로 진행하세요.")
+        load_id, now = new_load_id(), datetime.now(timezone.utc).isoformat()
+        self.store.replace_team_roster([{**r, "load_id": load_id, "loaded_at": now, "loaded_by": by, "source": source}
+                                        for r in rows])
+        return load_id
+
+
+def team_loader(store):
+    from app.core.config import get_settings
+    s = get_settings()
+    if s.data_backend == "bigquery":
+        return TeamRosterLoader(s.gcp_project, s.bq_location, s.roster_dataset)
+    return SampleTeamRosterLoader(store)

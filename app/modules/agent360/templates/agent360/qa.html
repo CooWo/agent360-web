@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.title }}</h1>
+    <p class="muted">{{ cfg.subtitle }}</p>
+    {% if upload %}<p class="small muted">지금 데이터: {{ upload.source_file }} · {{ upload.uploaded_at[:16]|replace('T', ' ') }} · {{ upload.uploaded_by }}</p>
+    {% else %}<p class="small" style="color:var(--warn)">아직 올린 파일이 없습니다.</p>{% endif %}
+  </div>
+</div>
+
+{% if errors %}
+<section class="card" style="border-color:var(--danger);margin-bottom:var(--gap)">
+  <h2 style="color:var(--danger)">올릴 수 없어요</h2>
+  {% for k, v in errors.items() %}<div class="small">{{ v }}</div>{% endfor %}
+</section>
+{% endif %}
+
+{% if preview %}
+<section class="card" id="preview" style="border-color:var(--warn);margin-bottom:var(--gap)">
+  <h2>미리보기 · {{ preview.summary }}</h2>
+  <p class="small muted">{{ preview.payload.file }} — 영문 이름으로 상담사를 찾았습니다. 못 찾은 이름·동명이인은 저장하지 않습니다.</p>
+  {% if preview.payload.missing %}<p class="small"><b>못 찾은 이름 {{ preview.payload.missing|length }}</b>: {{ preview.payload.missing|join(", ") }}</p>{% endif %}
+  {% if preview.payload.dup %}<p class="small"><b>동명이인 {{ preview.payload.dup|length }}</b>: {{ preview.payload.dup|join(", ") }}</p>{% endif %}
+  <div class="table-wrap" style="max-height:320px">
+    <table>
+      <thead><tr><th>사번</th><th>이름</th><th>내보내기 이름</th><th>값</th></tr></thead>
+      <tbody>{% for d in preview.diff %}<tr><td class="mono">{{ d.key }}</td><td>{{ d.name }}</td><td class="muted">{{ d.label }}</td><td>{{ d.after }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <form method="post" action="/agent360/qa/changes/{{ preview.change_id }}/approve"><button class="btn primary">저장</button></form>
+    <form method="post" action="/agent360/qa/changes/{{ preview.change_id }}/discard"><button class="btn">취소</button></form>
+  </div>
+</section>
+{% endif %}
+
+<section class="grid g4">
+  <div class="card kpi-card"><div class="label">평가 받은 상담사</div><div class="value num">{{ total.people }}<span class="small muted"> 명</span></div>
+    <div class="small muted">평가 {{ total.evaluations }}건</div></div>
+  <div class="card kpi-card"><div class="label">QA 평균 (평가 건수 가중)</div><div class="value num">{{ total.qa_avg|num(1) }}<span class="small muted"> 점</span></div>
+    <div class="small muted">코칭 필요 기준 {{ need_below|num(0) }}점 미만</div></div>
+  <div class="card kpi-card"><div class="label">코칭 건수</div><div class="value num">{{ total.coaching }}<span class="small muted"> 건</span></div>
+    <div class="small muted">평가 {{ total.evaluations }}건 대비</div></div>
+  <div class="card kpi-card"><div class="label">코칭 필요 인원</div><div class="value num" style="color:var(--danger)">{{ need|length }}<span class="small muted"> 명</span></div>
+    <div class="small muted">QA 평균 {{ need_below|num(0) }}점 미만</div></div>
+</section>
+
+<section class="card" style="margin-top:var(--gap)">
+    <h2>코칭 필요 인원 <span class="muted small">(QA 평균 낮은 순)</span></h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>상담사</th><th>팀</th><th class="r">QA 평균</th><th class="r">평가</th><th class="r">코칭</th><th>등급 (Bad · NI · Good · VG)</th><th>코치</th></tr></thead>
+        <tbody>
+        {% for r in need %}
+          <tr><td><a href="/agent360/agents/{{ r.agent_id }}"><b>{{ r.name }}</b></a></td><td>{{ r.team }}</td>
+            <td class="r num" style="color:var(--danger)">{{ r.qa_avg|num(1) }}</td><td class="r num">{{ r.evaluations }}</td>
+            <td class="r num">{{ r.coaching_sessions }}{% if r.coaching_sessions < r.evaluations %} <span class="badge warn">부족</span>{% endif %}</td>
+            <td class="small num">{{ r.grade_bad }} · {{ r.grade_ni }} · {{ r.grade_good }} · {{ r.grade_very_good }}</td>
+            <td class="small">{{ r.coach or '–' }}</td></tr>
+        {% else %}<tr><td colspan="7" class="empty">코칭 필요 인원이 없습니다.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+</section>
+<div class="grid g2" style="margin-top:var(--gap)">
+  <section class="card">
+    <h2>팀별</h2>
+    <table>
+      <thead><tr><th>팀</th><th class="r">인원</th><th class="r">QA</th><th class="r">코칭/평가</th><th class="r">필요</th></tr></thead>
+      <tbody>{% for t in teams %}<tr><td>{{ t.team }}</td><td class="r num">{{ t.people }}</td><td class="r num">{{ t.qa_avg|num(1) }}</td>
+        <td class="r num">{{ t.coaching }}/{{ t.evaluations }}</td><td class="r num">{{ t.need }}</td></tr>
+      {% else %}<tr><td colspan="5" class="empty">없음</td></tr>{% endfor %}</tbody>
+    </table>
+  </section>
+  {% if can_upload %}
+  <section class="card">
+    <h2>파일 올리기</h2>
+    <form method="post" action="/agent360/qa/upload" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".zip" required>
+      <p class="small muted">코칭 대시보드에서 내려받은 <b>dashboard-coaching_dashboard.zip</b> 그대로. 저장 전에 미리보기를 보여 줍니다.</p>
+      <button class="btn primary">미리보기</button>
+    </form>
+    <h2 style="margin-top:var(--gap)">올린 기록</h2>
+    {% for c in history %}
+    <div class="small" style="margin-bottom:6px">
+      <span class="badge {{ 'ok' if c.status == 'applied' else ('warn' if c.status == 'preview' else 'neutral') }}">{{ c.status_label }}</span>
+      {{ c.summary }} <span class="muted">· {{ c.created_at[:16]|replace('T', ' ') }} · {{ c.actor }}</span>
+      {% if c.change_id == latest_applied %}
+      <form method="post" action="/agent360/qa/changes/{{ c.change_id }}/undo" onsubmit="return confirm('이 올리기를 되돌릴까요? (이전 파일 값으로 돌아갑니다)')"><button class="btn sm">되돌리기</button></form>
+      {% elif c.status == 'preview' %}<a href="/agent360/qa?change={{ c.change_id }}#preview">미리보기 열기</a>{% endif %}
+    </div>
+    {% else %}<div class="empty">아직 없음</div>{% endfor %}
+  </section>
+  {% endif %}
+</div>
+
+<section class="card" style="margin-top:var(--gap)">
+  <h2>전체 <span class="muted small">({{ rows|length }}명, QA 평균 낮은 순)</span></h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>상담사</th><th>팀</th><th class="r">QA 평균</th><th class="r">평가</th><th class="r">코칭</th><th>코치</th></tr></thead>
+      <tbody>{% for r in rows %}<tr><td><a href="/agent360/agents/{{ r.agent_id }}">{{ r.name }}</a>{% if r.need %} <span class="badge danger">코칭 필요</span>{% endif %}</td>
+        <td>{{ r.team }}</td><td class="r num">{{ r.qa_avg|num(1) }}</td><td class="r num">{{ r.evaluations }}</td>
+        <td class="r num">{{ r.coaching_sessions }}</td><td class="small">{{ r.coach or '–' }}</td></tr>{% endfor %}</tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

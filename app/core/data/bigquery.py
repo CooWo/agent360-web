@@ -109,11 +109,11 @@ class BigQueryBackend:
     def list_teams(self) -> list[dict]:
         return self._cached(("teams",), lambda: self._q(
             f"""SELECT team, ANY_VALUE(team_label) AS label, APPROX_TOP_COUNT(sector, 1)[SAFE_OFFSET(0)].value AS sector
-                FROM {self.agents_t} WHERE status = '재직' GROUP BY team ORDER BY label"""))
+                FROM {self.agents_t} WHERE status = '재직' GROUP BY team ORDER BY MIN(team_order), label"""))
 
     def list_agents(self, scope: Scope, q: str | None = None, team: str | None = None) -> list[dict]:
         sql = f"""
-          SELECT agent_id, ldap, name, team, sv_email, CAST(hire_date AS STRING) hire_date, cohort,
+          SELECT agent_id, ldap, name, name_en, team, ccpam, sv_email, CAST(hire_date AS STRING) hire_date, cohort,
                  CAST(nesting_end AS STRING) nesting_end, skill_tags, status
           FROM {self.agents_t}
           WHERE status = '재직'
@@ -121,7 +121,7 @@ class BigQueryBackend:
             AND (@team IS NULL OR team = @team)
             AND (@q IS NULL OR LOWER(name) LIKE CONCAT('%', LOWER(@q), '%')
                  OR LOWER(agent_id) LIKE CONCAT('%', LOWER(@q), '%') OR LOWER(IFNULL(ldap, '')) LIKE CONCAT('%', LOWER(@q), '%'))
-          ORDER BY team, name"""
+          ORDER BY team_order, team, name"""
         p = dict(self._scope(scope), team=team or None, q=(q or "").strip() or None)
         return self._cached(("agents", json.dumps(p, sort_keys=True)), lambda: self._q(sql, **p))
 
@@ -198,6 +198,34 @@ class BigQueryBackend:
         self._clear()
         rows = self._q(f"SELECT coaching_id, agent_id, done FROM {self.m}.fact_coaching WHERE coaching_id = @id", id=coaching_id)
         return rows[0] if rows else None
+
+    # ── QA · 코칭 올리기 ────────────────────────────
+    QA_COLS = ("row_id", "change_id", "agent_id", "full_name", "coach", "source_file", "uploaded_by")
+    QA_NUMS = ("evaluations", "coaching_sessions", "grade_bad", "grade_ni", "grade_good", "grade_very_good")
+
+    def qa_coaching(self) -> list[dict]:
+        sql = f"""SELECT agent_id, full_name, evaluations, qa_avg, coaching_sessions, coach, grade_bad, grade_ni,
+                         grade_good, grade_very_good, source_file, CAST(uploaded_at AS STRING) uploaded_at, uploaded_by,
+                         change_id
+                  FROM {self.m}.qa_coaching
+                  WHERE active AND change_id = (SELECT ARRAY_AGG(change_id ORDER BY uploaded_at DESC LIMIT 1)[OFFSET(0)]
+                                                FROM {self.m}.qa_coaching WHERE active)"""
+        return self._cached(("qa_coaching",), lambda: self._q(sql))
+
+    def add_qa_coaching(self, rows: list[dict]) -> None:
+        cols = ", ".join(f"JSON_VALUE(e, '$.{c}')" for c in self.QA_COLS)
+        nums = ", ".join(f"SAFE_CAST(JSON_VALUE(e, '$.{c}') AS INT64)" for c in self.QA_NUMS)
+        self._q(f"""INSERT INTO {self.m}.qa_coaching ({", ".join(self.QA_COLS)}, {", ".join(self.QA_NUMS)},
+                                                      qa_avg, uploaded_at, active)
+                    SELECT {cols}, {nums}, SAFE_CAST(JSON_VALUE(e, '$.qa_avg') AS FLOAT64),
+                           TIMESTAMP(JSON_VALUE(e, '$.uploaded_at')), TRUE
+                    FROM UNNEST(JSON_QUERY_ARRAY(@rows)) AS e""",
+                rows=json.dumps(rows, ensure_ascii=False))
+        self._clear()
+
+    def deactivate_qa_coaching(self, change_id: str) -> None:
+        self._q(f"UPDATE {self.m}.qa_coaching SET active = FALSE WHERE change_id = @id", id=change_id)
+        self._clear()
 
     # ── 신호 ───────────────────────────────────────
     def signals(self, scope: Scope, as_of: str | None = None) -> list[dict]:

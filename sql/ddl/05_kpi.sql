@@ -72,32 +72,49 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.kpi.survey_weekly` (
 )
 PARTITION BY week_ending;
 
+-- 상담사 최신 정보 (final_view 의 마지막 날 기준) — CCPAM 직무명 등. 갱신 때 통째로 바꾼다.
+CREATE TABLE IF NOT EXISTS `${PROJECT}.kpi.specialist_profile` (
+  ldap STRING NOT NULL, ccpam_title STRING, sector STRING, tenure_group STRING, lead_ldap STRING, last_date DATE,
+  refreshed_at TIMESTAMP
+);
+
 CREATE TABLE IF NOT EXISTS `${PROJECT}.kpi.refresh_log` (
   refreshed_at TIMESTAMP NOT NULL, since DATE, case_rows INT64, time_rows INT64, kpi_case_rows INT64, survey_rows INT64,
   max_date DATE
 );
 
--- 상담사 목록 = 상담사 INFO(시트 마트 + 웹 수정분)의 재직자 중 LDAP 있는 사람. 팀 = TL(LDAP), 담당 SV = TL 의 이메일.
+-- 상담사 목록 = 팀 구성(roster.team_roster, 시트 OPS TL)에 있는 사람, 팀 = TL 한글 이름.
+--   팀 구성을 아직 안 불러왔으면 상담사 INFO 재직자(팀 = TL LDAP)로 대신한다.
+--   LDAP·이메일 등은 상담사 INFO(시트 마트 + 웹 수정분), CCPAM 은 kpi.specialist_profile.
 CREATE OR REPLACE VIEW `${PROJECT}.kpi.v_agent` AS
 WITH info AS (
-  SELECT * FROM `${PROJECT}.roster.v_agent_info` WHERE IFNULL(ldap, '') != ''
-), sec AS (
-  SELECT ldap, ARRAY_AGG(sector ORDER BY date DESC LIMIT 1)[OFFSET(0)] AS sector
-  FROM `${PROJECT}.kpi.specialist_time_daily` WHERE sector IS NOT NULL GROUP BY ldap
+  SELECT * FROM `${PROJECT}.roster.v_agent_info`
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY emp_id ORDER BY IF(status = '재직자', 0, 1)) = 1
+), tr AS (
+  SELECT * FROM `${PROJECT}.roster.team_roster`
+), base AS (
+  SELECT tr.emp_id, tr.tl_name AS team, tr.tl_name AS team_label, tr.sort_order AS team_order,
+         COALESCE(NULLIF(TRIM(tr.name), ''), i.name) AS name, COALESCE(NULLIF(tr.e_name, ''), i.e_name) AS name_en,
+         tr.shift AS shift_type
+  FROM tr LEFT JOIN info i USING (emp_id)
+  UNION ALL
+  SELECT i.emp_id, IFNULL(NULLIF(LOWER(TRIM(i.tl_ldap)), ''), '(TL 없음)'), IFNULL(NULLIF(i.tl_ldap, ''), '(TL 없음)'),
+         999, i.name, i.e_name, i.shift_type
+  FROM info i
+  WHERE i.status = '재직자' AND IFNULL(i.ldap, '') != '' AND NOT EXISTS (SELECT 1 FROM tr)
 )
 SELECT
-  a.emp_id AS agent_id, LOWER(TRIM(a.ldap)) AS ldap, a.name, a.e_name AS name_en, a.email,
-  IFNULL(NULLIF(LOWER(TRIM(a.tl_ldap)), ''), '(TL 없음)') AS team,
-  IFNULL(tl.name, IFNULL(NULLIF(a.tl_ldap, ''), '(TL 없음)')) AS team_label,
-  sec.sector, a.tl_ldap AS sv_ldap, tl.email AS sv_email,
-  a.joined AS hire_date, a.onboarding AS onboard_date, a.batch AS cohort, CAST(NULL AS DATE) AS nesting_end,
-  a.shift_type, a.location, a.tier, a.type, ARRAY<STRING>[] AS skill_tags,
+  b.emp_id AS agent_id, LOWER(TRIM(i.ldap)) AS ldap, b.name, b.name_en, i.email,
+  b.team, b.team_label, b.team_order, p.sector, p.ccpam_title AS ccpam,
+  i.tl_ldap AS sv_ldap, tl.email AS sv_email,
+  i.joined AS hire_date, i.onboarding AS onboard_date, i.batch AS cohort, CAST(NULL AS DATE) AS nesting_end,
+  b.shift_type, i.location, i.tier, i.type, ARRAY<STRING>[] AS skill_tags,
   '재직' AS status
-FROM info a
-LEFT JOIN info tl ON LOWER(TRIM(tl.ldap)) = LOWER(TRIM(a.tl_ldap))
-LEFT JOIN sec ON sec.ldap = LOWER(TRIM(a.ldap))
-WHERE a.status = '재직자'
-QUALIFY ROW_NUMBER() OVER (PARTITION BY a.emp_id ORDER BY tl.emp_id) = 1;
+FROM base b
+LEFT JOIN info i ON i.emp_id = b.emp_id
+LEFT JOIN info tl ON LOWER(TRIM(tl.ldap)) = LOWER(TRIM(i.tl_ldap)) AND IFNULL(tl.ldap, '') != ''
+LEFT JOIN `${PROJECT}.kpi.specialist_profile` p ON p.ldap = LOWER(TRIM(i.ldap))
+QUALIFY ROW_NUMBER() OVER (PARTITION BY b.emp_id ORDER BY tl.emp_id) = 1;
 
 -- 상담사 × 일자 KPI (분자·분모 합). 성과 제외(excluded) 행은 뺀다 — BA 에이전트 기본 필터와 같음.
 CREATE OR REPLACE VIEW `${PROJECT}.kpi.v_agent_kpi_daily` AS

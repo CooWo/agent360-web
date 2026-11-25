@@ -22,8 +22,9 @@ from app.modules.info.services import bulk
 from app.modules.info.services.edits import InfoEditChange, effective_info
 from app.modules.info.wiring import change_service
 from app.modules.roster.data import get_store
-from app.modules.roster.data.info_loader import LoadRefused, info_loader
+from app.modules.roster.data.info_loader import LoadRefused, info_loader, team_loader
 from app.modules.roster.services.info_sync import InfoSyncService
+from app.modules.roster.services.team_sync import TeamRosterSync
 
 router = APIRouter(prefix="/info", include_in_schema=False)
 
@@ -34,7 +35,8 @@ def _module():
 
 def _page(user: User, change: str | None = None, status_code: int = 200, **extra) -> HTMLResponse:
     ctx = views.info(get_store(), user, _module().screens, date.today().isoformat(), change_service(), change)
-    html = render("info/info.html", {"sync": None, "sync_error": "", "errors": {}, **ctx, **extra}, user=user,
+    html = render("info/info.html", {"sync": None, "sync_error": "", "team": None, "team_error": "", "errors": {},
+                                     **ctx, **extra}, user=user,
                   module=_module(), active="info", users_for_switch=dev_users())
     return HTMLResponse(html, status_code=status_code)
 
@@ -58,6 +60,21 @@ async def sync(request: Request, user: User = Depends(current_user)):
         audit(get_backend(), user, "info_sync", "info", out["load_id"] or "", {k: out[k] for k in (
             "rows_read", "rows_mart", "dropped_no_id", "duplicates", "issues")})
     return _page(user, sync=out)
+
+
+@router.post("/team-sync", response_class=HTMLResponse)
+async def team_sync(request: Request, user: User = Depends(current_user)):
+    """팀 구성(시트 OPS TL) 불러오기: mode=check | save."""
+    form = await request.form()
+    save = form.get("mode") == "save"
+    try:
+        svc = TeamRosterSync(GoogleSheetReader(), team_loader(get_store()) if save else None)
+        out = views.team_sync(svc, user, _module().screens, dry_run=not save, force=form.get("force") == "1")
+    except (SheetAccessError, LoadRefused, ValueError) as e:
+        return _page(user, team_error=str(e), status_code=400)
+    if save:
+        audit(get_backend(), user, "team_sync", "roster", out["load_id"] or "", {"rows": out["rows"], "tls": len(out["tls"])})
+    return _page(user, team=out)
 
 
 @router.post("/preview", response_class=HTMLResponse)

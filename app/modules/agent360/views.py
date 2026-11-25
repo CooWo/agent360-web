@@ -48,7 +48,7 @@ def agents(backend, user: User, screens: dict, q: str | None = None, team: str |
     for a in rows:
         wk = kpi_svc.weekly(kpi_by.get(a["agent_id"], []), as_of, 8)
         out.append({**a, "score": score.get(a["agent_id"], 0), "last_coaching": last_coach.get(a["agent_id"]),
-                    "spark": sparkline([w[cfg.get("spark_metric", "spd")] for w in wk]),
+                    "spark": sparkline([w[cfg.get("spark_metric", "nps")] for w in wk]),
                     "recent": _last_full(wk)})
     teams = [t for t in backend.list_teams() if user.scope.allows(t["team"])]
     return {"cfg": cfg, "as_of": as_of, "rows": out, "q": q or "", "team": team or "", "teams": teams,
@@ -78,6 +78,16 @@ def kpi_charts(wk: list[dict], cmp_: dict, keys: list[str]) -> list[dict]:
     return out
 
 
+def _qa_of(backend, screens: dict, agent_id: str) -> dict | None:
+    """올린 QA·코칭(가장 최근 묶음)에서 이 상담사 한 줄 + 코칭 필요 여부."""
+    from app.modules.agent360.services import qa_coaching as qa_svc
+    r = qa_svc.latest_by_agent(backend).get(agent_id)
+    if not r:
+        return None
+    below = float(screens["screens"].get("qa", {}).get("need_below", qa_svc.NEED_BELOW))
+    return {**r, "need": qa_svc.needs_coaching(r, below), "need_below": below}
+
+
 def agent_detail(backend, user: User, screens: dict, agent_id: str) -> dict:
     cfg = screens["screens"]["agent_detail"]
     agent = backend.get_agent(user.scope, agent_id)
@@ -104,6 +114,7 @@ def agent_detail(backend, user: User, screens: dict, agent_id: str) -> dict:
         "cfg": cfg, "as_of": as_of, "agent": agent, "team_label": _team_labels(backend).get(agent["team"], agent["team"]),
         "charts": charts, "weekly": wk, "ramping_weeks": [w["label"] for w in wk if w["ramping"]], "attendance": att, "qa": qa_rows,
         "qa_avg": (sum(q["score"] for q in qa_rows) / len(qa_rows)) if qa_rows else None,
+        "qa_upload": _qa_of(backend, screens, agent_id),
         "training": backend.training(agent_id), "signals": sigs, "statuses": signal_svc.STATUSES,
         "sensitive": sensitive, "coaching": coaching_rows if sensitive else [],
         "coaching_count": len(coaching_rows), "last_coaching": coaching_rows[0]["date"] if coaching_rows else None,
@@ -136,3 +147,47 @@ def admin(backend, user: User, screens: dict) -> dict:
         raise PermissionDenied("관리 화면은 관리자만 볼 수 있습니다.")
     return {"rules": backend.signal_rules(), "users": backend.list_users(), "teams": _team_labels(backend),
             "issue_types": backend.issue_types()}
+
+
+def qa(backend, user: User, screens: dict, changes=None, change_id: str | None = None) -> dict:
+    """QA · 코칭 — 가장 최근에 올린 묶음, 내 범위(팀) 상담사만. 코칭 필요 = QA 평균 기준 미만."""
+    from app.core.changes import APPLIED, PREVIEW
+    from app.modules.agent360.services import qa_coaching as qa_svc
+    cfg = screens["screens"]["qa"]
+    below = float(cfg.get("need_below", qa_svc.NEED_BELOW))
+    agents = {a["agent_id"]: a for a in backend.list_agents(user.scope)}
+    labels = _team_labels(backend)
+    rows = []
+    for r in backend.qa_coaching():
+        a = agents.get(r["agent_id"])
+        if a:
+            rows.append({**r, "name": a["name"], "team": labels.get(a["team"], a["team"]),
+                         "need": qa_svc.needs_coaching(r, below)})
+    rows.sort(key=lambda r: (r["qa_avg"] is None, r["qa_avg"] if r["qa_avg"] is not None else 0))
+    ev = sum(r["evaluations"] or 0 for r in rows if r["qa_avg"] is not None)
+    teams: dict[str, dict] = {}
+    for r in rows:
+        t = teams.setdefault(r["team"], {"team": r["team"], "people": 0, "evaluations": 0, "coaching": 0, "need": 0,
+                                         "_score": 0.0})
+        t["people"] += 1
+        t["evaluations"] += r["evaluations"] or 0
+        t["coaching"] += r["coaching_sessions"] or 0
+        t["need"] += r["need"]
+        t["_score"] += (r["qa_avg"] or 0) * (r["evaluations"] or 0)
+    for t in teams.values():
+        t["qa_avg"] = t["_score"] / t["evaluations"] if t["evaluations"] else None
+    preview, history, latest = None, [], None
+    if changes is not None and user.can("qa.upload"):
+        history = changes.history(user, "agent360.qa_coaching", 10)
+        applied = [c for c in history if c.status == APPLIED]
+        latest = max(applied, key=lambda c: c.applied_at or "").change_id if applied else None
+        if change_id:
+            preview = next((c for c in history if c.change_id == change_id and c.status == PREVIEW), None)
+    up = rows[0] if rows else (backend.qa_coaching() or [None])[0]
+    return {"cfg": cfg, "need_below": below, "rows": rows, "need": [r for r in rows if r["need"]],
+            "teams": sorted(teams.values(), key=lambda t: -t["need"]),
+            "total": {"people": len(rows), "evaluations": sum(r["evaluations"] or 0 for r in rows),
+                      "coaching": sum(r["coaching_sessions"] or 0 for r in rows),
+                      "qa_avg": (sum((r["qa_avg"] or 0) * (r["evaluations"] or 0) for r in rows) / ev) if ev else None},
+            "upload": up, "can_upload": user.can("qa.upload"), "preview": preview, "history": history,
+            "latest_applied": latest}

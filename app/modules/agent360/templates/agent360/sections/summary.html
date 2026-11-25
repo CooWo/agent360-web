@@ -32,7 +32,13 @@
     <div class="value num">결근 {{ attendance.absent }}<span class="small muted"> · 지각 {{ attendance.late }} · 연차 {{ attendance.leave }}</span></div>
   </div>
   <div class="card kpi-card">
-    <div class="label">QA · 코칭</div>
+    <div class="label">QA · 코칭{% if qa_upload %} <span class="muted small">({{ qa_upload.uploaded_at[:10] }} 올린 파일)</span>{% endif %}</div>
+    {% if qa_upload %}
+    <div class="value num">QA {{ qa_upload.qa_avg|num(1) }}<span class="small muted"> 점 · 평가 {{ qa_upload.evaluations }} · 코칭 {{ qa_upload.coaching_sessions }}</span>
+      {% if qa_upload.need %}<span class="badge danger">코칭 필요 ({{ qa_upload.need_below|num(0) }}점 미만)</span>{% endif %}</div>
+    <div class="small muted">코치 {{ qa_upload.coach or '–' }} · 등급 Bad {{ qa_upload.grade_bad }} · NI {{ qa_upload.grade_ni }} · Good {{ qa_upload.grade_good }} · VG {{ qa_upload.grade_very_good }}</div>
+    {% else %}
     <div class="small muted">QA 평균 {{ qa_avg|num(1) }}점 ({{ qa|length }}건) · 코칭 {{ coaching_count }}회{% if last_coaching %}, 마지막 {{ days_ago(last_coaching, as_of) }}{% endif %}</div>
+    {% endif %}
   </div>
 </section>

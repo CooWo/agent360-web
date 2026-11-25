@@ -9,6 +9,7 @@
     "info": {"title": "상담사 INFO",
              "subtitle": "INFO 자동화 시트 + 웹 수정분 (BigQuery roster.mart_agent_info · info_edits)",
              "source_sheet": "1WlX447Bbez4Tl81aq5dTn1Px8b5anui3r4meyin86Lk", "source_tab": "INFO 자동화 시트",
-             "header_row": 2}
+             "header_row": 2,
+             "team_sheet": "1RjhsdGBrZB3U4gd_Ef9s_8ZwFxsnX4uQYLttmT5Xirs", "team_tab": "OPS TL"}
   }
 }

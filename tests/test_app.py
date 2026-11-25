@@ -167,3 +167,20 @@ def test_info_bulk_paste_and_file(client):
     assert r.status_code == 303 and "(파일)" in c.get(r.headers["location"].split("#")[0]).text
     assert c.post("/info/import", data={"paste": "아무거나"}).status_code == 400
     assert _as(client, "viewer@example.com").post("/info/import", data={"paste": "x"}).status_code == 403
+
+
+def test_qa_upload_flow(client):
+    from tests.test_agent360_qa import make_zip
+    c = _as(client, "manager@example.com")
+    assert "QA · 코칭" in c.get("/agent360/qa").text
+    r = c.post("/agent360/qa/upload", files={"file": ("d.zip", make_zip(), "application/zip")}, follow_redirects=False)
+    assert r.status_code == 303
+    cid = r.headers["location"].split("change=")[1].split("#")[0]
+    assert "못 찾은 이름 1" in c.get(f"/agent360/qa?change={cid}").text
+    assert c.post(f"/agent360/qa/changes/{cid}/approve", follow_redirects=False).status_code == 303
+    page = c.get("/agent360/qa").text
+    assert "코칭 필요" in page and "윤채원" in page
+    assert "코칭 필요 (80점 미만)" in c.get("/agent360/agents/E240001").text
+    assert c.post("/agent360/qa/upload", files={"file": ("d.zip", b"x", "application/zip")}).status_code == 400
+    assert _as(client, "viewer@example.com").post("/agent360/qa/upload", files={"file": ("d.zip", b"x")}).status_code == 403
+    c.post(f"/agent360/qa/changes/{cid}/undo")

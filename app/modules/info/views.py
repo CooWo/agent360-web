@@ -31,6 +31,7 @@ def info(store, user: User, screens: dict, today: str, changes: ChangeService | 
         k = r.get("status") or "(빈 값)"
         status[k] = status.get(k, 0) + 1
     loads = store.info_loads(1)
+    team = store.team_roster()
     preview, history, latest = None, [], None
     if changes is not None and user.can("info.edit"):
         history = changes.history(user, "info.edit", 15)
@@ -42,7 +43,10 @@ def info(store, user: User, screens: dict, today: str, changes: ChangeService | 
             "tls": sorted({r["tl_ldap"] for r in rows if r.get("tl_ldap")}), "load": loads[0] if loads else None,
             "today": today, "can_sync": user.can("info.sync"), "can_edit": any(c["edit"] for c in cols),
             "can_add": can_edit(user, "name"), "edited_count": sum(1 for r in rows if r["_edited"]),
-            "preview": preview, "history": history, "latest_applied": latest}
+            "preview": preview, "history": history, "latest_applied": latest,
+            "team_load": {"rows": len(team), "tls": len({r["tl_name"] for r in team}),
+                          "loaded_at": str(team[0].get("loaded_at") or ""), "loaded_by": team[0].get("loaded_by")}
+            if team else None}
 
 
 def info_sync(service, user: User, screens: dict, dry_run: bool, force: bool = False) -> dict:
@@ -50,3 +54,10 @@ def info_sync(service, user: User, screens: dict, dry_run: bool, force: bool = F
     _need(user, "info.sync", "INFO 불러오기")
     cfg = screens["screens"]["info"]
     return service.run(cfg["source_sheet"], cfg["source_tab"], user.email, cfg.get("header_row", 2), dry_run, force)
+
+
+def team_sync(service, user: User, screens: dict, dry_run: bool, force: bool = False) -> dict:
+    """팀 구성(시트 OPS TL) 불러오기 — 상담사 360 의 팀(TL 한글 이름)·명단 기준."""
+    _need(user, "info.sync", "팀 구성 불러오기")
+    cfg = screens["screens"]["info"]
+    return service.run(cfg["team_sheet"], cfg["team_tab"], user.email, dry_run, force)

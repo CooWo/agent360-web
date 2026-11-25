@@ -89,3 +89,17 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.agent360.change_log` (
   doc        STRING    NOT NULL,
   updated_at TIMESTAMP
 );
+
+-- QA · 코칭 (코칭 대시보드 내보내기 zip 을 웹에서 올림). 올릴 때마다 새 묶음(change_id), 화면은 가장 최근 묶음.
+CREATE TABLE IF NOT EXISTS `${PROJECT}.agent360.qa_coaching` (
+  row_id            STRING NOT NULL,
+  change_id         STRING NOT NULL OPTIONS (description = '올리기 한 번 = 변경 하나 (change_log)'),
+  agent_id          STRING NOT NULL OPTIONS (description = '영문 이름으로 찾은 사번'),
+  full_name         STRING          OPTIONS (description = '내보내기의 영문 이름'),
+  evaluations       INT64, qa_avg FLOAT64, coaching_sessions INT64, coach STRING,
+  grade_bad INT64, grade_ni INT64, grade_good INT64, grade_very_good INT64,
+  source_file       STRING,
+  uploaded_at       TIMESTAMP,
+  uploaded_by       STRING,
+  active            BOOL
+);

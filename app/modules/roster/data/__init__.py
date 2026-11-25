@@ -14,6 +14,11 @@ class AgentInfoSource(Protocol):
     def info_loads(self, limit: int = 10) -> list[dict]: ...
 
 
+class TeamRosterSource(Protocol):
+    """팀 구성(시트 OPS TL) — TL 한글 이름별 사번 명단. 상담사 360 의 팀·명단 기준."""
+    def team_roster(self) -> list[dict]: ...
+
+
 class InfoEditStore(Protocol):
     """웹에서 고친 INFO 칸 (사번·항목·값). 시트를 다시 불러와도 남고, 되돌리면 active=False."""
     def info_edits(self) -> list[dict]: ...
@@ -35,7 +40,7 @@ class DraftStore(Protocol):
     def clear_draft(self, email: str) -> None: ...
 
 
-class RosterStore(AgentInfoSource, InfoEditStore, BoardStore, DraftStore, Protocol):
+class RosterStore(AgentInfoSource, TeamRosterSource, InfoEditStore, BoardStore, DraftStore, Protocol):
     """팀 구성 화면이 쓰는 저장소 전체."""
 
 

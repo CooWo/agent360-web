@@ -77,6 +77,25 @@
       {% if sync.duplicate_ids %}<div class="muted">중복 사번: {{ sync.duplicate_ids|join(", ") }}</div>{% endif %}
     </div>
     {% endif %}
+    <h2 style="margin-top:var(--gap)">팀 구성(OPS TL) 불러오기</h2>
+    <p class="small muted">시트 'OPS TL' 의 TL 한글 이름 · 사번 명단 → 상담사 360 의 팀과 상담사 목록이 이 명단을 따릅니다.
+      {% if team_load %}<br>지금 {{ team_load.tls }}팀 {{ team_load.rows }}명 · {{ team_load.loaded_at[:16]|replace('T', ' ') }} · {{ team_load.loaded_by }}
+      {% else %}<br><span style="color:var(--warn)">아직 불러온 적이 없습니다 (지금은 INFO 의 TL LDAP 으로 묶음).</span>{% endif %}</p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <form method="post" action="/info/team-sync"><input type="hidden" name="mode" value="check"><button class="btn">확인만 (저장 안 함)</button></form>
+      <form method="post" action="/info/team-sync" onsubmit="return confirm('OPS TL 시트 명단으로 팀 구성을 바꿀까요?')">
+        <input type="hidden" name="mode" value="save">
+        <label class="small"><input type="checkbox" name="force" value="1" style="width:auto"> 인원이 크게 줄어도 저장</label>
+        <button class="btn primary">불러와서 저장</button>
+      </form>
+    </div>
+    {% if team_error %}<p class="small" style="color:var(--danger);margin-top:8px">❌ {{ team_error }}</p>{% endif %}
+    {% if team %}
+    <div class="small" style="margin-top:8px">
+      {{ "✅ 저장 완료 (" ~ team.load_id ~ ")" if team.load_id else "확인 결과 (저장 안 함)" }} — {{ team.tls|length }}팀 {{ team.rows }}명
+      <div class="muted">{% for t in team.tls %}{{ t.tl }} {{ t.n }}{{ " · " if not loop.last }}{% endfor %}</div>
+    </div>
+    {% endif %}
   </section>
   {% endif %}
   {% if can_edit %}

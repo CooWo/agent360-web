@@ -79,6 +79,14 @@ FROM `v11-2026.Dynamic.final_view_kpi_Survey`
 WHERE dim_week_ending >= since_week
 GROUP BY 1, 2, 3, 4, 5, 6;
 
+DELETE FROM `${PROJECT}.kpi.specialist_profile` WHERE TRUE;
+INSERT INTO `${PROJECT}.kpi.specialist_profile`
+SELECT LOWER(TRIM(dim_specialist_ldap_id)), dim_specialist_ccpam_title, clean_specialist_sector, Dim_Specialist_Tenure_Group,
+  LOWER(dim_specialist_lead_ldap_id), ds_specialist_metrics, CURRENT_TIMESTAMP()
+FROM `v11-2026.Dynamic.final_view`
+WHERE dim_specialist_ldap_id IS NOT NULL AND ds_specialist_metrics >= DATE_SUB(CURRENT_DATE('Asia/Seoul'), INTERVAL 400 DAY)
+QUALIFY ROW_NUMBER() OVER (PARTITION BY LOWER(TRIM(dim_specialist_ldap_id)) ORDER BY ds_specialist_metrics DESC) = 1;
+
 INSERT INTO `${PROJECT}.kpi.refresh_log`
 SELECT CURRENT_TIMESTAMP(), since,
   (SELECT COUNT(*) FROM `${PROJECT}.kpi.specialist_case_daily` WHERE date >= since),

@@ -6,6 +6,7 @@
     {"id": "home", "label": "오늘 볼 상담사", "path": "/agent360", "roles": ["admin", "manager", "sv", "viewer"]},
     {"id": "agents", "label": "상담사 목록", "path": "/agent360/agents", "roles": ["admin", "manager", "sv", "viewer"]},
     {"id": "coaching", "label": "코칭 기록", "path": "/agent360/coaching", "roles": ["manager", "sv"]},
+    {"id": "qa", "label": "QA · 코칭", "path": "/agent360/qa", "roles": ["admin", "manager", "sv", "wfm", "viewer"]},
     {"id": "admin", "label": "관리", "path": "/agent360/admin", "roles": ["admin"]}
   ],
   "screens": {
@@ -17,7 +18,7 @@
     },
     "agents": {
       "title": "상담사 목록",
-      "spark_metric": "spd"
+      "spark_metric": "nps"
     },
     "agent_detail": {
       "sections": ["summary", "kpi_trend", "signals", "attendance", "qa", "coaching", "training", "incentive"],
@@ -25,6 +26,11 @@
       "attendance_days": 30,
       "qa_days": 90,
       "kpi_metrics": ["nps", "spd", "throughput", "reopen", "ttresp", "work_time", "handle_time"]
+    },
+    "qa": {
+      "title": "QA · 코칭",
+      "subtitle": "코칭 대시보드 내보내기(zip)를 올려 상담사별 QA 평균 · 평가 수 · 코칭 수를 봅니다",
+      "need_below": 80
     },
     "coaching": {
       "title": "코칭 기록",

@@ -22,6 +22,7 @@ class RosterSample:
         self._versions_path, self._drafts_path = rt / "roster_versions.json", rt / "roster_drafts.json"
         self._info_path = rt / "roster_info_mart.json"
         self._edits_path = rt / "roster_info_edits.json"
+        self._team_path = rt / "roster_team.json"
         if self._info_path.exists():
             saved = json.loads(self._info_path.read_text(encoding="utf-8"))
             self._info, self._load = saved["rows"], saved["load"]
@@ -59,6 +60,13 @@ class RosterSample:
         with self._lock:
             self._info, self._load = [dict(r) for r in rows], load
             self._write(self._info_path, {"rows": self._info, "load": load})
+
+    def team_roster(self) -> list[dict]:
+        return self._read(self._team_path, [])
+
+    def replace_team_roster(self, rows: list[dict]) -> None:
+        with self._lock:
+            self._write(self._team_path, rows)
 
     def info_loads(self, limit: int = 10) -> list[dict]:
         if self._load:

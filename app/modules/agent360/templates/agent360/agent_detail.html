@@ -7,7 +7,7 @@
   <div>
     <h1>{{ agent.name }} <span class="muted small mono">{{ agent.agent_id }}{% if agent.ldap %} · {{ agent.ldap }}{% endif %}</span></h1>
     <p class="muted">
-      {{ team_label }} · 입사 {{ agent.hire_date }} · {{ agent.cohort }} · 네스팅 종료 {{ agent.nesting_end }}
+      {{ team_label }}{% if agent.hire_date %} · 입사 {{ agent.hire_date }}{% endif %}{% if agent.cohort %} · {{ agent.cohort }}{% endif %}{% if agent.nesting_end %} · 네스팅 종료 {{ agent.nesting_end }}{% endif %}
       · <span class="badge {{ 'ok' if agent.status == '재직' else 'neutral' }}">{{ agent.status }}</span>
     </p>
     <div>{% for t in agent.skill_tags %}<span class="tag">{{ t }}</span>{% endfor %}

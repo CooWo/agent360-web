@@ -148,6 +148,11 @@ def cmd_kpi_pipeline(run: Runner, a):
          f"--project={a.project}"], ok_fail=True)
     run(["gcloud", "projects", "add-iam-policy-binding", a.project, f"--member=serviceAccount:{sa}",
          "--role=roles/bigquery.jobUser", "--condition=None", "--quiet"])
+    # 예약 쿼리 서비스(DTS 서비스 에이전트)가 이 계정으로 실행할 수 있게 — 이 계정 하나에만
+    num = project_number(run, a)
+    run(["gcloud", "iam", "service-accounts", "add-iam-policy-binding", sa,
+         f"--member=serviceAccount:service-{num}@gcp-sa-bigquerydatatransfer.iam.gserviceaccount.com",
+         "--role=roles/iam.serviceAccountTokenCreator", f"--project={a.project}", "--quiet"])
     _bq_grant(a, a.project, f'GRANT `roles/bigquery.dataEditor` ON SCHEMA `{a.project}.kpi` TO "serviceAccount:{sa}"')
     _bq_grant(a, a.agent_project,
               f'GRANT `roles/bigquery.dataViewer` ON SCHEMA `{a.agent_project}.Dynamic` TO "serviceAccount:{sa}"')

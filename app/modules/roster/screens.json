@@ -9,7 +9,8 @@
   ],
   "screens": {
     "board": {"title": "TL별 명단", "subtitle": "지금 적용된 팀 구성 (시트 OPS TL 과 같은 모양)", "versions": 10},
-    "info": {"title": "상담사 INFO", "subtitle": "INFO 자동화 시트를 정리한 기본정보 (BigQuery roster.mart_agent_info)"},
+    "info": {"title": "상담사 INFO", "subtitle": "INFO 자동화 시트를 정리한 기본정보 (BigQuery roster.mart_agent_info)",
+             "source_sheet": "1WlX447Bbez4Tl81aq5dTn1Px8b5anui3r4meyin86Lk", "source_tab": "INFO 자동화 시트", "header_row": 2},
     "workspace": {"title": "명단 고치기",
                   "subtitle": "한 번에 고치고 → 미리보기 → 적용. 중간 저장하면 다음에 이어서 할 수 있습니다.",
                   "shifts": ["US", "EU", "APAC"]}

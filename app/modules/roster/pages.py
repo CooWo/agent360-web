@@ -57,11 +57,37 @@ def board(user: User = Depends(current_user)):
     return _page("roster/board.html", views.board(get_store(), user, _module().screens), user, "board")
 
 
-@router.get("/info", response_class=HTMLResponse)
-def info(user: User = Depends(current_user)):
+def _info_page(user: User, sync: dict | None = None, sync_error: str = "", status_code: int = 200):
     from datetime import date
     ctx = views.info(get_store(), user, _module().screens, date.today().isoformat())
-    return _page("roster/info.html", ctx, user, "info")
+    return _page("roster/info.html", {**ctx, "sync": sync, "sync_error": sync_error}, user, "info", status_code)
+
+
+@router.get("/info", response_class=HTMLResponse)
+def info(user: User = Depends(current_user)):
+    return _info_page(user)
+
+
+@router.post("/info/sync", response_class=HTMLResponse)
+async def info_sync(request: Request, user: User = Depends(current_user)):
+    """시트에서 불러오기: mode=check(확인만) | save(저장). 서버의 서비스 계정이 시트를 읽는다."""
+    from app.core.audit import audit
+    from app.core.data import get_backend
+    from app.core.sheets import GoogleSheetReader, SheetAccessError
+    from app.modules.roster.data import get_store as _store
+    from app.modules.roster.data.info_loader import LoadRefused, info_loader
+    from app.modules.roster.services.info_sync import InfoSyncService
+    form = await request.form()
+    save = form.get("mode") == "save"
+    try:
+        svc = InfoSyncService(GoogleSheetReader(), info_loader(_store()) if save else None)
+        out = views.info_sync(svc, user, _module().screens, dry_run=not save, force=form.get("force") == "1")
+    except (SheetAccessError, LoadRefused, ValueError) as e:
+        return _info_page(user, sync_error=str(e), status_code=400)
+    if save:
+        audit(get_backend(), user, "info_sync", "info", out["load_id"] or "", {k: out[k] for k in (
+            "rows_read", "rows_mart", "dropped_no_id", "duplicates", "issues")})
+    return _info_page(user, sync=out)
 
 
 @router.get("/workspace", response_class=HTMLResponse)

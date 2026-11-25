@@ -20,6 +20,12 @@ class RosterSample:
         rt = Path(sample_dir) / "runtime"
         rt.mkdir(parents=True, exist_ok=True)
         self._versions_path, self._drafts_path = rt / "roster_versions.json", rt / "roster_drafts.json"
+        self._info_path = rt / "roster_info_mart.json"
+        if self._info_path.exists():
+            saved = json.loads(self._info_path.read_text(encoding="utf-8"))
+            self._info, self._load = saved["rows"], saved["load"]
+        else:
+            self._load = None
         self._lock = threading.Lock()
 
     def _read(self, p: Path, default):
@@ -31,7 +37,14 @@ class RosterSample:
     def agent_info(self) -> list[dict]:
         return [dict(r) for r in self._info]
 
+    def replace_info(self, rows: list[dict], load: dict) -> None:
+        with self._lock:
+            self._info, self._load = [dict(r) for r in rows], load
+            self._write(self._info_path, {"rows": self._info, "load": load})
+
     def info_loads(self, limit: int = 10) -> list[dict]:
+        if self._load:
+            return [self._load][:limit]
         return [{"load_id": "SAMPLE", "loaded_at": "2026-11-20T00:00:00+00:00", "loaded_by": "sample_data",
                  "source": "sample_data/roster/agent_info.json", "rows_read": len(self._info),
                  "rows_mart": len(self._info), "dropped_no_id": 0, "duplicates": 0, "issues": 0}][:limit]

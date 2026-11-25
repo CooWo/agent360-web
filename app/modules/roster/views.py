@@ -61,6 +61,13 @@ def info(store: RosterStore, user: User, screens: dict, today: str) -> dict:
     for r in rows:
         status[r.get("status") or "(빈 값)"] = status.get(r.get("status") or "(빈 값)", 0) + 1
     loads = store.info_loads(1)
-    return {"cfg": screens["screens"]["info"], "rows": rows, "cols": cols, "status_counts": status,
+    return {"cfg": screens["screens"]["info"], "can_sync": user.can("info.sync"), "rows": rows, "cols": cols, "status_counts": status,
             "tls": sorted({r["tl_ldap"] for r in rows if r.get("tl_ldap")}), "load": loads[0] if loads else None,
             "today": today}
+
+
+def info_sync(service, user: User, screens: dict, dry_run: bool, force: bool = False) -> dict:
+    """시트에서 불러오기 (먼저 dry_run 으로 확인 → 저장). 감사 로그는 라우터 쪽 서비스가 남긴다."""
+    _need(user, "info.sync", "INFO 불러오기")
+    cfg = screens["screens"]["info"]
+    return service.run(cfg["source_sheet"], cfg["source_tab"], user.email, cfg.get("header_row", 2), dry_run, force)

@@ -56,10 +56,10 @@ POLICIES = PolicyRegistry()
 _CAP_ALL = {"capacity.view", "capacity.plan", "capacity.edit"}
 _ROSTER_ALL = {"roster.view", "roster.edit", "info.view"}
 for _p in (
-    RolePolicy("admin", "관리자", all_teams=True, grants=frozenset({"admin", *_CAP_ALL, *_ROSTER_ALL})),
+    RolePolicy("admin", "관리자", all_teams=True, grants=frozenset({"admin", "info.sync", *_CAP_ALL, *_ROSTER_ALL})),
     RolePolicy("manager", "매니저", all_teams=True, write=True, sensitive=SENSITIVE_ALL,
                grants=frozenset({"capacity.view", "capacity.plan", *_ROSTER_ALL})),
-    RolePolicy("wfm", "WFM·BA", all_teams=True, grants=frozenset({*_CAP_ALL, *_ROSTER_ALL})),
+    RolePolicy("wfm", "WFM·BA", all_teams=True, grants=frozenset({"info.sync", *_CAP_ALL, *_ROSTER_ALL})),
     RolePolicy("sv", "SV", write=True, sensitive=SENSITIVE_OWN_TEAMS, grants=frozenset({"roster.view"})),
     RolePolicy("viewer", "조회", grants=frozenset({"capacity.view", "roster.view"})),
 ):

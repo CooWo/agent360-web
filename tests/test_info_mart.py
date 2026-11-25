@@ -126,3 +126,31 @@ def test_info_screen(backend):
     assert "상담사 INFO" in html and "Tenure (계산)" in html and "own-wfm" in html and "info.js" in html
     with pytest.raises(PermissionDenied):
         views.info(RosterSample(backend.dir), User("v@x", "v", "viewer"), mod.screens, "2026-11-25")
+
+
+class FakeReader:
+    def __init__(self, cells):
+        self.cells, self.asked = cells, []
+
+    def values(self, sheet, rng):
+        self.asked.append((sheet, rng))
+        return self.cells
+
+
+def test_sync_service_check_then_save_sample(backend):
+    from app.modules.roster.data.info_loader import SampleInfoLoader
+    from app.modules.roster.services.info_sync import InfoSyncService
+    mod = next(m for m in discover(with_routers=False) if m.name == "roster")
+    store = RosterSample(backend.dir)
+    cells = [HEADER] + [row(str(1000 + i), f"사람{i}") for i in range(30)] + [row("1000", "중복", status="퇴직자")]
+    rd = FakeReader(cells)
+    wfm = User("wfm@example.com", "w", "wfm")
+    out = views.info_sync(InfoSyncService(rd), wfm, mod.screens, dry_run=True)
+    assert out["rows_mart"] == 30 and out["duplicates"] == 1 and out["load_id"] is None
+    assert rd.asked[0] == (mod.screens["screens"]["info"]["source_sheet"], "'INFO 자동화 시트'!A2:Y")
+    assert len(store.agent_info()) == 44                                   # 확인만 → 그대로
+    out = views.info_sync(InfoSyncService(rd, SampleInfoLoader(store)), wfm, mod.screens, dry_run=False)
+    assert out["load_id"] and len(RosterSample(backend.dir).agent_info()) == 30   # 재시작해도 남음
+    assert store.info_loads(1)[0]["load_id"] == out["load_id"]
+    with pytest.raises(PermissionDenied):
+        views.info_sync(InfoSyncService(rd), User("m@x", "m", "manager"), mod.screens, dry_run=True)

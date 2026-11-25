@@ -55,3 +55,28 @@ class InfoMartLoader:
                                                              "issues": clean.issues[:500]}, ensure_ascii=False)}],
                    truncate=False)
         return load_id
+
+
+class SampleInfoLoader:
+    """sample 모드: 정리 결과를 sample_data/runtime/roster_info_mart.json 에 (원본 샘플은 그대로)."""
+
+    def __init__(self, store):
+        self.store = store
+
+    def save(self, raw, raw_cells, clean: CleanResult, source: str, by: str, force: bool = False) -> str:
+        cur = len(self.store.agent_info())
+        if cur and len(clean.rows) < cur * 0.5 and not force:
+            raise LoadRefused(f"새 마트 {len(clean.rows)}행 < 지금 {cur}행의 절반. 시트를 확인하거나 강제로 진행하세요.")
+        load_id = "L" + datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S") + uuid.uuid4().hex[:4]
+        self.store.replace_info(clean.rows, {"load_id": load_id, "loaded_at": datetime.now(timezone.utc).isoformat(),
+                                             "loaded_by": by, "source": source, **clean.summary()})
+        return load_id
+
+
+def info_loader(store):
+    """지금 데이터 백엔드에 맞는 저장기 (sample | bigquery)."""
+    from app.core.config import get_settings
+    s = get_settings()
+    if s.data_backend == "bigquery":
+        return InfoMartLoader(s.gcp_project, s.bq_location, s.roster_dataset)
+    return SampleInfoLoader(store)

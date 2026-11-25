@@ -207,3 +207,16 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
 .roster-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--gap); }
 .roster-col table td, .roster-col table th { padding: 4px 6px; }
 #grid input { padding: 4px 6px; min-width: 70px; }
+
+/* 시트처럼 보이는 표: 머리글 고정, 촘촘한 칸, 담당별 색 */
+.sheet { max-height: 70vh; overflow: auto; }
+.sheet table { font-size: 12px; white-space: nowrap; }
+.sheet th, .sheet td { padding: 3px 8px; border-right: 1px solid var(--border); }
+.sheet thead th { position: sticky; top: 0; background: var(--surface-2); z-index: 1; }
+.sheet thead tr.owner-row th { top: 0; font-size: 11px; }
+.sheet thead tr:nth-child(2) th { top: 22px; }
+.sheet th.own-ops { background: var(--primary-weak); }
+.sheet th.own-wfm { background: var(--ok-weak); }
+.sheet th.own-ba { background: var(--warn-weak); }
+.sheet td:first-child, .sheet th:first-child { position: sticky; left: 0; background: var(--surface); }
+.sheet thead th:first-child { z-index: 2; }

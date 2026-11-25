@@ -26,8 +26,13 @@ class RosterBigQuery:
 
     def agent_info(self) -> list[dict]:
         cols = ", ".join(f"`{c}`" for c in INFO_COLS)
-        rows = self._q(f"SELECT {cols} FROM {self.d}.agent_info ORDER BY emp_id")
+        rows = self._q(f"SELECT {cols} FROM {self.d}.mart_agent_info ORDER BY emp_id")
         return [{k: ("" if v is None else str(v)) for k, v in r.items()} for r in rows]
+
+    def info_loads(self, limit: int = 10) -> list[dict]:
+        return self._q(f"""SELECT load_id, loaded_at, loaded_by, source, rows_read, rows_mart, dropped_no_id,
+                                  duplicates, issues FROM {self.d}.info_loads ORDER BY loaded_at DESC LIMIT @limit""",
+                       limit=limit)
 
     def board(self) -> list[dict]:
         rows = self._q(f"SELECT doc FROM {self.d}.board_versions ORDER BY saved_at DESC LIMIT 1")

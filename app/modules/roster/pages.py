@@ -57,6 +57,13 @@ def board(user: User = Depends(current_user)):
     return _page("roster/board.html", views.board(get_store(), user, _module().screens), user, "board")
 
 
+@router.get("/info", response_class=HTMLResponse)
+def info(user: User = Depends(current_user)):
+    from datetime import date
+    ctx = views.info(get_store(), user, _module().screens, date.today().isoformat())
+    return _page("roster/info.html", ctx, user, "info")
+
+
 @router.get("/workspace", response_class=HTMLResponse)
 def workspace(change: str | None = None, user: User = Depends(current_user)):
     return _ws(user, change)

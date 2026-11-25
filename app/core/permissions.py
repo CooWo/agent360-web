@@ -54,7 +54,7 @@ class PolicyRegistry:
 
 POLICIES = PolicyRegistry()
 _CAP_ALL = {"capacity.view", "capacity.plan", "capacity.edit"}
-_ROSTER_ALL = {"roster.view", "roster.edit"}
+_ROSTER_ALL = {"roster.view", "roster.edit", "info.view"}
 for _p in (
     RolePolicy("admin", "관리자", all_teams=True, grants=frozenset({"admin", *_CAP_ALL, *_ROSTER_ALL})),
     RolePolicy("manager", "매니저", all_teams=True, write=True, sensitive=SENSITIVE_ALL,

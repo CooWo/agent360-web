@@ -31,6 +31,11 @@ class RosterSample:
     def agent_info(self) -> list[dict]:
         return [dict(r) for r in self._info]
 
+    def info_loads(self, limit: int = 10) -> list[dict]:
+        return [{"load_id": "SAMPLE", "loaded_at": "2026-11-20T00:00:00+00:00", "loaded_by": "sample_data",
+                 "source": "sample_data/roster/agent_info.json", "rows_read": len(self._info),
+                 "rows_mart": len(self._info), "dropped_no_id": 0, "duplicates": 0, "issues": 0}][:limit]
+
     def board(self) -> list[dict]:
         vs = self._read(self._versions_path, [])
         return [dict(r) for r in (vs[-1]["rows"] if vs else self._base)]

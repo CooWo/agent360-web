@@ -186,9 +186,9 @@ def test_bigquery_params_bound(monkeypatch):
         monkeypatch.setitem(sys.modules, k, v)
     from app.modules.roster.data.bigquery import RosterBigQuery
     b = RosterBigQuery("v12-2027", "asia-northeast3", "roster")
-    b.agent_info(); b.board(); b.save_board([R("A", "1")], "a@x"); b.versions(5)
+    b.agent_info(); b.info_loads(3); b.board(); b.save_board([R("A", "1")], "a@x"); b.versions(5)
     b.draft("a@x"); b.save_draft("a@x", []); b.clear_draft("a@x")
-    assert len(calls) == 7
+    assert len(calls) == 8
     for sql, bound in calls:
         assert set(re.findall(r"@(\w+)", sql)) <= bound
         assert "`v12-2027.roster`" in sql

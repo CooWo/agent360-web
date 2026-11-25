@@ -204,6 +204,6 @@ def test_info_from_sheet_header_mapping():
                                 "ub_ga", "Y/Y", "", "", "", "", "", "2021-03-21", "퇴직자", "", "", "", "",
                                 "", "", "", "", "", "", "", "2026. 11. 22", "TL 가", "", "US", "999", "딴사람", "X"],
                                ["", "사번없음"]])
-    assert len(rows) == 1 and set(rows[0]) == set(FIELDS)
+    assert len(rows) == 1 and set(rows[0]) == {*FIELDS, "dates_ok"}
     r = rows[0]
     assert (r["emp_id"], r["tl_ldap"], r["status"], r["joined"], r["e_name"]) == ("1", "ub_tl", "퇴직자", "2021-03-21", "Ga Na")

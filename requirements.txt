@@ -5,3 +5,4 @@ jinja2>=3.1
 python-multipart>=0.0.9      # 화면 폼(POST) 처리
 google-cloud-bigquery>=3.25  # DATA_BACKEND=bigquery 일 때
 google-auth>=2.30            # IAP JWT 검증 (IAP_AUDIENCE 설정 시)
+python-dateutil>=2.8          # INFO 날짜 여러 형식 읽기

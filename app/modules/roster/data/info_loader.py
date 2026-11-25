@@ -48,7 +48,8 @@ class InfoMartLoader:
                                  "raw_json": json.dumps(raw_cells[r["row_no"] - 1], ensure_ascii=False)}
                                 for r in raw], truncate=False)
         self._load("mart_agent_info", [{**{f: (r[f] or None) if f in DATE_FIELDS else r[f] for f in FIELDS},
-                                        "load_id": load_id, "loaded_at": now} for r in clean.rows], truncate=True)
+                                        "dates_ok": r.get("dates_ok", True), "load_id": load_id, "loaded_at": now}
+                                       for r in clean.rows], truncate=True)
         self._load("info_loads", [{"load_id": load_id, "loaded_at": now, "loaded_by": by, "source": source,
                                    **clean.summary(),
                                    "issue_json": json.dumps({"duplicates": sorted(set(clean.duplicates)),

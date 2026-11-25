@@ -55,8 +55,10 @@ def info(store: RosterStore, user: User, screens: dict, today: str) -> dict:
     rows = store.agent_info()
     for r in rows:
         r["tenure"] = info_svc.tenure_bucket(r.get("joined", ""), today)
+        r["dates_ok"] = "" if str(r.get("dates_ok", True)).lower() in ("true", "1") else "확인 필요"
     cols = [(f, info_svc.LABEL[f], info_svc.OWNER[f]) for f in info_svc.FIELDS]
     cols.insert(cols.index(("joined", info_svc.LABEL["joined"], "BA")), ("tenure", "Tenure (계산)", "BA"))
+    cols.append(("dates_ok", "날짜 확인", "BA"))
     status = {}
     for r in rows:
         status[r.get("status") or "(빈 값)"] = status.get(r.get("status") or "(빈 값)", 0) + 1

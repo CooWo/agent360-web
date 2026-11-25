@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.mart_agent_info` (
   status                STRING OPTIONS (description = '재직정보: 재직자 | 퇴직자'),
   tier_before_universal STRING OPTIONS (description = 'Universal 전 Tier (WFM)'),
   note                  STRING OPTIONS (description = '비고'),
+  dates_ok              BOOL      OPTIONS (description = '날짜 칸이 모두 날짜로 읽혔거나 비었으면 TRUE'),
   load_id               STRING    OPTIONS (description = '어느 불러오기에서 왔는지 (info_raw.load_id)'),
   loaded_at             TIMESTAMP
 );
@@ -94,3 +95,6 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.board_drafts` (
   saved_at TIMESTAMP NOT NULL,
   doc      STRING    NOT NULL
 );
+
+-- 이미 만든 표에 열 추가 (CREATE IF NOT EXISTS 는 열을 더하지 않음)
+ALTER TABLE `${PROJECT}.roster.mart_agent_info` ADD COLUMN IF NOT EXISTS dates_ok BOOL;

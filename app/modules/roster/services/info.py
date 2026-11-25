@@ -92,22 +92,44 @@ def tenure_bucket(joined: str, today: str) -> str:
 _SHEETS_EPOCH = date(1899, 12, 30)
 
 
+_YEAR_OK = range(1990, 2101)
+
+
+def _ok(d: date | None) -> str | None:
+    return d.isoformat() if d and d.year in _YEAR_OK else None
+
+
 def parse_date(v: str) -> str | None:
-    """'2021-03-21', '2021. 3. 21', '2021/3/21', '20210321', 미국식 '7/31/2026'(월/일/연), 시트 날짜 숫자(45997)
-    → 'YYYY-MM-DD'. 못 읽으면 None."""
+    """날짜로 읽을 수 있는 형식은 모두 'YYYY-MM-DD' 로. 못 읽으면 None.
+
+    예: 2021-03-21 · 2021. 3. 21 · 2021/3/21 · 20210321 · 2021년 3월 21일 · 7/31/2026 · 31/7/2026 · 7-31-26
+        · Jul 31, 2026 · 31 Jul 2026 · 2026-07-31 10:00 · 시트 날짜 숫자(45997)
+    숫자/숫자/연도 에서 앞 숫자가 12보다 크면 일/월, 아니면 월/일 로 읽는다 (시트 기본 형식).
+    연도는 1990~2100 만 날짜로 인정.
+    """
     s = str(v or "").strip().rstrip(".")
-    if not s:
+    if not s or not re.search(r"\d", s):
         return None
-    m = re.fullmatch(r"(\d{4})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{1,2})", s) or re.fullmatch(r"(\d{4})(\d{2})(\d{2})", s)
+    s = re.sub(r"\s*(년|월)\s*", "-", s).replace("일", "").strip(" -")
     try:
+        m = re.fullmatch(r"(\d{4})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{1,2})(?:[ T].*)?", s)
         if m:
-            return date(int(m[1]), int(m[2]), int(m[3])).isoformat()
-        us = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", s)
-        if us:
-            return date(int(us[3]), int(us[1]), int(us[2])).isoformat()
-        if re.fullmatch(r"\d{5}(\.0+)?", s):
-            return (_SHEETS_EPOCH + timedelta(days=int(float(s)))).isoformat()
-    except ValueError:
+            return _ok(date(int(m[1]), int(m[2]), int(m[3])))
+        m = re.fullmatch(r"(\d{4})(\d{2})(\d{2})", s)
+        if m:
+            return _ok(date(int(m[1]), int(m[2]), int(m[3])))
+        if re.fullmatch(r"\d{5}(\.\d+)?", s):                       # 시트 날짜 숫자
+            return _ok(_SHEETS_EPOCH + timedelta(days=int(float(s))))
+        m = re.fullmatch(r"(\d{1,2})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{2}|\d{4})", s)
+        if m:
+            a, b, y = int(m[1]), int(m[2]), int(m[3])
+            y = y + 2000 if y < 100 else y
+            month, day = (b, a) if a > 12 else (a, b)
+            return _ok(date(y, month, day))
+        if re.search(r"[A-Za-z]{3}", s):                           # Jul 31, 2026 · 31 July 2026
+            from dateutil import parser as du
+            return _ok(du.parse(s, fuzzy=False).date())
+    except (ValueError, OverflowError):
         return None
     return None
 
@@ -119,6 +141,7 @@ def clean_id(v) -> str:
 
 @dataclass
 class CleanResult:
+    """rows: 마트 행 (FIELDS + dates_ok: 날짜 칸이 모두 날짜로 읽혔거나 비었으면 True)."""
     rows: list[dict]
     read: int = 0
     dropped_no_id: int = 0
@@ -134,7 +157,7 @@ class InfoCleaner:
     """받은 그대로의 행 → 사번당 한 줄. 규칙은 여기 한 곳에서만."""
 
     def _one(self, r: dict, issues: list[dict]) -> dict:
-        out: dict = {}
+        out: dict = {"dates_ok": True}
         for f in FIELDS:
             v = str(r.get(f) or "").strip()
             v = "" if v in EMPTY_MARKS else v
@@ -145,6 +168,7 @@ class InfoCleaner:
             elif KIND[f] == "date" and v:
                 d = parse_date(v)
                 if d is None:
+                    out["dates_ok"] = False
                     issues.append({"emp_id": clean_id(r.get("emp_id")), "field": f, "value": v,
                                    "text": f"{LABEL[f]} 날짜를 읽을 수 없음"})
                 v = d or ""

@@ -153,4 +153,4 @@ def test_sync_service_check_then_save_sample(backend):
     assert out["load_id"] and len(RosterSample(backend.dir).agent_info()) == 30   # 재시작해도 남음
     assert store.info_loads(1)[0]["load_id"] == out["load_id"]
     with pytest.raises(PermissionDenied):
-        views.info_sync(InfoSyncService(rd), User("m@x", "m", "manager"), mod.screens, dry_run=True)
+        views.info_sync(InfoSyncService(rd), User("v@x", "v", "viewer"), mod.screens, dry_run=True)

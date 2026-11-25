@@ -104,4 +104,6 @@ def test_screen_marks_editable_columns(backend, env):
                              module=mod, active="info", with_routers=False)
     assert 'class="ed"' in html and 'class="ro"' in html and "바뀐 칸 미리보기" in html and "+ 새 사람" in html
     wctx = views.info(store, WFM, mod.screens, "2026-11-25", svc)
-    assert not wctx["can_add"] and {c["f"] for c in wctx["cols"] if c["edit"]} >= {"universal", "status"}
+    wedit = {c["f"] for c in wctx["cols"] if c["edit"]}
+    assert not wctx["can_add"] and "universal" in wedit and not wedit & {"status", "tl_ldap", "joined", "note"}  # BA 는 아무도
+    assert [c["f"] for c in ctx["cols"]][-1] == "tl_ldap"                                                       # TL 맨 뒤

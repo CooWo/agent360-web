@@ -9,7 +9,7 @@ from app.core.uploads import parse_grid, text_grid
 from app.modules.info.services import bulk
 
 MGR = User("manager@example.com", "m", "manager")      # OPS 열만
-WFM = User("wfm@example.com", "w", "wfm")              # WFM·BA 열만
+WFM = User("wfm@example.com", "w", "wfm")              # WFM 열만 (BA 열은 웹에서 안 고침)
 
 # 시트에서 복사한 모양: 담당 줄 + 머리글(줄바꿈 칸은 따옴표) + 값
 PASTE = ('OPS\tOPS\tOPS\tWFM\tBA\n'
@@ -39,7 +39,8 @@ def test_plan_paste_manager():
 def test_plan_wfm_only_its_columns():
     p = bulk.plan(text_grid(PASTE), {"1001", "1002"}, WFM, "paste")
     cells = {(c["emp_id"], c["field"]): c["value"] for c in p.payload["cells"]}
-    assert cells == {("1001", "tier_before_universal"): "R1", ("1001", "status"): "퇴직자"}
+    assert cells == {("1001", "tier_before_universal"): "R1"}                 # 재직정보(BA)는 아무도 못 고침
+    assert "재직정보" in p.skipped_cols
     assert "한글명" in p.skipped_cols and p.payload["new"] == [{"emp_id": "2001"}]   # 이름 권한 없음 → 미리보기에서 막힘
 
 

@@ -55,13 +55,13 @@ class PolicyRegistry:
 POLICIES = PolicyRegistry()
 _CAP_ALL = {"capacity.view", "capacity.plan", "capacity.edit"}
 _ROSTER_ALL = {"roster.view", "roster.edit", "info.view", "info.edit"}
-_INFO_EDIT_ALL = {"info.edit.ops", "info.edit.wfm", "info.edit.ba"}
+_INFO_EDIT_ALL = {"info.edit.ops", "info.edit.wfm"}   # BA 열(계산·HR)은 웹에서 고치지 않음
 for _p in (
     RolePolicy("admin", "관리자", all_teams=True, grants=frozenset({"admin", "info.sync", "qa.upload", *_INFO_EDIT_ALL, *_CAP_ALL, *_ROSTER_ALL})),
     RolePolicy("manager", "매니저", all_teams=True, write=True, sensitive=SENSITIVE_ALL,
                grants=frozenset({"capacity.view", "capacity.plan", "info.sync", "info.edit.ops", "qa.upload",
                                  *_ROSTER_ALL})),
-    RolePolicy("wfm", "WFM·BA", all_teams=True, grants=frozenset({"info.sync", "info.edit.wfm", "info.edit.ba", "qa.upload", *_CAP_ALL, *_ROSTER_ALL})),
+    RolePolicy("wfm", "WFM·BA", all_teams=True, grants=frozenset({"info.sync", "info.edit.wfm", "qa.upload", *_CAP_ALL, *_ROSTER_ALL})),
     RolePolicy("sv", "SV", write=True, sensitive=SENSITIVE_OWN_TEAMS, grants=frozenset({"roster.view"})),
     RolePolicy("viewer", "조회", grants=frozenset({"capacity.view", "roster.view"})),
 ):

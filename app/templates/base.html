@@ -30,6 +30,7 @@
   <div class="layout{{ ' with-ai' if ai_dock }}">
     <aside class="side">
       {% for m in side %}<a href="{{ m.path }}" class="{{ 'active' if m.id == active }}">{{ m.label }}</a>{% endfor %}
+      {% block side_extra %}{% endblock %}
     </aside>
     <main>
       {% block content %}{% endblock %}

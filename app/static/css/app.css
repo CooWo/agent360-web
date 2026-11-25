@@ -234,9 +234,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
 .coach-card dt { font-weight: 600; font-size: 12px; margin-top: 6px; }
 .coach-card dd { margin: 0 0 2px; white-space: pre-wrap; }
 
-/* 상담사 INFO: 왼쪽 웹 수정 이력 + 오른쪽 본문 */
-.info-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--gap); align-items: start; }
-.info-side { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }
-.info-side-item { padding: 6px 0; border-bottom: 1px solid var(--border); }
-.info-side-item:last-child { border-bottom: 0; }
-@media (max-width: 1100px) { .info-layout { grid-template-columns: 1fr; } .info-side { position: static; max-height: none; } }
+/* 상담사 INFO: 왼쪽 메뉴 아래 웹 수정 이력 */
+.side-history { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px; }
+.side-history .side-h { font-weight: 600; margin-bottom: 6px; }
+.side-history .side-item { padding: 6px 0; border-bottom: 1px solid var(--border); }
+.side-history a.link, .side-history .side-item a { display: inline; padding: 0; background: none; }
+.header-guide th.rowh { background: var(--bg); text-align: left; white-space: nowrap; }
+.header-guide th, .header-guide td { white-space: nowrap; }
+.req { color: var(--danger); font-size: 11px; font-weight: normal; }

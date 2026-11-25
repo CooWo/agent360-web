@@ -26,6 +26,7 @@ def info(store, user: User, screens: dict, today: str, changes: ChangeService | 
     at = next(i for i, c in enumerate(cols) if c["f"] == "joined")
     cols.insert(at, {"f": "tenure", "label": "Tenure (계산)", "owner": "BA", "edit": False, "date": False})
     cols.append({"f": "dates_ok", "label": "날짜 확인", "owner": "BA", "edit": False, "date": False})
+    cols.append(cols.pop(next(i for i, c in enumerate(cols) if c["f"] == "tl_ldap")))      # TL 은 맨 뒤
     status: dict[str, int] = {}
     for r in rows:
         k = r.get("status") or "(빈 값)"
@@ -43,7 +44,7 @@ def info(store, user: User, screens: dict, today: str, changes: ChangeService | 
             "tls": sorted({r["tl_ldap"] for r in rows if r.get("tl_ldap")}), "load": loads[0] if loads else None,
             "today": today, "can_sync": user.can("info.sync"), "can_edit": any(c["edit"] for c in cols),
             "can_add": can_edit(user, "name"), "edited_count": sum(1 for r in rows if r["_edited"]),
-            "preview": preview, "history": history, "latest_applied": latest, "header_help": header_help(user),
+            "preview": preview, "history": history, "latest_applied": latest, "header_help": header_help(user), "ba_headers": ba_headers(),
             "team_load": {"rows": len(team), "tls": len({r["tl_name"] for r in team}),
                           "loaded_at": str(team[0].get("loaded_at") or ""), "loaded_by": team[0].get("loaded_by")}
             if team else None}
@@ -63,21 +64,30 @@ def team_sync(service, user: User, screens: dict, dry_run: bool, force: bool = F
     return service.run(cfg["team_sheet"], cfg["team_tab"], user.email, dry_run, force)
 
 
-def _fmt(f: str) -> str:
-    if f == "emp_id":
-        return "사번 그대로 (숫자, 임시면 '트레이닝1' 처럼) — 이 값으로 사람을 찾음"
-    if f == "status":
-        return "재직자 · 퇴직자 · 확인안됨 중 하나"
-    if f == "email":
-        return "이메일 (소문자로 바꿔 저장)"
-    if f in info_svc.DATE_FIELDS:
-        return "날짜 — 2026-07-03 · 2026. 7. 3 · 20260703 · 7/3/2026 등 날짜로 읽히면 됨 (YYYY-MM-DD 로 저장)"
-    if info_svc.KIND[f] == "id":
-        return "숫자 (앞의 ' 나 .0 은 빼고 읽음)"
-    return "글자 그대로"
+EXAMPLE = {"emp_id": "90000001", "name": "김가나", "e_name": "Gana Kim", "email": "gana.kim@example.com",
+           "airbnb_id": "123456789", "batch": "SR1_26001", "shift_type": "US", "location": "WFH", "type": "Full",
+           "tier": "R1", "ldap": "ub_gana_kim", "fte": "1", "onboarding": "2026-07-03", "r2_onboarding": "",
+           "universal": "", "incentive_date": "", "tier_before_universal": ""}
 
 
 def header_help(user: User) -> list[dict]:
-    """한꺼번에 고치기 — 쓸 수 있는 머리글 전체 (원본 시트 머리글과 같음)."""
+    """한꺼번에 고치기 — 쓸 수 있는 머리글 (원본 시트 머리글과 같음). BA 열은 웹에서 고치지 않아 넣지 않는다."""
+    fields = [f for f in info_svc.FIELDS if info_svc.OWNER[f] != "BA"]
     return [{"f": f, "header": info_svc.LABEL[f], "owner": info_svc.OWNER[f], "edit": f != "emp_id" and can_edit(user, f),
-             "required": f == "emp_id", "fmt": _fmt(f)} for f in info_svc.FIELDS]
+             "required": f == "emp_id", "fmt": _short_fmt(f), "example": EXAMPLE.get(f, "")} for f in fields]
+
+
+def ba_headers() -> list[str]:
+    return [info_svc.LABEL[f] for f in info_svc.FIELDS if info_svc.OWNER[f] == "BA"]
+
+
+def _short_fmt(f: str) -> str:
+    if f == "emp_id":
+        return "찾는 기준"
+    if f in info_svc.DATE_FIELDS:
+        return "날짜"
+    if f == "email":
+        return "이메일"
+    if info_svc.KIND[f] == "id":
+        return "숫자"
+    return "글자"

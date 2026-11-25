@@ -1,7 +1,7 @@
 """상담사 INFO 웹 수정 — 시트 마트 위에 웹 수정분을 덮어 보여 주고(InfoOverlay), 수정은 공통 변경 틀로(InfoEditChange).
 
 - 시트를 다시 불러와도 웹 수정분(info_edits)은 남는다. 같은 칸은 가장 최근 수정이 이긴다.
-- 열 담당(OPS · WFM · BA)에 맞는 권한(info.edit.ops / .wfm / .ba)이 있어야 그 열을 고친다.
+- 열 담당(OPS · WFM)에 맞는 권한(info.edit.ops / .wfm)이 있어야 그 열을 고친다. BA 열은 웹에서 고치지 않는다.
 - 새 사람 등록 = 사번 + 한글명 필수, 나머지 칸은 고칠 권한이 있는 것만.
 - 날짜 칸은 날짜로 읽을 수 있어야 저장 (YYYY-MM-DD 로 바꿔 저장).
 """
@@ -21,8 +21,11 @@ STATUS_VALUES = ("재직자", "퇴직자", "확인안됨")
 SOURCE_LABEL = {"paste": "붙여넣기", "file": "파일"}
 
 
+READ_ONLY_OWNERS = ("BA",)      # BA 열(TL · 입사일(UHR) · 재직정보 · 비고)은 시트·HR 원천에서만 바뀐다
+
+
 def can_edit(user: User, field: str) -> bool:
-    return field != "emp_id" and user.can(f"info.edit.{OWNER[field].lower()}")
+    return field != "emp_id" and OWNER[field] not in READ_ONLY_OWNERS and user.can(f"info.edit.{OWNER[field].lower()}")
 
 
 def normalize(field: str, value) -> tuple[str, str | None]:

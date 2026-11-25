@@ -1,5 +1,31 @@
 {% extends "base.html" %}
 {% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% macro sheet_state(c) -%}
+  {%- set u = c.undo or {} -%}{%- set st = u.get('sheet_revert') if c.status == 'reverted' else u.get('sheet') -%}
+  {%- if not st -%}<span class="muted">–</span>
+  {%- elif st.ok -%}<span class="badge ok" title="{{ st.at }}">시트 반영 {{ st.rows }}줄</span>
+  {%- else -%}<span class="badge danger" title="{{ st.error }}">시트 반영 실패</span>{%- endif -%}
+{%- endmacro %}
+{% macro sheet_failed(c) %}{% set u = c.undo or {} %}{% set st = u.get('sheet_revert') if c.status == 'reverted' else u.get('sheet') %}{{ 1 if st and not st.ok else '' }}{% endmacro %}
+{% block side_extra %}
+{% if can_edit %}
+<div class="side-history">
+  <div class="side-h">웹 수정 이력</div>
+  {% for c in history[:12] %}
+  <div class="side-item">
+    <span class="badge {{ 'ok' if c.status == 'applied' else ('warn' if c.status == 'preview' else 'neutral') }}">{{ c.status_label }}</span>
+    <span>{{ c.summary|replace('상담사 INFO ', '') }}</span>
+    <div class="muted">{{ c.created_at[5:16]|replace('T', ' ') }} · {{ c.actor.split('@')[0] }}</div>
+    <div>{{ sheet_state(c) }}</div>
+    {% if c.change_id == latest_applied %}
+    <form method="post" action="/info/changes/{{ c.change_id }}/undo" onsubmit="return confirm('이 수정을 되돌릴까요? (되돌린 값으로 원본 시트에도 한 줄 더 씁니다)')"><button class="btn sm">되돌리기</button></form>
+    {% elif c.status == 'preview' %}<a class="link" href="/info?change={{ c.change_id }}#preview">미리보기 열기</a>{% endif %}
+  </div>
+  {% else %}<div class="muted side-item">아직 없음</div>{% endfor %}
+  <a class="link" href="#history">전체 이력 보기 ↓</a>
+</div>
+{% endif %}
+{% endblock %}
 {% block content %}
 <div class="page-head">
   <div>
@@ -54,31 +80,9 @@
 </section>
 {% endif %}
 
-{% macro sheet_state(c) -%}
-  {%- set u = c.undo or {} -%}{%- set st = u.get('sheet_revert') if c.status == 'reverted' else u.get('sheet') -%}
-  {%- if not st -%}<span class="muted">–</span>
-  {%- elif st.ok -%}<span class="badge ok" title="{{ st.at }}">시트 반영 {{ st.rows }}줄</span>
-  {%- else -%}<span class="badge danger" title="{{ st.error }}">시트 반영 실패</span>{%- endif -%}
-{%- endmacro %}
-{% macro sheet_failed(c) %}{% set u = c.undo or {} %}{% set st = u.get('sheet_revert') if c.status == 'reverted' else u.get('sheet') %}{{ 1 if st and not st.ok else '' }}{% endmacro %}
+
 
 <div class="info-layout">
-  {% if can_edit %}
-  <aside class="card info-side">
-    <h2>웹 수정 이력</h2>
-    {% for c in history %}
-    <div class="small info-side-item">
-      <span class="badge {{ 'ok' if c.status == 'applied' else ('warn' if c.status == 'preview' else 'neutral') }}">{{ c.status_label }}</span>
-      {{ c.summary|replace('상담사 INFO ', '') }}
-      <div class="muted">{{ c.created_at[5:16]|replace('T', ' ') }} · {{ c.actor.split('@')[0] }} · {{ sheet_state(c) }}</div>
-      {% if c.change_id == latest_applied %}
-      <form method="post" action="/info/changes/{{ c.change_id }}/undo" onsubmit="return confirm('이 수정을 되돌릴까요? (되돌린 값으로 원본 시트에도 한 줄 더 씁니다)')"><button class="btn sm">되돌리기</button></form>
-      {% elif c.status == 'preview' %}<a href="/info?change={{ c.change_id }}#preview">미리보기 열기</a>{% endif %}
-    </div>
-    {% else %}<div class="empty">아직 없음</div>{% endfor %}
-  </aside>
-  {% endif %}
-
   <div class="info-main">
   {% if can_sync %}
   <section class="card" style="margin-bottom:var(--gap)">
@@ -120,20 +124,22 @@
         <li>내가 고칠 수 없는 열(담당이 다른 열)은 건너뛰고 미리보기에 알려 줍니다. 표에 없는 머리글도 무시합니다.</li>
         <li>미리보기로 바뀌는 칸만 먼저 보여 주고, 저장하면 <b>원본 시트 맨 아래에 그 사람의 줄</b>이 더해집니다.</li>
       </ol>
-      <div class="table-wrap" style="max-height:260px">
-        <table>
-          <thead><tr><th>머리글 (그대로 쓰기)</th><th>담당</th><th>나</th><th>값 형식</th></tr></thead>
+      <p style="margin:6px 0 4px"><b>쓸 수 있는 머리글</b> — 시트 머리글과 같은 이름. 아래 '예시' 줄처럼 머리글 아래에 사람마다 한 줄씩.</p>
+      <div class="table-wrap sheet">
+        <table class="header-guide">
+          <thead>
+            <tr class="owner-row"><th class="rowh"></th>{% for h in header_help %}<th class="own-{{ h.owner|lower }}">{{ h.owner }}</th>{% endfor %}</tr>
+            <tr><th class="rowh">머리글</th>{% for h in header_help %}<th class="mono">{{ h.header }}{% if h.required %} <span class="req">필수</span>{% endif %}</th>{% endfor %}</tr>
+          </thead>
           <tbody>
-          {% for h in header_help %}
-            <tr><td class="mono"><b>{{ h.header }}</b>{% if h.required %} <span class="badge danger">필수</span>{% endif %}</td>
-              <td>{{ h.owner }}</td>
-              <td>{% if h.f == 'emp_id' %}<span class="muted">찾는 기준</span>{% elif h.edit %}<span class="badge ok">고칠 수 있음</span>{% else %}<span class="muted">건너뜀</span>{% endif %}</td>
-              <td class="small">{{ h.fmt }}</td></tr>
-          {% endfor %}
+            <tr><th class="rowh">예시</th>{% for h in header_help %}<td class="mono">{{ h.example }}</td>{% endfor %}</tr>
+            <tr class="small"><th class="rowh">값</th>{% for h in header_help %}<td class="muted">{{ h.fmt }}</td>{% endfor %}</tr>
+            <tr class="small"><th class="rowh">나</th>{% for h in header_help %}<td>{% if h.f == 'emp_id' %}<span class="muted">기준</span>{% elif h.edit %}<span class="badge ok">고침</span>{% else %}<span class="muted">건너뜀</span>{% endif %}</td>{% endfor %}</tr>
           </tbody>
         </table>
       </div>
-      <p class="muted" style="margin:6px 0 0">예) 머리글 줄 <span class="mono">사번 · 한글명 · Tier · 온보딩 날짜</span> (탭으로 구분) + 사람마다 한 줄. Tenure · 날짜 확인 같은 계산 열은 넣지 않습니다.</p>
+      <p class="muted" style="margin:6px 0 0">날짜는 2026-07-03 · 2026. 7. 3 · 20260703 · 7/3/2026 처럼 날짜로 읽히면 됩니다 (YYYY-MM-DD 로 저장).
+        <b>BA 열({{ ba_headers|join(" · ") }})은 웹에서 고치지 않습니다</b> — 넣어도 건너뜁니다. Tenure · 날짜 확인 같은 계산 열도 넣지 않습니다.</p>
     </div>
     <div class="split">
       <form method="post" action="/info/import">
@@ -148,7 +154,7 @@
     </div>
   </details>
 
-  <section class="card" style="margin-bottom:var(--gap)">
+  <section class="card" id="history" style="margin-bottom:var(--gap)">
     <h2>웹 수정 이력 <span class="muted small">(최근 {{ history|length }}건 · 저장하면 원본 시트 맨 아래에 줄이 더해집니다)</span></h2>
     <div class="table-wrap" style="max-height:280px">
       <table>

@@ -1,6 +1,7 @@
 """역할·권한 — 기획안 8장.
 
-역할은 Capacity Web 과 같은 4가지로 고정한다: admin(관리자) / manager(매니저) / sv / viewer(조회)
+역할: admin(관리자) / manager(운영 매니저) / wfm(WFM·BA) / sv / viewer(조회)
+- wfm 은 Capacity Web 담당자 (가정 확정·데이터 입력). 상담사 360 에서는 계정 전체 조회만
 - 열람 범위: SV 는 자기 팀만, 매니저·관리자는 계정 전체, 조회자는 지정된 팀만
 - 민감 정보(코칭 메모·인센티브): 담당 SV 와 매니저만. 열람할 때마다 감사 로그
 - 쓰기(코칭 기록·신호 처리): SV(자기 팀)와 매니저
@@ -10,8 +11,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-ROLES = ("admin", "manager", "sv", "viewer")
-ROLE_LABEL = {"admin": "관리자", "manager": "매니저", "sv": "SV", "viewer": "조회"}
+ROLES = ("admin", "manager", "wfm", "sv", "viewer")
+ROLE_LABEL = {"admin": "관리자", "manager": "매니저", "wfm": "WFM·BA", "sv": "SV", "viewer": "조회"}
 
 
 @dataclass(frozen=True)
@@ -27,7 +28,7 @@ class User:
 
     @property
     def scope(self) -> "Scope":
-        if self.role in ("admin", "manager"):
+        if self.role in ("admin", "manager", "wfm"):
             return Scope(all_teams=True)
         return Scope(all_teams=False, teams=tuple(self.teams))
 

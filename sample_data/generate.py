@@ -31,6 +31,7 @@ USERS = [
     {"email": "sv.lee@example.com", "name": "이SV", "role": "sv", "teams": ["R1-B"]},
     {"email": "sv.park@example.com", "name": "박SV", "role": "sv", "teams": ["R2-A"]},
     {"email": "viewer@example.com", "name": "조회자", "role": "viewer", "teams": ["R1-A", "R1-B"]},
+    {"email": "wfm@example.com", "name": "정WFM", "role": "wfm", "teams": []},
 ]
 SV_OF_TEAM = {"R1-A": "sv.kim@example.com", "R1-B": "sv.lee@example.com", "R2-A": "sv.park@example.com"}
 

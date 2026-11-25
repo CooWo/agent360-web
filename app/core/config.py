@@ -54,6 +54,7 @@ class Settings:
     bq_location: str = "asia-northeast3"
     common_dataset: str = "common"
     module_dataset: str = "agent360"
+    capacity_dataset: str = "capacity"
     iap_audience: str = ""
     allowed_domains: tuple[str, ...] = ()
     dev_user: str = "sv.kim@example.com"
@@ -93,6 +94,7 @@ def get_settings() -> Settings:
         bq_location=e("BQ_LOCATION", "asia-northeast3"),
         common_dataset=e("COMMON_DATASET", "common"),
         module_dataset=e("MODULE_DATASET", "agent360"),
+        capacity_dataset=e("CAPACITY_DATASET", "capacity"),
         iap_audience=e("IAP_AUDIENCE", ""),
         allowed_domains=tuple(d.strip().lower().lstrip("@") for d in e("ALLOWED_DOMAINS", "").split(",") if d.strip()),
         dev_user=e("DEV_USER", "sv.kim@example.com"),

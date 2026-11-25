@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.title }}</h1>
+    <p class="muted">준비 중 · 작업 {{ cfg.task }}</p>
+  </div>
+</div>
+<section class="card">
+  <h2>이 화면에서 할 일</h2>
+  <p>{{ cfg.plan }}</p>
+  <p class="small muted">지금은 메뉴·권한만 연결되어 있습니다. 진행 순서는 docs/capacity/02-작업목록.md 를 봐 주세요.</p>
+</section>
+{% endblock %}

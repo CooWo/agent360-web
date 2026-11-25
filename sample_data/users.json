@@ -43,5 +43,11 @@
    "R1-A",
    "R1-B"
   ]
+ },
+ {
+  "email": "wfm@example.com",
+  "name": "정WFM",
+  "role": "wfm",
+  "teams": []
  }
 ]

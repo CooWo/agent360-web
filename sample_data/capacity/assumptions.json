@@ -1,0 +1,20 @@
+[
+ {
+  "channel": "Voice",
+  "work_hours_week": 40.0,
+  "occupancy": 0.85,
+  "shrinkage": 0.3,
+  "nesting_productivity": 0.5,
+  "sl_target": "80/20",
+  "source": "임시 가정 (Q1·Q6)"
+ },
+ {
+  "channel": "Async",
+  "work_hours_week": 40.0,
+  "occupancy": 0.9,
+  "shrinkage": 0.28,
+  "nesting_productivity": 0.5,
+  "sl_target": "-",
+  "source": "임시 가정 (Q1·Q6)"
+ }
+]

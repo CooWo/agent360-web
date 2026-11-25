@@ -98,6 +98,9 @@ td.r, th.r { text-align: right; }
 .chart .ref { stroke: var(--text-3); stroke-dasharray: 4 3; }
 .chart .ref-label { fill: var(--text-3); }
 .spark path { fill: none; stroke: var(--primary); stroke-width: 1.5; }
+.chart .zero { stroke: var(--text-3); stroke-width: 1; }
+.chart .bar-pos { fill: var(--ok); opacity: .75; } .chart .bar-neg { fill: var(--danger); opacity: .75; }
+.chart .bar-mark { opacity: 1; stroke: var(--text); stroke-width: 1; }
 .chart-empty { color: var(--text-3); padding: 30px 0; text-align: center; }
 
 /* 폼 */

@@ -1,0 +1,282 @@
+[
+ {
+  "week": "2026-09-26",
+  "channel": "Voice",
+  "volume": 8315,
+  "aht_sec": 536,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-09-26",
+  "channel": "Async",
+  "volume": 12933,
+  "aht_sec": 295,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-03",
+  "channel": "Voice",
+  "volume": 8138,
+  "aht_sec": 532,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-03",
+  "channel": "Async",
+  "volume": 13199,
+  "aht_sec": 295,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-10",
+  "channel": "Voice",
+  "volume": 8663,
+  "aht_sec": 531,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-10",
+  "channel": "Async",
+  "volume": 12917,
+  "aht_sec": 303,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-17",
+  "channel": "Voice",
+  "volume": 8718,
+  "aht_sec": 541,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-17",
+  "channel": "Async",
+  "volume": 13864,
+  "aht_sec": 299,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-24",
+  "channel": "Voice",
+  "volume": 8990,
+  "aht_sec": 551,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-24",
+  "channel": "Async",
+  "volume": 13707,
+  "aht_sec": 298,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-31",
+  "channel": "Voice",
+  "volume": 9091,
+  "aht_sec": 548,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-10-31",
+  "channel": "Async",
+  "volume": 14622,
+  "aht_sec": 302,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-11-07",
+  "channel": "Voice",
+  "volume": 9750,
+  "aht_sec": 534,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-11-07",
+  "channel": "Async",
+  "volume": 14719,
+  "aht_sec": 298,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-11-14",
+  "channel": "Voice",
+  "volume": 9788,
+  "aht_sec": 533,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-11-14",
+  "channel": "Async",
+  "volume": 15154,
+  "aht_sec": 298,
+  "kind": "actual"
+ },
+ {
+  "week": "2026-11-21",
+  "channel": "Voice",
+  "volume": 9788,
+  "aht_sec": 533,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-11-21",
+  "channel": "Async",
+  "volume": 15519,
+  "aht_sec": 295,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-11-28",
+  "channel": "Voice",
+  "volume": 9964,
+  "aht_sec": 532,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-11-28",
+  "channel": "Async",
+  "volume": 15269,
+  "aht_sec": 298,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-12-05",
+  "channel": "Voice",
+  "volume": 10256,
+  "aht_sec": 533,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-12-05",
+  "channel": "Async",
+  "volume": 15820,
+  "aht_sec": 304,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-12-12",
+  "channel": "Voice",
+  "volume": 9903,
+  "aht_sec": 531,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-12-12",
+  "channel": "Async",
+  "volume": 15657,
+  "aht_sec": 303,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-12-19",
+  "channel": "Voice",
+  "volume": 10065,
+  "aht_sec": 545,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-12-19",
+  "channel": "Async",
+  "volume": 15842,
+  "aht_sec": 300,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-12-26",
+  "channel": "Voice",
+  "volume": 10041,
+  "aht_sec": 546,
+  "kind": "forecast"
+ },
+ {
+  "week": "2026-12-26",
+  "channel": "Async",
+  "volume": 15330,
+  "aht_sec": 303,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-02",
+  "channel": "Voice",
+  "volume": 9813,
+  "aht_sec": 532,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-02",
+  "channel": "Async",
+  "volume": 14688,
+  "aht_sec": 299,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-09",
+  "channel": "Voice",
+  "volume": 9275,
+  "aht_sec": 547,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-09",
+  "channel": "Async",
+  "volume": 15101,
+  "aht_sec": 298,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-16",
+  "channel": "Voice",
+  "volume": 9294,
+  "aht_sec": 540,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-16",
+  "channel": "Async",
+  "volume": 14082,
+  "aht_sec": 300,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-23",
+  "channel": "Voice",
+  "volume": 9237,
+  "aht_sec": 532,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-23",
+  "channel": "Async",
+  "volume": 13595,
+  "aht_sec": 298,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-30",
+  "channel": "Voice",
+  "volume": 8585,
+  "aht_sec": 549,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-01-30",
+  "channel": "Async",
+  "volume": 13664,
+  "aht_sec": 305,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-02-06",
+  "channel": "Voice",
+  "volume": 8491,
+  "aht_sec": 547,
+  "kind": "forecast"
+ },
+ {
+  "week": "2027-02-06",
+  "channel": "Async",
+  "volume": 13024,
+  "aht_sec": 305,
+  "kind": "forecast"
+ }
+]

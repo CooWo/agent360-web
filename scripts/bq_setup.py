@@ -31,7 +31,8 @@ SAMPLE_TABLES = {
 }
 
 
-def ddl_sql(project: str, common: str, module: str, location: str, recreate: bool = False) -> list[tuple[str, str]]:
+def ddl_sql(project: str, common: str, module: str, location: str, recreate: bool = False,
+            capacity: str = "capacity") -> list[tuple[str, str]]:
     out = []
     for f in sorted(DDL_DIR.glob("*.sql")):
         sql = f.read_text(encoding="utf-8").replace("${PROJECT}", project)
@@ -39,6 +40,7 @@ def ddl_sql(project: str, common: str, module: str, location: str, recreate: boo
             sql = sql.replace("CREATE TABLE IF NOT EXISTS", "CREATE OR REPLACE TABLE")
         sql = re.sub(r"`%s\.common(\.|`)" % re.escape(project), rf"`{project}.{common}\1", sql)
         sql = re.sub(r"`%s\.agent360(\.|`)" % re.escape(project), rf"`{project}.{module}\1", sql)
+        sql = re.sub(r"`%s\.capacity(\.|`)" % re.escape(project), rf"`{project}.{capacity}\1", sql)
         sql = sql.replace("location = 'asia-northeast3'", f"location = '{location}'")
         out.append((f.name, sql))
     return out

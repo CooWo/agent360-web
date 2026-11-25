@@ -70,3 +70,16 @@ def test_assistant_page_and_api(client, monkeypatch):
     assert m.post("/api/assistant/ask", json={"question": " "}).status_code == 400
     s = _as(client, "sv.kim@example.com")
     assert s.get("/assistant").status_code == 200                   # SV 도 사용 가능
+
+
+def test_capacity_pages_and_api(client):
+    c = _as(client, "wfm@example.com")
+    for path in ("/capacity", "/capacity/absence", "/capacity/cohorts", "/capacity/simulator",
+                 "/capacity/input", "/capacity/reports"):
+        assert c.get(path).status_code == 200, path
+    data = c.get("/api/capacity/fte").json()
+    assert data["week"] == "2026-11-21" and data["totals"]
+    c = _as(client, "viewer@example.com")
+    assert c.get("/capacity").status_code == 200 and c.get("/capacity/input").status_code == 403
+    c = _as(client, "sv.kim@example.com")
+    assert c.get("/capacity").status_code == 403

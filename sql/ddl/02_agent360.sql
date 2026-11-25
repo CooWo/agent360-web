@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.agent360.user_roles` (
   email      STRING NOT NULL,
   name       STRING,
   ldap       STRING OPTIONS (description = '본인 LDAP (선택, dim_agent.sv_ldap 과 연결)'),
-  role       STRING NOT NULL OPTIONS (description = 'admin | manager | sv | viewer'),
+  role       STRING NOT NULL OPTIONS (description = 'admin | manager | wfm | sv | viewer'),
   teams      ARRAY<STRING>   OPTIONS (description = 'sv/viewer 가 볼 팀. manager/admin 은 비워도 전체'),
   active     BOOL   NOT NULL,
   updated_at TIMESTAMP,

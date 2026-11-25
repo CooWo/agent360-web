@@ -25,6 +25,8 @@ from app.core.data import get_backend  # noqa: E402
 from app.core.errors import NotFound, PermissionDenied  # noqa: E402
 from app.core.modules import discover  # noqa: E402
 from app.modules.agent360 import views  # noqa: E402
+from app.modules.capacity import views as cap_views  # noqa: E402
+from app.modules.capacity.data import get_store  # noqa: E402
 
 OUT = ROOT / "preview"
 OUT.mkdir(exist_ok=True)
@@ -55,6 +57,21 @@ def main():
             except (PermissionDenied, NotFound) as e:
                 html = templating.render("errors/error.html", {"status": 403, "message": str(e)}, user=u,
                                          module=mod, with_routers=False)
+            p = OUT / f"{u.role}_{name}.html"
+            p.write_text(html, encoding="utf-8")
+            made.append(p.name)
+    cap = next(m for m in discover(with_routers=False) if m.name == "capacity")
+    for email in ["wfm@example.com", "manager@example.com", "viewer@example.com"]:
+        u = load_user(email, b)
+        pages = {"capacity_home": ("capacity/home.html", lambda: cap_views.home(b, get_store(), u, cap.screens), "home"),
+                 "capacity_input": ("capacity/placeholder.html", lambda: cap_views.placeholder(u, cap.screens, "input"), "input")}
+        for name, (tpl, ctx, active) in pages.items():
+            try:
+                html = templating.render(tpl, ctx(), user=u, module=cap, active=active,
+                                         users_for_switch=b.list_users(), with_routers=False)
+            except (PermissionDenied, NotFound) as e:
+                html = templating.render("errors/error.html", {"status": 403, "message": str(e)}, user=u,
+                                         module=cap, with_routers=False)
             p = OUT / f"{u.role}_{name}.html"
             p.write_text(html, encoding="utf-8")
             made.append(p.name)

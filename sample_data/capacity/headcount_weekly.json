@@ -1,0 +1,242 @@
+[
+ {
+  "week": "2026-09-26",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-09-26",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-03",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-03",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-10",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-10",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-17",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-17",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-24",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-24",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-31",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-10-31",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-11-07",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-11-07",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-11-14",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-11-14",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-11-21",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-11-21",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-11-28",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-11-28",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-12-05",
+  "channel": "Voice",
+  "hc_production": 62,
+  "hc_nesting": 6
+ },
+ {
+  "week": "2026-12-05",
+  "channel": "Async",
+  "hc_production": 36,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-12-12",
+  "channel": "Voice",
+  "hc_production": 61,
+  "hc_nesting": 6
+ },
+ {
+  "week": "2026-12-12",
+  "channel": "Async",
+  "hc_production": 35,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-12-19",
+  "channel": "Voice",
+  "hc_production": 61,
+  "hc_nesting": 6
+ },
+ {
+  "week": "2026-12-19",
+  "channel": "Async",
+  "hc_production": 35,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2026-12-26",
+  "channel": "Voice",
+  "hc_production": 61,
+  "hc_nesting": 6
+ },
+ {
+  "week": "2026-12-26",
+  "channel": "Async",
+  "hc_production": 35,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-02",
+  "channel": "Voice",
+  "hc_production": 66,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-02",
+  "channel": "Async",
+  "hc_production": 40,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-09",
+  "channel": "Voice",
+  "hc_production": 66,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-09",
+  "channel": "Async",
+  "hc_production": 40,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-16",
+  "channel": "Voice",
+  "hc_production": 66,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-16",
+  "channel": "Async",
+  "hc_production": 40,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-23",
+  "channel": "Voice",
+  "hc_production": 65,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-23",
+  "channel": "Async",
+  "hc_production": 39,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-30",
+  "channel": "Voice",
+  "hc_production": 65,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-01-30",
+  "channel": "Async",
+  "hc_production": 39,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-02-06",
+  "channel": "Voice",
+  "hc_production": 65,
+  "hc_nesting": 0
+ },
+ {
+  "week": "2027-02-06",
+  "channel": "Async",
+  "hc_production": 39,
+  "hc_nesting": 0
+ }
+]

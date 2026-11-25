@@ -1,0 +1,33 @@
+{
+  "module": "capacity",
+  "title": "Capacity",
+  "base_path": "/capacity",
+  "menu": [
+    {"id": "home", "label": "FTE 대시보드", "path": "/capacity", "roles": ["admin", "manager", "wfm", "viewer"]},
+    {"id": "absence", "label": "결근·이탈", "path": "/capacity/absence", "roles": ["admin", "manager", "wfm", "viewer"]},
+    {"id": "cohorts", "label": "기수·교육", "path": "/capacity/cohorts", "roles": ["admin", "manager", "wfm", "viewer"]},
+    {"id": "simulator", "label": "시뮬레이터", "path": "/capacity/simulator", "roles": ["admin", "manager", "wfm"]},
+    {"id": "input", "label": "데이터 입력", "path": "/capacity/input", "roles": ["admin", "wfm"]},
+    {"id": "reports", "label": "리포트", "path": "/capacity/reports", "roles": ["admin", "manager", "wfm", "viewer"]}
+  ],
+  "screens": {
+    "home": {
+      "title": "FTE 대시보드",
+      "subtitle": "주(토요일 마감) 단위 필요 FTE 대비 가용 FTE",
+      "roles": ["admin", "manager", "wfm", "viewer"],
+      "weeks_back": 4,
+      "weeks_ahead": 12,
+      "short_warn_pct": -5
+    },
+    "absence": {"title": "결근·이탈", "roles": ["admin", "manager", "wfm", "viewer"], "task": "C-09·C-10",
+                "plan": "요일·시즌·팀·근속별 결근율 참고값, 근속 구간별 월 이탈율 (팀·기수 집계만)"},
+    "cohorts": {"title": "기수·교육", "roles": ["admin", "manager", "wfm", "viewer"], "task": "C-08",
+                "plan": "기수별 교육·네스팅 기간, 단계별 탈락, 램프업, 현업 투입 시점"},
+    "simulator": {"title": "시뮬레이터", "roles": ["admin", "manager", "wfm"], "task": "C-11",
+                  "plan": "가정(AI 참고값 vs 확정값)을 바꿔 시나리오 3개 비교, 채용 마감일 역산"},
+    "input": {"title": "데이터 입력", "roles": ["admin", "wfm"], "task": "C-12",
+              "plan": "CSV 업로드 → 필수값·중복·이상치 검증 → 미리보기 → 저장 → 되돌리기"},
+    "reports": {"title": "리포트", "roles": ["admin", "manager", "wfm", "viewer"], "task": "C-12",
+                "plan": "주간·월간 FTE 갭 리포트"}
+  }
+}

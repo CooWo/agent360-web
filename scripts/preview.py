@@ -83,7 +83,7 @@ def main():
     ros = next(m for m in discover(with_routers=False) if m.name == "roster")
     for email in ["wfm@example.com", "viewer@example.com"]:
         u = load_user(email, b)
-        pages = {"roster_board": ("roster/board.html", lambda: roster_views.board(roster_store(), u, ros.screens), "board"),
+        pages = {"roster_board": ("roster/board.html", lambda: roster_views.team_board(roster_store(), u, ros.screens), "board"),
                  "roster_workspace": ("roster/workspace.html",
                                       lambda: roster_views.workspace(roster_store(), u, ros.screens, roster_changes()),
                                       "workspace")}

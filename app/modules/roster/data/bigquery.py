@@ -35,9 +35,9 @@ class RosterBigQuery:
                        limit=limit)
 
     def team_roster(self) -> list[dict]:
-        return self._q(f"""SELECT tl_name, sort_order, shift, emp_id, name, e_name, display_name, load_id,
-                                  CAST(loaded_at AS STRING) loaded_at, loaded_by
-                           FROM {self.d}.team_roster ORDER BY sort_order, emp_id""")
+        return self._q(f"""SELECT tl_name, sort_order, row_order, shift, emp_id, name, e_name, display_name, load_id,
+                                  CAST(loaded_at AS STRING) loaded_at, loaded_by, source
+                           FROM {self.d}.team_roster ORDER BY sort_order, row_order, emp_id""")
 
     def info_edits(self) -> list[dict]:
         return self._q(f"""SELECT edit_id, change_id, emp_id, field, value, is_new, edited_at, edited_by

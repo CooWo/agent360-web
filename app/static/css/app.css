@@ -248,3 +248,27 @@ table.fit th, table.fit td { white-space: nowrap; }
 table.fit thead th { vertical-align: bottom; }
 .group-head { text-align: center; border-bottom: 1px solid var(--border); border-left: 1px solid var(--border); }
 th.ncol, td.ncol { text-align: center; width: 56px; min-width: 56px; padding-left: 4px; padding-right: 4px; }
+
+/* TL별 명단 — 원본 시트 팀구성-New 와 같은 모양 (TL 블록이 옆으로 이어짐) */
+.tl-sheet { border-collapse: collapse; width: auto; font-size: 12.5px; }
+.tl-sheet th, .tl-sheet td { border: 1px solid var(--border); padding: 3px 6px; white-space: nowrap; vertical-align: middle; }
+.tl-sheet thead th { position: sticky; z-index: 1; }
+.tl-sheet thead tr:first-child th { top: 0; }
+.tl-sheet thead tr:nth-child(2) th { top: 31px; }
+.tl-sheet .tl-name { text-align: center; font-size: 14px; font-weight: 700; color: var(--text); height: 31px; }
+.tl-sheet .tl-c0 { background: var(--tl-1); } .tl-sheet .tl-c1 { background: var(--tl-2); }
+.tl-sheet .tl-c2 { background: var(--tl-3); } .tl-sheet .tl-c3 { background: var(--tl-4); }
+.tl-sheet .tl-c4 { background: var(--tl-5); } .tl-sheet .tl-c5 { background: var(--tl-6); }
+.tl-sheet th.col { background: var(--surface-2); text-align: center; }
+.tl-sheet td.shift { text-align: center; font-weight: 600; }
+.tl-sheet td.first, .tl-sheet th.first { border-left: 2px solid var(--text-3); }
+.tl-sheet tfoot td { background: var(--surface-2); font-weight: 600; }
+.tl-sheet tr.new td { background: var(--surface-2); }
+.tl-sheet input { border: 0; background: transparent; padding: 0; width: 100%; min-width: 0; font: inherit; color: inherit; }
+.tl-sheet input:focus { outline: 2px solid var(--primary); background: var(--surface); }
+.tl-sheet input.changed { background: var(--warn-weak); }
+.tl-sheet .w-shift { min-width: 50px; } .tl-sheet .w-id { min-width: 78px; } .tl-sheet .w-name { min-width: 58px; }
+.tl-sheet .w-en { min-width: 118px; } .tl-sheet .w-disp { min-width: 96px; }
+.tl-sheet td.w-shift input { width: 50px; text-align: center; font-weight: 600; } .tl-sheet td.w-id input { width: 78px; }
+.tl-sheet td.w-name input { width: 58px; } .tl-sheet td.w-en input { width: 118px; } .tl-sheet td.w-disp input { width: 96px; }
+.tl-wrap { overflow: auto; max-height: calc(100vh - 230px); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }

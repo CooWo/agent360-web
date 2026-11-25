@@ -29,6 +29,14 @@
   --att-late: #f0a33a;
   --att-leave: #8fb8f2;
 
+  /* TL별 명단 — 원본 시트 TL 블록 머리 색 (6가지 돌려 씀) */
+  --tl-1: #d9d2f0;
+  --tl-2: #d3e2f7;
+  --tl-3: #d8ecd8;
+  --tl-4: #f2d3e4;
+  --tl-5: #cfeee9;
+  --tl-6: #f7ebc4;
+
   --radius: 10px;
   --radius-sm: 6px;
   --gap: 16px;

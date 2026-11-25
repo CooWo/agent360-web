@@ -16,7 +16,8 @@ from app.modules.roster.data import get_store
 from app.modules.roster.services import paste
 from app.modules.roster.services.board import merge_paste
 from app.modules.roster.services.changes import BoardChange
-from app.modules.roster.wiring import change_service
+from app.modules.roster.services.team_edit import TeamRosterEdit
+from app.modules.roster.wiring import change_service, team_change_service, team_sheet_cfg
 
 router = APIRouter(prefix="/roster", include_in_schema=False)
 WS = "/roster/workspace"
@@ -52,9 +53,44 @@ def _save_draft(user: User, rows: list[dict]) -> None:
     get_store().save_draft(user.email, rows)
 
 
+def _board(user: User, change: str | None = None, errors: dict | None = None, status_code: int = 200):
+    ctx = views.team_board(get_store(), user, _module().screens, team_change_service(), change, errors,
+                           sheet=team_sheet_cfg())
+    return _page("roster/board.html", ctx, user, "board", status_code)
+
+
 @router.get("", response_class=HTMLResponse)
-def board(user: User = Depends(current_user)):
-    return _page("roster/board.html", views.board(get_store(), user, _module().screens), user, "board")
+def board(change: str | None = None, user: User = Depends(current_user)):
+    """TL별 명단 — 원본 시트 팀구성-New 와 같은 모양. 고칠 수 있는 사람은 칸을 바로 고친다."""
+    return _board(user, change)
+
+
+@router.post("/edit", response_class=HTMLResponse)
+async def edit(request: Request, user: User = Depends(current_user)):
+    """mode=preview → 바뀐 것 미리보기, mode=save → 바로 저장(누른 사람이 승인). 저장 = team_roster + 원본 시트."""
+    form = await request.form()
+    svc = team_change_service()
+    try:
+        ch = svc.preview(user, TeamRosterEdit.kind, {"rows": _rows(form)})
+        if form.get("mode") == "save":
+            svc.approve(user, ch.change_id)
+            return RedirectResponse("/roster#history", status_code=303)
+    except InvalidInput as e:
+        return _board(user, errors=e.errors, status_code=400)
+    return RedirectResponse(f"/roster?change={ch.change_id}#preview", status_code=303)
+
+
+@router.post("/changes/{change_id}/{action}")
+def team_act(change_id: str, action: str, user: User = Depends(current_user)):
+    svc = team_change_service()
+    do = {"approve": svc.approve, "undo": svc.undo, "discard": svc.discard, "retry": svc.retry}.get(action)
+    if do is None:
+        return RedirectResponse("/roster", status_code=303)
+    try:
+        do(user, change_id)
+    except InvalidInput as e:
+        return _board(user, errors=e.errors, status_code=400)
+    return RedirectResponse("/roster#history", status_code=303)
 
 
 @router.get("/workspace", response_class=HTMLResponse)

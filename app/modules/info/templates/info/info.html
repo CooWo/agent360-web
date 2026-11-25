@@ -87,13 +87,13 @@
   {% if can_sync %}
   <section class="card" style="margin-bottom:var(--gap)">
     <h2>시트에서 불러오기</h2>
-    <p class="small muted">원본 시트에서 한 번에: <b>INFO 자동화 시트</b>(기본정보) + <b>OPS TL</b>(팀 구성 → 상담사 360 팀·명단).
+    <p class="small muted">원본 시트에서 한 번에: <b>INFO 자동화 시트</b>(기본정보) + <b>팀구성-New</b>(TL별 명단 → 상담사 360 팀·명단).
       받은 원본은 따로 쌓입니다. 같은 사번이 여러 줄이면 <b>맨 아래 줄</b>이 지금 값입니다 (웹 수정은 원본 시트 맨 아래에 줄을 더합니다).
       {% if team_load %}<br>팀 구성: 지금 {{ team_load.tls }}팀 {{ team_load.rows }}명 · {{ team_load.loaded_at[:16]|replace('T', ' ') }}{% endif %}</p>
     <form method="post" action="/info/sync" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
       <button class="btn" name="mode" value="preview">미리보기 (저장 안 함)</button>
       <button class="btn primary" name="mode" value="save"
-              onclick="return confirm('원본 시트(INFO 자동화 시트 + OPS TL)에서 불러와 저장할까요?')">저장하기</button>
+              onclick="return confirm('원본 시트(INFO 자동화 시트 + 팀구성-New)에서 불러와 저장할까요?')">저장하기</button>
       <label class="small"><input type="checkbox" name="force" value="1" style="width:auto"> 행 수가 크게 줄어도 저장 (보통은 끄기)</label>
     </form>
     {% if sync_error %}<p class="small" style="color:var(--danger);margin-top:8px">❌ INFO: {{ sync_error }}</p>{% endif %}

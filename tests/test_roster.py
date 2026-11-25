@@ -140,12 +140,26 @@ def _r(tpl, ctx, user, mod, active=""):
     return templating.render(tpl, ctx, user=user, module=mod, active=active, with_routers=False)
 
 
+TEAM = [{"tl_name": "TL 가람", "sort_order": 0, "row_order": 0, "shift": "US", "emp_id": "100", "name": "가나",
+         "e_name": "Ga Na", "display_name": "Gana"},
+        {"tl_name": "TL 가람", "sort_order": 0, "row_order": 1, "shift": "US", "emp_id": "200", "name": "다라",
+         "e_name": "", "display_name": ""},
+        {"tl_name": "TL 나래", "sort_order": 1, "row_order": 2, "shift": "SWAT", "emp_id": "999", "name": "모름",
+         "e_name": "", "display_name": ""}]
+
+
 @pytest.mark.parametrize("role", ["admin", "manager", "wfm", "sv", "viewer"])
 def test_board_renders_for_all(backend, mod, role):
     u = User("x@example.com", "x", role, ("R1-A",))
-    html = _r("roster/board.html", views.board(RosterSample(backend.dir), u, mod.screens), u, mod, "board")
-    assert "TL별 명단" in html and "TL 가람" in html and "임시" in html and "퇴직자" in html
-    assert ("명단 고치기" in html) == u.can("roster.edit")
+    store = RosterSample(backend.dir)
+    store.replace_team_roster(TEAM)
+    ctx = views.team_board(store, u, mod.screens, sheet={"team_sheet": "S", "team_tab": "팀구성-New"})
+    html = _r("roster/board.html", ctx, u, mod, "board")
+    assert "TL별 명단" in html and "TL 가람" in html and "TL 나래" in html and "팀구성-New" in html
+    assert html.index("TL 가람") < html.index("TL 나래")                     # 시트처럼 TL 블록이 왼쪽부터
+    assert ("미리보기" in html and "roster_board.js" in html) == u.can("roster.edit")
+    assert ('data-f="emp_id"' in html) == u.can("roster.edit")                # 보기만 하는 사람은 입력칸 없음
+    assert ctx["height"] == 2 + (views.EXTRA_ROWS if u.can("roster.edit") else 0)
 
 
 def test_workspace_renders_and_blocks_viewer(backend, mod, env):

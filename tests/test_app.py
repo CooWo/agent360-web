@@ -128,7 +128,7 @@ def test_roster_workspace_flow(client):
     cid = r.headers["location"].split("change=")[1]
     assert "미리보기 · 팀 구성 수정 1" in c.get(r.headers["location"]).text
     assert c.post(f"/roster/workspace/{cid}/approve", follow_redirects=False).headers["location"] == "/roster"
-    assert "Changed" in c.get("/roster").text
+    assert "Changed" in json.dumps(c.get("/api/roster/board").json(), ensure_ascii=False)   # 예전 보드 표 (메뉴에서 뺌)
     assert c.post(f"/api/roster/changes/{cid}/undo").json()["status"] == "reverted"
     v = _as(client, "viewer@example.com")
     assert v.get("/roster").status_code == 200 and v.get("/roster/workspace").status_code == 403
@@ -190,3 +190,28 @@ def test_qa_upload_flow(client):
     assert c.post("/agent360/qa/upload", files={"file": ("d.zip", b"x", "application/zip")}).status_code == 400
     assert _as(client, "viewer@example.com").post("/agent360/qa/upload", files={"file": ("d.zip", b"x")}).status_code == 403
     c.post(f"/agent360/qa/changes/{cid}/undo")
+
+
+def test_roster_tl_board_edit_flow(client):
+    import json
+    from app.modules.roster.data import get_store
+    from tests.test_roster import TEAM
+    get_store().replace_team_roster(TEAM)
+    c = _as(client, "manager@example.com")
+    page = c.get("/roster").text
+    assert "TL 가람" in page and 'data-f="emp_id"' in page and "팀구성-New" in page
+    rows = [{"tl": r["tl_name"], **{f: r[f] for f in ("shift", "emp_id", "name", "e_name", "display_name")}}
+            for r in TEAM]
+    rows[0]["display_name"] = "바뀜"
+    r = c.post("/roster/edit", data={"rows_json": json.dumps(rows), "mode": "preview"}, follow_redirects=False)
+    assert r.status_code == 303 and "change=" in r.headers["location"]
+    assert "미리보기 · TL별 명단 수정 1" in c.get(r.headers["location"].split("#")[0]).text
+    rows[0]["display_name"] = "바로저장"
+    r = c.post("/roster/edit", data={"rows_json": json.dumps(rows), "mode": "save"}, follow_redirects=False)
+    assert r.headers["location"] == "/roster#history"
+    page = c.get("/roster").text
+    assert 'value="바로저장"' in page and "/undo" in page
+    assert c.post("/roster/edit", data={"rows_json": json.dumps(rows), "mode": "save"}).status_code == 400   # 바뀐 것 없음
+    v = _as(client, "viewer@example.com")
+    assert v.get("/roster").status_code == 200 and 'data-f="emp_id"' not in v.get("/roster").text
+    assert v.post("/roster/edit", data={"rows_json": json.dumps(rows), "mode": "save"}).status_code == 403

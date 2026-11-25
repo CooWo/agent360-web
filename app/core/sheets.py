@@ -46,6 +46,7 @@ class GoogleSheetReader:
 
 class SheetWriter(Protocol):
     def append(self, spreadsheet_id: str, a1_range: str, rows: list[list[str]]) -> int: ...
+    def update_many(self, spreadsheet_id: str, data: list[tuple[str, list[list[str]]]]) -> int: ...
 
 
 def safe_cell(v) -> str:
@@ -75,3 +76,16 @@ class GoogleSheetWriter:
             raise SheetAccessError("시트 또는 탭을 찾을 수 없습니다.")
         r.raise_for_status()
         return int(r.json().get("updates", {}).get("updatedRows", len(rows)))
+
+    def update_many(self, spreadsheet_id: str, data: list[tuple[str, list[list[str]]]]) -> int:
+        """여러 범위의 칸 값을 한 번에 바꾸기 (values.batchUpdate). 서식은 그대로 둔다. 바꾼 칸 수를 돌려준다."""
+        url = f"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}/values:batchUpdate"
+        body = {"valueInputOption": "USER_ENTERED",
+                "data": [{"range": rng, "values": [[safe_cell(c) for c in row] for row in rows]} for rng, rows in data]}
+        r = self.s.post(url, json=body, timeout=60)
+        if r.status_code == 403:
+            raise SheetAccessError("시트에 쓸 권한이 없습니다. 원본 시트를 서버 서비스 계정에 '편집자'로 공유해 주세요.")
+        if r.status_code == 404:
+            raise SheetAccessError("시트 또는 탭을 찾을 수 없습니다.")
+        r.raise_for_status()
+        return int(r.json().get("totalUpdatedCells", 0))

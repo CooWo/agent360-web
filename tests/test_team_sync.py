@@ -30,7 +30,7 @@ MGR = User("manager@example.com", "m", "manager")
 
 class Reader:
     def values(self, sheet, a1):
-        assert a1.startswith("'OPS TL'!")
+        assert a1.startswith("'팀구성-New'!")
         return GRID
 
 

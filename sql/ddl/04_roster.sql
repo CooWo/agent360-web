@@ -119,6 +119,7 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.info_edits` (
 CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.team_roster` (
   tl_name      STRING NOT NULL OPTIONS (description = 'TL 한글 이름 (시트 블록 위 이름)'),
   sort_order   INT64           OPTIONS (description = '시트 왼쪽부터 TL 순서'),
+  row_order    INT64           OPTIONS (description = '시트 위에서부터 줄 순서 (TL 안 순서 · 시트에 다시 쓸 때 그대로)'),
   shift        STRING,
   emp_id       STRING NOT NULL,
   name         STRING          OPTIONS (description = '한글 이름'),
@@ -129,6 +130,8 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.team_roster` (
   loaded_by    STRING,
   source       STRING
 );
+
+ALTER TABLE `${PROJECT}.roster.team_roster` ADD COLUMN IF NOT EXISTS row_order INT64;
 
 CREATE OR REPLACE VIEW `${PROJECT}.roster.v_agent_info` AS
 WITH latest AS (

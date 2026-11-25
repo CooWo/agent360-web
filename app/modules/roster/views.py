@@ -47,3 +47,35 @@ def workspace(store: RosterStore, user: User, screens: dict, changes: ChangeServ
         "counts": {g["tl"]: g["count"] for g in by_tl(norm)},
     }
 
+
+
+FIELD_COLS = [("shift", "Shift", "w-shift"), ("emp_id", "사번", "w-id"), ("name", "이름", "w-name"),
+              ("e_name", "Name", "w-en"), ("display_name", "Display name", "w-disp")]
+EXTRA_ROWS = 3          # 고칠 수 있으면 TL 블록마다 빈 줄을 더 보여 준다 (시트처럼 아래 칸에 써 넣기)
+
+
+def team_board(store: RosterStore, user: User, screens: dict, changes: ChangeService | None = None,
+               change_id: str | None = None, errors: dict | None = None, sheet: dict | None = None) -> dict:
+    """TL별 명단 — team_roster(원본 시트 팀구성-New 맨 위 묶음 + 웹 수정)를 시트와 같은 모양(TL 블록이 옆으로)으로."""
+    from app.modules.roster.services.team_edit import board_rows, by_tl as group
+    _need(user, "roster.view", "팀 구성 보기")
+    cfg = screens["screens"]["board"]
+    raw = store.team_roster()
+    rows = board_rows(raw)
+    groups = [{"tl": tl, "rows": rs, "count": len(rs)} for tl, rs in group(rows).items()]
+    can_edit = user.can("roster.edit")
+    height = max((g["count"] for g in groups), default=0) + (EXTRA_ROWS if can_edit else 0)
+    chk = BoardRules(store.agent_info()).check([{**r, "date": "", "note": ""} for r in rows])
+    preview, history, latest = None, [], None
+    if changes is not None and can_edit:
+        history = changes.history(user, "roster.team", 20)
+        applied = [c for c in history if c.status == "applied"]
+        latest = max(applied, key=lambda c: c.applied_at or "").change_id if applied else None
+        if change_id:
+            preview = next((c for c in history if c.change_id == change_id and c.status == PREVIEW), None)
+    last = max(raw, key=lambda r: r.get("loaded_at") or "", default={}) if raw else {}
+    return {"cfg": cfg, "groups": groups, "total": len(rows), "height": height, "cols": FIELD_COLS,
+            "warnings": [w for w in chk.warnings if w["kind"] != "new_tl"], "can_edit": can_edit,
+            "loaded": {k: last.get(k) for k in ("loaded_at", "loaded_by", "source", "load_id")} if last else None,
+            "sheet": sheet or {}, "preview": preview, "history": history, "latest_applied": latest,
+            "errors": errors or {}}

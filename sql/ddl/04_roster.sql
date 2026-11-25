@@ -4,17 +4,30 @@
 -- ═══════════════════════════════════════════════════════════════
 CREATE SCHEMA IF NOT EXISTS `${PROJECT}.roster` OPTIONS (location = 'asia-northeast3');
 
--- 기본정보 = Standard INFO TABLE 사본 (시트 → BigQuery 동기화)
+-- 기본정보 = 시트 'INFO 자동화 시트' 사본 (열 정의 app/modules/roster/services/info.py, 시트 → BigQuery 동기화)
+-- BA용 계산 열(Tenure·퇴사 Tenure·R2 기준 Tenure)은 저장하지 않고 계산한다.
 CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.agent_info` (
-  emp_id    STRING NOT NULL OPTIONS (description = 'UBASE ID (사번)'),
-  airbnb_id STRING,
-  name      STRING NOT NULL,
-  e_name    STRING,
-  ldap      STRING,
-  joined    STRING OPTIONS (description = '입사일 YYYY-MM-DD'),
-  role      STRING OPTIONS (description = '직무'),
-  market    STRING,
-  `left`    STRING OPTIONS (description = '퇴사일 YYYY-MM-DD (없으면 빈 값)')
+  emp_id                STRING NOT NULL OPTIONS (description = '사번 (OPS)'),
+  name                  STRING NOT NULL OPTIONS (description = '한글명 (OPS)'),
+  e_name                STRING OPTIONS (description = 'Name (OPS)'),
+  email                 STRING,
+  airbnb_id             STRING,
+  batch                 STRING OPTIONS (description = 'CE/SR1 Batch (OPS)'),
+  shift_type            STRING,
+  location              STRING,
+  tl_ldap               STRING OPTIONS (description = 'TL LDAP (BA: OPS 시트 자동반영 + 팀장 수정)'),
+  type                  STRING,
+  tier                  STRING,
+  ldap                  STRING,
+  fte                   STRING,
+  onboarding            STRING OPTIONS (description = '온보딩 날짜'),
+  r2_onboarding         STRING,
+  universal             STRING OPTIONS (description = 'WFM 입력'),
+  incentive_date        STRING OPTIONS (description = '근속 인센티브'),
+  joined                STRING OPTIONS (description = '입사일(UHR)'),
+  status                STRING OPTIONS (description = '재직정보: 재직자 | 퇴직자'),
+  tier_before_universal STRING OPTIONS (description = 'Universal 전 Tier (WFM)'),
+  note                  STRING OPTIONS (description = '비고')
 );
 
 -- 적용된 보드 버전. doc = [{"tl","shift","emp_id","name","e_name","display_name","date","note"}, ...]

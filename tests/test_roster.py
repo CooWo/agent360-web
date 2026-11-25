@@ -18,8 +18,8 @@ from app.modules.roster.services.board import BoardRules, merge_paste, summarize
 from app.modules.roster.wiring import change_service
 
 WFM = User("wfm@example.com", "정WFM", "wfm")
-INFO = [{"emp_id": "100", "name": "가나", "e_name": "Ga Na", "left": ""},
-        {"emp_id": "200", "name": "다라", "e_name": "Da Ra", "left": "2026-11-01"}]
+INFO = [{"emp_id": "100", "name": "가나", "e_name": "Ga Na", "status": "재직자"},
+        {"emp_id": "200", "name": "다라", "e_name": "Da Ra", "status": "퇴직자"}]
 
 
 def R(tl, emp, name="", **kw):
@@ -144,7 +144,7 @@ def _r(tpl, ctx, user, mod, active=""):
 def test_board_renders_for_all(backend, mod, role):
     u = User("x@example.com", "x", role, ("R1-A",))
     html = _r("roster/board.html", views.board(RosterSample(backend.dir), u, mod.screens), u, mod, "board")
-    assert "TL별 명단" in html and "TL 가람" in html and "임시" in html and "퇴사자" in html
+    assert "TL별 명단" in html and "TL 가람" in html and "임시" in html and "퇴직자" in html
     assert ("명단 고치기" in html) == u.can("roster.edit")
 
 
@@ -192,3 +192,18 @@ def test_bigquery_params_bound(monkeypatch):
     for sql, bound in calls:
         assert set(re.findall(r"@(\w+)", sql)) <= bound
         assert "`v12-2027.roster`" in sql
+
+
+def test_info_from_sheet_header_mapping():
+    from app.modules.roster.services.info import FIELDS, from_sheet
+    header = ["사번", "한글명", "Name", "Email", "Airbnb ID", "CE/SR1 Batch", "Tenure", "Shift Type", "Location", "TL",
+              "Type", "Tier", "LDAP", "FTE", "", "온보딩 날짜", "R2 온보딩", "Universal", "근속 인센티브", "입사일(UHR)",
+              "재직정보", "퇴사 Tenure", "Universal 전\nTier","R2 온보딩 기준 Tenure", "비고", "", "", "Amb.사번", "Amb.TL",
+              "메뉴얼 + 함수", "", "", "Date", "Leader", "RGroup", "Shift", "사번", "이름", "Name"]
+    rows = from_sheet(header, [["1", "가나", "Ga Na", "", "", "", "365+ Days", "Flex", "WFH", "ub_tl", "Voice", "R1",
+                                "ub_ga", "Y/Y", "", "", "", "", "", "2021-03-21", "퇴직자", "", "", "", "",
+                                "", "", "", "", "", "", "", "2026. 11. 22", "TL 가", "", "US", "999", "딴사람", "X"],
+                               ["", "사번없음"]])
+    assert len(rows) == 1 and set(rows[0]) == set(FIELDS)
+    r = rows[0]
+    assert (r["emp_id"], r["tl_ldap"], r["status"], r["joined"], r["e_name"]) == ("1", "ub_tl", "퇴직자", "2021-03-21", "Ga Na")

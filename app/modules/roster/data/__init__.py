@@ -9,7 +9,7 @@ from app.core.registry import Registry
 
 
 class AgentInfoSource(Protocol):
-    """기본정보 (Standard INFO TABLE). 사번(emp_id) 키."""
+    """기본정보 (시트 'INFO 자동화 시트'). 사번(emp_id) 키. 열 정의: services/info.py"""
     def agent_info(self) -> list[dict]: ...
 
 

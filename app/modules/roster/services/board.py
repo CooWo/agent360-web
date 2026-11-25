@@ -7,6 +7,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from app.modules.roster.services.info import is_retired
+
 FIELDS = ("tl", "shift", "emp_id", "name", "e_name", "display_name", "date", "note")
 LABEL = {"tl": "TL", "shift": "Shift", "emp_id": "사번", "name": "이름", "e_name": "Name",
          "display_name": "Display name", "date": "반영일", "note": "메모"}
@@ -70,8 +72,8 @@ class BoardRules:
                 c.warnings.append({"row": i, "who": who, "kind": "temp", "text": "사번 없음 → 임시로 등록"})
             elif not src:
                 c.warnings.append({"row": i, "who": who, "kind": "unknown", "text": f"INFO 에 없는 사번 {r['emp_id']}"})
-            elif src.get("left"):
-                c.warnings.append({"row": i, "who": who, "kind": "left", "text": f"퇴사자 (퇴사일 {src['left']})"})
+            elif is_retired(src):
+                c.warnings.append({"row": i, "who": who, "kind": "left", "text": "INFO 재직정보가 퇴직자"})
         if known_tls is not None:
             for tl in sorted({r["tl"] for r in rows if r["tl"]} - known_tls):
                 c.warnings.append({"row": 0, "who": tl, "kind": "new_tl", "text": "새 TL → BA팀 알림"})

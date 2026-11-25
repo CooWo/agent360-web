@@ -6,7 +6,7 @@ import json
 import uuid
 from datetime import date, datetime, timezone
 
-INFO_COLS = ("emp_id", "airbnb_id", "name", "e_name", "ldap", "joined", "role", "market", "left")
+from app.modules.roster.services.info import FIELDS as INFO_COLS
 
 
 class RosterBigQuery:

@@ -114,7 +114,7 @@ def coaching(backend, user: User, screens: dict, agent_id: str | None = None,
 
 
 def admin(backend, user: User, screens: dict) -> dict:
-    if not user.has_role("admin"):
+    if not user.can("admin"):
         raise PermissionDenied("관리 화면은 관리자만 볼 수 있습니다.")
     return {"rules": backend.signal_rules(), "users": backend.list_users(), "teams": _team_labels(backend),
             "issue_types": backend.issue_types()}

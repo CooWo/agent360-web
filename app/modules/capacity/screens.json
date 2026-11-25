@@ -17,7 +17,8 @@
       "roles": ["admin", "manager", "wfm", "viewer"],
       "weeks_back": 4,
       "weeks_ahead": 12,
-      "short_warn_pct": -5
+      "short_warn_pct": -5,
+      "formula": "workload"
     },
     "absence": {"title": "결근·이탈", "roles": ["admin", "manager", "wfm", "viewer"], "task": "C-09·C-10",
                 "plan": "요일·시즌·팀·근속별 결근율 참고값, 근속 구간별 월 이탈율 (팀·기수 집계만)"},

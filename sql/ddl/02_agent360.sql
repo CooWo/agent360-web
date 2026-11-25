@@ -78,3 +78,14 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.agent360.audit_log` (
 )
 PARTITION BY DATE(ts)
 OPTIONS (partition_expiration_days = 1095);
+
+-- 데이터 변경 묶음 (미리보기 → 승인 → 되돌리기, app/core/changes.py). doc = ChangeSet 전체 JSON.
+CREATE TABLE IF NOT EXISTS `${PROJECT}.agent360.change_log` (
+  change_id  STRING    NOT NULL,
+  kind       STRING    NOT NULL OPTIONS (description = '예: capacity.assumptions'),
+  status     STRING    NOT NULL OPTIONS (description = 'preview | applied | reverted | discarded'),
+  actor      STRING    NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  doc        STRING    NOT NULL,
+  updated_at TIMESTAMP
+);

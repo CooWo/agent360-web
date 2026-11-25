@@ -83,3 +83,30 @@ def test_capacity_pages_and_api(client):
     assert c.get("/capacity").status_code == 200 and c.get("/capacity/input").status_code == 403
     c = _as(client, "sv.kim@example.com")
     assert c.get("/capacity").status_code == 403
+
+
+def test_capacity_input_preview_apply_undo(client):
+    c = _as(client, "wfm@example.com")
+    r = c.post("/capacity/input/preview", data={"Voice__shrinkage": "0.33", "Voice__occupancy": "0.85",
+                                                "Voice__work_hours_week": "40", "Voice__nesting_productivity": "0.5"},
+               follow_redirects=False)
+    assert r.status_code == 303 and "change=" in r.headers["location"]
+    cid = r.headers["location"].split("change=")[1]
+    assert "미리보기 · 계산 가정 1칸 변경" in c.get(r.headers["location"]).text
+    assert c.post(f"/capacity/input/{cid}/approve", follow_redirects=False).status_code == 303
+    assert any(a["shrinkage"] == 0.33 for a in c.get("/api/capacity/fte").json()["assumptions"])
+    assert c.post(f"/capacity/input/{cid}/undo", follow_redirects=False).status_code == 303
+    up = c.post("/capacity/input/preview", files={"file": ("a.csv", b"channel,shrinkage\nVoice,2\n", "text/csv")})
+    assert up.status_code == 400 and "입력값을 확인" in up.text
+
+
+def test_capacity_change_api(client):
+    c = _as(client, "wfm@example.com")
+    ch = c.post("/api/capacity/changes/capacity.assumptions/preview",
+                json={"rows": [{"channel": "Async", "occupancy": 0.8}]}).json()
+    assert ch["status"] == "preview"
+    assert c.post(f"/api/capacity/changes/{ch['change_id']}/approve").json()["status"] == "applied"
+    assert c.post(f"/api/capacity/changes/{ch['change_id']}/undo").json()["status"] == "reverted"
+    v = _as(client, "manager@example.com")
+    assert v.post("/api/capacity/changes/capacity.assumptions/preview",
+                  json={"rows": [{"channel": "Async", "occupancy": 0.7}]}).status_code == 403

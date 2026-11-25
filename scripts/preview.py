@@ -27,6 +27,7 @@ from app.core.modules import discover  # noqa: E402
 from app.modules.agent360 import views  # noqa: E402
 from app.modules.capacity import views as cap_views  # noqa: E402
 from app.modules.capacity.data import get_store  # noqa: E402
+from app.modules.capacity.wiring import change_service  # noqa: E402
 
 OUT = ROOT / "preview"
 OUT.mkdir(exist_ok=True)
@@ -64,7 +65,8 @@ def main():
     for email in ["wfm@example.com", "manager@example.com", "viewer@example.com"]:
         u = load_user(email, b)
         pages = {"capacity_home": ("capacity/home.html", lambda: cap_views.home(b, get_store(), u, cap.screens), "home"),
-                 "capacity_input": ("capacity/placeholder.html", lambda: cap_views.placeholder(u, cap.screens, "input"), "input")}
+                 "capacity_input": ("capacity/input.html", lambda: {**cap_views.input_page(u, cap.screens, change_service(), get_store()),
+                                                             "preview": None, "errors": {}}, "input")}
         for name, (tpl, ctx, active) in pages.items():
             try:
                 html = templating.render(tpl, ctx(), user=u, module=cap, active=active,

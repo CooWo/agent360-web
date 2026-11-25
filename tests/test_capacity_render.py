@@ -89,7 +89,56 @@ def test_bigquery_params_bound(monkeypatch):
     from app.modules.capacity.data.bigquery import CapacityBigQuery
     b = CapacityBigQuery("v12-2027", "asia-northeast3", "capacity", 0)
     b.forecast("2026-10-01", "2026-12-31"); b.headcount("2026-10-01", "2026-12-31"); b.assumptions()
-    assert len(calls) == 3
+    b.save_assumptions([{"channel": "Voice", "work_hours_week": 40, "occupancy": 0.85, "shrinkage": 0.3,
+                         "nesting_productivity": 0.5, "sl_target": "80/20", "source": "x"}])
+    assert len(calls) == 4
     for sql, bound in calls:
         assert set(re.findall(r"@(\w+)", sql)) <= bound
         assert "`v12-2027.capacity`" in sql
+
+
+def test_bigquery_changelog_params_bound(monkeypatch):
+    calls = []
+
+    class P:
+        def __init__(self, name, typ, value):
+            self.name = name
+
+    class Cfg:
+        def __init__(self, query_parameters=()):
+            self.p = list(query_parameters)
+
+    class Client:
+        def __init__(self, project=None, **kw):
+            self.project = project
+
+        def query(self, sql, job_config=None, location=None):
+            calls.append((sql, {p.name for p in job_config.p}))
+            return types.SimpleNamespace(result=lambda: [])
+
+    fake = types.ModuleType("google.cloud.bigquery")
+    fake.ScalarQueryParameter, fake.QueryJobConfig, fake.Client = P, Cfg, Client
+    cloud = types.ModuleType("google.cloud")
+    cloud.bigquery = fake
+    google = types.ModuleType("google")
+    google.cloud = cloud
+    for k, v in {"google": google, "google.cloud": cloud, "google.cloud.bigquery": fake}.items():
+        monkeypatch.setitem(sys.modules, k, v)
+    from app.core.changes import ChangeSet
+    from app.core.data.changelog import BigQueryChangeLog
+    log = BigQueryChangeLog("v12-2027", "asia-northeast3", "agent360")
+    log.save(ChangeSet(kind="k", actor="a", summary="s", payload={}, diff=[]).to_dict())
+    log.get("CH1"); log.list(); log.list("k", 5)
+    for sql, bound in calls:
+        assert set(re.findall(r"@(\w+)", sql)) <= bound
+        assert "`v12-2027.agent360.change_log`" in sql
+
+
+def test_input_page_renders(backend, cap_users, cap):
+    from app.core.data.changelog import JsonChangeLog
+    from app.modules.capacity.wiring import change_service
+    u = cap_users["wfm"]
+    svc = change_service(get_store(), backend, JsonChangeLog(backend.dir))
+    ctx = {**views.input_page(u, cap.screens, svc, get_store()), "preview": None, "errors": {}}
+    html = _r("capacity/input.html", ctx, u, cap, "input")
+    assert "계산 가정 고치기" in html and "Voice__shrinkage" in html and "CSV 로 올리기" in html

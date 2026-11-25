@@ -1,6 +1,11 @@
 {% extends "base.html" %}
 {% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
 {% block content %}
+{% macro coach_rate(r) -%}
+  {%- set rate = (100 * r.coaching_sessions / r.evaluations) if r.evaluations else 0 -%}
+  <span class="coach-rate num">평가 <b>{{ r.evaluations }}</b> · 코칭 <b>{{ r.coaching_sessions }}</b> · Rate <b>{{ rate|num(0) }}%</b></span>
+  {%- if r.coaching_sessions < r.evaluations %} <span class="badge warn">부족</span>{% endif -%}
+{%- endmacro %}
 <div class="page-head">
   <div>
     <h1>{{ cfg.title }}</h1>
@@ -51,15 +56,20 @@
     <h2>코칭 필요 인원 <span class="muted small">(QA 평균 낮은 순)</span></h2>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>상담사</th><th>팀</th><th class="r">QA 평균</th><th class="r">평가</th><th class="r">코칭</th><th>등급 (Bad · NI · Good · VG)</th><th>코치</th></tr></thead>
+        <thead>
+          <tr><th rowspan="2">상담사</th><th rowspan="2">팀</th><th rowspan="2" class="r">QA 평균</th><th rowspan="2">평가 · 코칭 · Rate</th>
+            <th colspan="4" class="c grade-head">등급</th><th rowspan="2">코치</th></tr>
+          <tr><th class="c grade">Bad</th><th class="c grade">NI</th><th class="c grade">Good</th><th class="c grade">VG</th></tr>
+        </thead>
         <tbody>
         {% for r in need %}
           <tr><td><a href="/agent360/agents/{{ r.agent_id }}"><b>{{ r.name }}</b></a></td><td>{{ r.team }}</td>
-            <td class="r num" style="color:var(--danger)">{{ r.qa_avg|num(1) }}</td><td class="r num">{{ r.evaluations }}</td>
-            <td class="r num">{{ r.coaching_sessions }}{% if r.coaching_sessions < r.evaluations %} <span class="badge warn">부족</span>{% endif %}</td>
-            <td class="small num">{{ r.grade_bad }} · {{ r.grade_ni }} · {{ r.grade_good }} · {{ r.grade_very_good }}</td>
+            <td class="r num" style="color:var(--danger)">{{ r.qa_avg|num(1) }}</td>
+            <td>{{ coach_rate(r) }}</td>
+            <td class="c num grade">{{ r.grade_bad }}</td><td class="c num grade">{{ r.grade_ni }}</td>
+            <td class="c num grade">{{ r.grade_good }}</td><td class="c num grade">{{ r.grade_very_good }}</td>
             <td class="small">{{ r.coach or '–' }}</td></tr>
-        {% else %}<tr><td colspan="7" class="empty">코칭 필요 인원이 없습니다.</td></tr>{% endfor %}
+        {% else %}<tr><td colspan="9" class="empty">코칭 필요 인원이 없습니다.</td></tr>{% endfor %}
         </tbody>
       </table>
     </div>
@@ -100,10 +110,10 @@
   <h2>전체 <span class="muted small">({{ rows|length }}명, QA 평균 낮은 순)</span></h2>
   <div class="table-wrap">
     <table>
-      <thead><tr><th>상담사</th><th>팀</th><th class="r">QA 평균</th><th class="r">평가</th><th class="r">코칭</th><th>코치</th></tr></thead>
+      <thead><tr><th>상담사</th><th>팀</th><th class="r">QA 평균</th><th>평가 · 코칭 · Rate</th><th>코치</th></tr></thead>
       <tbody>{% for r in rows %}<tr><td><a href="/agent360/agents/{{ r.agent_id }}">{{ r.name }}</a>{% if r.need %} <span class="badge danger">코칭 필요</span>{% endif %}</td>
-        <td>{{ r.team }}</td><td class="r num">{{ r.qa_avg|num(1) }}</td><td class="r num">{{ r.evaluations }}</td>
-        <td class="r num">{{ r.coaching_sessions }}</td><td class="small">{{ r.coach or '–' }}</td></tr>{% endfor %}</tbody>
+        <td>{{ r.team }}</td><td class="r num">{{ r.qa_avg|num(1) }}</td>
+        <td>{{ coach_rate(r) }}</td><td class="small">{{ r.coach or '–' }}</td></tr>{% endfor %}</tbody>
     </table>
   </div>
 </section>

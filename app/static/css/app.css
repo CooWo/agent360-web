@@ -242,3 +242,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
 .header-guide th.rowh { background: var(--bg); text-align: left; white-space: nowrap; }
 .header-guide th, .header-guide td { white-space: nowrap; }
 .req { color: var(--danger); font-size: 11px; font-weight: normal; }
+/* QA·코칭: 등급 칸은 같은 폭·가운데 정렬, 평가·코칭·Rate 는 한 칸 */
+.grade-head { text-align: center; border-bottom: 1px solid var(--border); }
+th.grade, td.grade { text-align: center; width: 52px; min-width: 52px; padding-left: 4px; padding-right: 4px; }
+.coach-rate { white-space: nowrap; }
+.coach-rate b { font-weight: 600; }

@@ -90,23 +90,23 @@
     <p class="small muted">원본 시트에서 한 번에: <b>INFO 자동화 시트</b>(기본정보) + <b>OPS TL</b>(팀 구성 → 상담사 360 팀·명단).
       받은 원본은 따로 쌓입니다. 같은 사번이 여러 줄이면 <b>맨 아래 줄</b>이 지금 값입니다 (웹 수정은 원본 시트 맨 아래에 줄을 더합니다).
       {% if team_load %}<br>팀 구성: 지금 {{ team_load.tls }}팀 {{ team_load.rows }}명 · {{ team_load.loaded_at[:16]|replace('T', ' ') }}{% endif %}</p>
-    <form method="post" action="/info/sync" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"
-          onsubmit="return confirm('원본 시트(INFO 자동화 시트 + OPS TL)에서 불러와 바꿀까요?')">
-      <input type="hidden" name="mode" value="save">
-      <button class="btn primary">시트에서 불러오기</button>
+    <form method="post" action="/info/sync" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" name="mode" value="preview">미리보기 (저장 안 함)</button>
+      <button class="btn primary" name="mode" value="save"
+              onclick="return confirm('원본 시트(INFO 자동화 시트 + OPS TL)에서 불러와 저장할까요?')">저장하기</button>
       <label class="small"><input type="checkbox" name="force" value="1" style="width:auto"> 행 수가 크게 줄어도 저장 (보통은 끄기)</label>
     </form>
     {% if sync_error %}<p class="small" style="color:var(--danger);margin-top:8px">❌ INFO: {{ sync_error }}</p>{% endif %}
     {% if team_error %}<p class="small" style="color:var(--danger);margin-top:8px">❌ 팀 구성: {{ team_error }}</p>{% endif %}
     {% if sync %}
     <div class="small" style="margin-top:8px">
-      ✅ INFO 저장 ({{ sync.load_id }}) — 읽은 행 {{ sync.rows_read }} → {{ sync.rows_mart }}명 · 사번 없음 {{ sync.dropped_no_id }} · 중복 사번 {{ sync.duplicates }} · 확인 필요 칸 {{ sync.issues }}
+      {% if sync_saved %}✅ INFO 저장 ({{ sync.load_id }}){% else %}👀 INFO 미리보기 (아직 저장 안 함){% endif %} — 읽은 행 {{ sync.rows_read }} → {{ sync.rows_mart }}명 · 사번 없음 {{ sync.dropped_no_id }} · 중복 사번 {{ sync.duplicates }} · 확인 필요 칸 {{ sync.issues }}
       {% for k, v in sync.status.items() %} · {{ k }} {{ v }}{% endfor %}
       {% for i in sync.issue_samples %}<div class="muted">⚠ {{ i.emp_id }} {{ i.text }}: {{ i.value }}</div>{% endfor %}
     </div>
     {% endif %}
     {% if team %}
-    <div class="small" style="margin-top:4px">✅ 팀 구성 저장 ({{ team.load_id }}) — {{ team.tls|length }}팀 {{ team.rows }}명
+    <div class="small" style="margin-top:4px">{% if sync_saved %}✅ 팀 구성 저장 ({{ team.load_id }}){% else %}👀 팀 구성 미리보기{% endif %} — {{ team.tls|length }}팀 {{ team.rows }}명
       <span class="muted">{% for t in team.tls %}{{ t.tl }} {{ t.n }}{{ " · " if not loop.last }}{% endfor %}</span></div>
     {% endif %}
   </section>
@@ -122,7 +122,7 @@
         <li>사번으로 사람을 찾습니다. <b>있는 사번 = 고치기, 없는 사번 = 새 사람</b> (새 사람은 한글명도 꼭 필요).</li>
         <li><b>빈 칸은 바꾸지 않습니다.</b> 값을 지우려면 아래 표에서 그 칸을 직접 비우세요.</li>
         <li>내가 고칠 수 없는 열(담당이 다른 열)은 건너뛰고 미리보기에 알려 줍니다. 표에 없는 머리글도 무시합니다.</li>
-        <li>미리보기로 바뀌는 칸만 먼저 보여 주고, 저장하면 <b>원본 시트 맨 아래에 그 사람의 줄</b>이 더해집니다.</li>
+        <li><b>미리보기</b>는 바뀌는 칸만 먼저 보여 주고(저장 안 함), <b>저장하기</b>는 바로 저장합니다. 저장하면 <b>원본 시트 맨 아래에 그 사람의 줄</b>이 더해집니다.</li>
       </ol>
       <p style="margin:6px 0 4px"><b>쓸 수 있는 머리글</b> — 시트 머리글과 같은 이름. 아래 '예시' 줄처럼 머리글 아래에 사람마다 한 줄씩.</p>
       <div class="table-wrap sheet">
@@ -144,12 +144,18 @@
     <div class="split">
       <form method="post" action="/info/import">
         <textarea name="paste" rows="6" placeholder="여기에 붙여넣기 (Ctrl+V)" style="width:100%;font-family:monospace">{{ paste_text or "" }}</textarea>
-        <button class="btn primary" style="margin-top:6px">붙여넣은 내용 미리보기</button>
+        <div style="display:flex;gap:8px;margin-top:6px">
+          <button class="btn" name="mode" value="preview">미리보기</button>
+          <button class="btn primary" name="mode" value="save" onclick="return confirm('미리보기 없이 바로 저장할까요? (원본 시트 맨 아래에도 줄이 더해집니다)')">저장하기</button>
+        </div>
       </form>
       <form method="post" action="/info/import" enctype="multipart/form-data">
         <input type="file" name="file" accept=".xlsx,.csv,.tsv,.txt" required>
         <p class="small muted">.xlsx(첫 번째 시트) · .csv · .tsv, 5MB 이하. 첫 줄 머리글 규칙은 붙여넣기와 같습니다.</p>
-        <button class="btn primary">파일 미리보기</button>
+        <div style="display:flex;gap:8px">
+          <button class="btn" name="mode" value="preview">미리보기</button>
+          <button class="btn primary" name="mode" value="save" onclick="return confirm('미리보기 없이 바로 저장할까요? (원본 시트 맨 아래에도 줄이 더해집니다)')">저장하기</button>
+        </div>
       </form>
     </div>
   </details>

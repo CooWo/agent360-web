@@ -48,24 +48,27 @@ def info(change: str | None = None, user: User = Depends(current_user)):
 
 @router.post("/sync", response_class=HTMLResponse)
 async def sync(request: Request, user: User = Depends(current_user)):
-    """시트에서 불러오기 — INFO 자동화 시트 + OPS TL(팀 구성)을 한 번에 저장. 서버의 서비스 계정이 시트를 읽는다."""
+    """시트에서 불러오기 — INFO 자동화 시트 + OPS TL(팀 구성). mode=preview(확인만) | save(저장)."""
     form = await request.form()
+    save = form.get("mode") == "save"
     force = form.get("force") == "1"
     reader = GoogleSheetReader()
-    extra: dict = {}
+    extra: dict = {"sync_saved": save}
     try:
-        out = views.info_sync(InfoSyncService(reader, info_loader(get_store())), user, _module().screens,
-                              dry_run=False, force=force)
-        audit(get_backend(), user, "info_sync", "info", out["load_id"] or "", {k: out[k] for k in (
-            "rows_read", "rows_mart", "dropped_no_id", "duplicates", "issues")})
+        out = views.info_sync(InfoSyncService(reader, info_loader(get_store()) if save else None), user,
+                              _module().screens, dry_run=not save, force=force)
+        if save:
+            audit(get_backend(), user, "info_sync", "info", out["load_id"] or "", {k: out[k] for k in (
+                "rows_read", "rows_mart", "dropped_no_id", "duplicates", "issues")})
         extra["sync"] = out
     except (SheetAccessError, LoadRefused, ValueError) as e:
         extra["sync_error"] = str(e)
     try:
-        team = views.team_sync(TeamRosterSync(reader, team_loader(get_store())), user, _module().screens,
-                               dry_run=False, force=force)
-        audit(get_backend(), user, "team_sync", "roster", team["load_id"] or "", {"rows": team["rows"],
-                                                                                "tls": len(team["tls"])})
+        team = views.team_sync(TeamRosterSync(reader, team_loader(get_store()) if save else None), user,
+                               _module().screens, dry_run=not save, force=force)
+        if save:
+            audit(get_backend(), user, "team_sync", "roster", team["load_id"] or "", {"rows": team["rows"],
+                                                                                    "tls": len(team["tls"])})
         extra["team"] = team
     except (SheetAccessError, LoadRefused, ValueError) as e:
         extra["team_error"] = str(e)
@@ -102,7 +105,8 @@ async def preview(request: Request, user: User = Depends(current_user)):
 
 @router.post("/import", response_class=HTMLResponse)
 async def import_table(request: Request, user: User = Depends(current_user)):
-    """시트에서 복사한 글(paste) 또는 파일(file: .xlsx/.csv/.tsv) → 바뀐 칸만 미리보기."""
+    """시트에서 복사한 글(paste) 또는 파일(file: .xlsx/.csv/.tsv). mode=preview → 바뀐 칸만 미리보기,
+    mode=save → 미리보기를 거치지 않고 바로 저장 (누른 사람이 승인한 것으로 기록)."""
     if not user.can("info.edit"):
         raise PermissionDenied("상담사 INFO 수정 권한이 없습니다.")
     form = await request.form()
@@ -114,7 +118,11 @@ async def import_table(request: Request, user: User = Depends(current_user)):
             grid, how = text_grid(text), "paste"
         current = {r["emp_id"] for r in effective_info(get_store())}
         p = bulk.plan(grid, current, user, how)
-        ch = change_service().preview(user, InfoEditChange.kind, p.payload)
+        svc = change_service()
+        ch = svc.preview(user, InfoEditChange.kind, p.payload)
+        if form.get("mode") == "save":
+            svc.approve(user, ch.change_id)
+            return RedirectResponse("/info#history", status_code=303)
     except InvalidInput as e:
         return _page(user, errors=e.errors, paste_text=text[:200_000], status_code=400)
     return RedirectResponse(f"/info?change={ch.change_id}#preview", status_code=303)

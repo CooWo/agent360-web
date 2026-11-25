@@ -79,3 +79,16 @@ def test_preview_save_undo_and_view(backend):
     assert backend.qa_coaching() == []
     with pytest.raises(PermissionDenied):
         svc.preview(User("v@example.com", "v", "viewer"), qa.QaCoachingUpload.kind, {"file": "z", "rows": rows})
+
+
+def test_coaching_gaps_sorted_by_rate():
+    rows = [
+        {"agent_id": "a", "evaluations": 10, "coaching_sessions": 4},   # 40%
+        {"agent_id": "b", "evaluations": 5, "coaching_sessions": 5},    # 부족 아님
+        {"agent_id": "c", "evaluations": 1, "coaching_sessions": 0},    # 0%, 1건 남음
+        {"agent_id": "d", "evaluations": 7, "coaching_sessions": 0},    # 0%, 7건 남음 → c 보다 먼저
+        {"agent_id": "e", "evaluations": 0, "coaching_sessions": 0},    # 평가 없음 → 제외
+    ]
+    g = qa.coaching_gaps(rows)
+    assert [r["agent_id"] for r in g] == ["d", "c", "a"]
+    assert g[2]["rate"] == 40.0 and g[2]["missing"] == 6

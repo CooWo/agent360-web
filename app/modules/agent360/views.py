@@ -29,9 +29,21 @@ def home(backend, user: User, screens: dict) -> dict:
     total_agents = len(names)
     return {
         "cfg": cfg, "as_of": as_of, "ranked": ranked[: cfg.get("top_n", 10)], "ranked_total": len(ranked),
+        "gaps": coaching_gaps(backend, user),
         "total_agents": total_agents, "followups": fu, "names": names, "teams": _team_labels(backend),
         "statuses": signal_svc.STATUSES, "can_write": user.can_write,
     }
+
+
+def coaching_gaps(backend, user: User) -> list[dict]:
+    """오늘 볼 상담사 — 올린 QA·코칭에서 코칭 부족(코칭 < 평가) 인원 전부, Rate 낮은 순. 내 범위만."""
+    from app.modules.agent360.services import qa_coaching as qa_svc
+    agents = {a["agent_id"]: a for a in backend.list_agents(user.scope)}
+    labels = _team_labels(backend)
+    rows = [{**r, "name": agents[r["agent_id"]]["name"],
+             "team": labels.get(agents[r["agent_id"]]["team"], agents[r["agent_id"]]["team"])}
+            for r in backend.qa_coaching() if r["agent_id"] in agents]
+    return qa_svc.coaching_gaps(rows)
 
 
 def agents(backend, user: User, screens: dict, q: str | None = None, team: str | None = None) -> dict:

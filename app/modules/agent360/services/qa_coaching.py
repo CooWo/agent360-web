@@ -172,3 +172,20 @@ def handlers(backend, need_below: float = NEED_BELOW) -> Registry[ChangeHandler]
 
 def latest_by_agent(backend) -> dict[str, dict]:
     return {r["agent_id"]: r for r in backend.qa_coaching()}
+
+
+def coaching_rate(row: dict) -> float | None:
+    """코칭 이행률(%) = 코칭 건수 / 평가 건수 × 100. 평가가 없으면 None."""
+    ev = row.get("evaluations") or 0
+    return 100.0 * (row.get("coaching_sessions") or 0) / ev if ev else None
+
+
+def coaching_gaps(rows: list[dict]) -> list[dict]:
+    """코칭 부족(코칭 < 평가) 인원 전부 — Rate 낮은 순, 같으면 빠진 코칭 많은 순."""
+    out = []
+    for r in rows:
+        ev, co = r.get("evaluations") or 0, r.get("coaching_sessions") or 0
+        if co < ev:
+            out.append({**r, "rate": coaching_rate(r), "missing": ev - co})
+    out.sort(key=lambda r: (r["rate"], -r["missing"]))
+    return out

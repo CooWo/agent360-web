@@ -167,6 +167,12 @@ def test_info_bulk_paste_and_file(client):
     assert r.status_code == 303 and "(파일)" in c.get(r.headers["location"].split("#")[0]).text
     assert c.post("/info/import", data={"paste": "아무거나"}).status_code == 400
     assert _as(client, "viewer@example.com").post("/info/import", data={"paste": "x"}).status_code == 403
+    # 저장하기 = 미리보기 없이 바로 저장 → 되돌리기 가능
+    c = _as(client, "manager@example.com")
+    r = c.post("/info/import", data={"paste": f"사번\tTier\n{emp}\tR7\n", "mode": "save"}, follow_redirects=False)
+    assert r.status_code == 303 and r.headers["location"] == "/info#history"
+    page = c.get("/info").text
+    assert "R7" in page and "/undo" in page
 
 
 def test_qa_upload_flow(client):

@@ -9,6 +9,28 @@
   </div>
 </div>
 
+{% if gaps %}
+<section class="card" style="margin-bottom:var(--gap)">
+  <h2>코칭 부족 {{ gaps|length }}명 <span class="muted small">(코칭이 평가보다 적은 사람 · Rate 낮은 순 · <a href="/agent360/qa">QA · 코칭</a>)</span></h2>
+  <div class="table-wrap" style="max-height:420px">
+    <table class="fit">
+      <thead><tr><th class="ncol">순위</th><th>상담사</th><th>팀</th><th class="r">QA 평균</th>
+        <th class="ncol">평가</th><th class="ncol">코칭</th><th class="ncol">Rate</th><th class="ncol">남은 코칭</th><th>코치</th></tr></thead>
+      <tbody>
+      {% for r in gaps %}
+        <tr><td class="ncol num muted">{{ loop.index }}</td>
+          <td><a href="/agent360/agents/{{ r.agent_id }}"><b>{{ r.name }}</b></a></td><td>{{ r.team }}</td>
+          <td class="r num">{{ r.qa_avg|num(1) }}</td>
+          <td class="ncol num">{{ r.evaluations }}</td><td class="ncol num">{{ r.coaching_sessions }}</td>
+          <td class="ncol num" style="color:var(--danger)"><b>{{ r.rate|num(0) }}%</b></td>
+          <td class="ncol num">{{ r.missing }}</td><td class="small">{{ r.coach or '–' }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+
 <div class="split">
   <section class="card">
     <h2>먼저 볼 상담사 상위 {{ ranked|length }}명</h2>

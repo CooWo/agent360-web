@@ -1,0 +1,15 @@
+{
+  "module": "roster",
+  "title": "팀 구성",
+  "base_path": "/roster",
+  "menu": [
+    {"id": "board", "label": "TL별 명단", "path": "/roster", "roles": ["admin", "manager", "wfm", "sv", "viewer"]},
+    {"id": "workspace", "label": "명단 고치기", "path": "/roster/workspace", "roles": ["admin", "manager", "wfm"]}
+  ],
+  "screens": {
+    "board": {"title": "TL별 명단", "subtitle": "지금 적용된 팀 구성 (시트 OPS TL 과 같은 모양)", "versions": 10},
+    "workspace": {"title": "명단 고치기",
+                  "subtitle": "한 번에 고치고 → 미리보기 → 적용. 중간 저장하면 다음에 이어서 할 수 있습니다.",
+                  "shifts": ["US", "EU", "APAC"]}
+  }
+}

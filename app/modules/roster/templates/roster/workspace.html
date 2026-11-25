@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.title }}</h1>
+    <p class="muted">{{ cfg.subtitle }}</p>
+    <p class="small">
+      {% if draft %}<span class="badge warn">작업 중 초안</span> {{ draft.saved_at[:16]|replace('T', ' ') }} 저장 · 아직 적용 전
+      {% else %}<span class="badge ok">지금 적용된 명단</span> 에서 시작{% endif %}
+    </p>
+  </div>
+</div>
+
+{% if errors %}
+<section class="card" style="border-color:var(--danger)">
+  <h2 style="color:var(--danger)">고쳐야 적용할 수 있어요</h2>
+  {% for k, v in errors.items() %}<div class="small">{{ v }}</div>{% endfor %}
+</section>
+{% endif %}
+
+{% if preview %}
+<section class="card" style="margin-top:var(--gap);border-color:var(--warn)">
+  <h2>미리보기 · {{ preview.summary }}</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>구분</th><th>이름</th><th>지금</th><th>바뀔 값</th></tr></thead>
+      <tbody>
+      {% for d in preview.diff %}
+        <tr><td><span class="badge {{ 'ok' if d.field == 'new' else ('danger' if d.field == 'remove' else 'neutral') }}">{{ d.label }}</span></td>
+            <td>{{ d.name }}</td><td>{{ d.before }}</td><td><b>{{ d.after }}</b></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if check.warnings %}<p class="small" style="color:var(--warn)">확인 필요 {{ check.warnings|length }}건 (아래 목록) — 적용은 할 수 있습니다.</p>{% endif %}
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <form method="post" action="/roster/workspace/{{ preview.change_id }}/approve"><button class="btn primary">적용</button></form>
+    <form method="post" action="/roster/workspace/{{ preview.change_id }}/discard"><button class="btn">계속 고치기</button></form>
+  </div>
+</section>
+{% endif %}
+
+<section class="card" style="margin-top:var(--gap)">
+  <div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <select id="tl-filter" aria-label="TL 보기">
+      <option value="">TL 전체 ({{ rows|length }}명)</option>
+      {% for tl in tls %}<option value="{{ tl }}">{{ tl }} ({{ counts.get(tl, 0) }}명)</option>{% endfor %}
+    </select>
+    <button type="button" class="btn" id="add-row">+ 행 추가</button>
+    <form method="post" action="/roster/workspace/save" class="js-rows"><input type="hidden" name="rows_json"><button class="btn">중간 저장</button></form>
+    <form method="post" action="/roster/workspace/preview" class="js-rows"><input type="hidden" name="rows_json"><button class="btn primary">미리보기</button></form>
+    {% if draft %}<form method="post" action="/roster/workspace/reset" onsubmit="return confirm('작업 중 초안을 버리고 지금 적용된 명단으로 돌아갈까요?')"><button class="btn">초안 버리기</button></form>{% endif %}
+    <span class="muted small" id="dirty" hidden>저장하지 않은 변경이 있습니다</span>
+  </div>
+  <datalist id="tl-list">{% for tl in tls %}<option value="{{ tl }}">{% endfor %}</datalist>
+  <div class="table-wrap" style="margin-top:10px">
+    <table id="grid">
+      <thead><tr>{% for f, label in fields %}<th>{{ label }}</th>{% endfor %}<th></th></tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr data-tl="{{ r.tl }}">
+          {% for f, label in fields %}
+          <td><input data-f="{{ f }}" value="{{ r[f] }}" {% if f == 'tl' %}list="tl-list"{% endif %}
+                     {% if f == 'emp_id' %}placeholder="없으면 비움"{% endif %} size="{{ 14 if f in ('tl', 'note') else 9 }}"></td>
+          {% endfor %}
+          <td><button type="button" class="btn sm js-del" title="행 삭제">✕</button></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">사번만 넣고 이름을 비워 두면 INFO 에서 채웁니다. 사번이 없으면 이름(예: 트레이닝1)으로 임시 등록됩니다.</p>
+</section>
+
+<div class="split" style="margin-top:var(--gap)">
+  <section class="card">
+    <h2>시트에서 붙여넣기</h2>
+    <form method="post" action="/roster/workspace/paste" class="js-rows">
+      <input type="hidden" name="rows_json">
+      <textarea name="paste" rows="7" placeholder="시트에서 복사(Ctrl+C) → 여기 붙여넣기(Ctrl+V)&#10;OPS TL 탭 통째로(TL 이름 줄 + 머리글 포함) 또는 한 TL 블록만"></textarea>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+        <input name="tl" list="tl-list" placeholder="머리글에 TL 이 없으면 TL 선택" style="width:auto;min-width:200px">
+        <label class="small"><input type="checkbox" name="replace_all" value="1" style="width:auto"> 보드 전체를 이걸로 바꾸기</label>
+        <button class="btn primary">붙여넣기 반영</button>
+      </div>
+      <p class="small muted">기본: 붙여넣은 TL 의 명단만 바꾸고 다른 TL 은 그대로. 반영 후 표에서 확인 → 미리보기.</p>
+    </form>
+  </section>
+
+  <aside class="stack">
+    <section class="card">
+      <h2>확인 필요 {{ check.warnings|length }}건</h2>
+      {% for w in check.warnings %}
+      <div class="small"><span class="badge {{ 'neutral' if w.kind == 'temp' else 'warn' }}">{{ w.who }}</span> {{ w.text }}</div>
+      {% else %}<div class="empty">없음</div>{% endfor %}
+      {% for k, v in check.errors.items() %}<div class="small" style="color:var(--danger)">{{ v }}</div>{% endfor %}
+    </section>
+    <section class="card">
+      <h2>적용 이력</h2>
+      {% for c in history %}
+      <div class="small" style="margin-bottom:6px">
+        <span class="badge {{ 'ok' if c.status == 'applied' else ('warn' if c.status == 'preview' else 'neutral') }}">{{ c.status_label }}</span>
+        {{ c.summary }} <span class="muted">· {{ c.created_at[:16]|replace('T', ' ') }} · {{ c.actor }}</span>
+        {% if c.change_id == latest_applied %}
+        <form method="post" action="/roster/workspace/{{ c.change_id }}/undo" onsubmit="return confirm('이 적용을 되돌릴까요?')"><button class="btn sm">되돌리기</button></form>
+        {% endif %}
+      </div>
+      {% else %}<div class="empty">아직 없음</div>{% endfor %}
+    </section>
+  </aside>
+</div>
+<script src="{{ static('js/roster.js') }}"></script>
+{% endblock %}

@@ -202,3 +202,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
 @media (max-width: 900px) {
   .layout.with-ai, .ai-closed .layout.with-ai { grid-template-columns: 1fr; }
 }
+
+/* 팀 구성 보드: 시트처럼 TL 열을 옆으로 */
+.roster-board { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: var(--gap); }
+.roster-col table td, .roster-col table th { padding: 4px 6px; }
+#grid input { padding: 4px 6px; min-width: 70px; }

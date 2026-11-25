@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.title }}</h1>
+    <p class="muted">{{ cfg.subtitle }} · TL {{ groups|length }}명 · 상담사 {{ total }}명
+      {% if versions %} · 마지막 적용 {{ versions[0].saved_at[:16]|replace('T', ' ') }} ({{ versions[0].saved_by }}){% endif %}</p>
+  </div>
+  {% if can_edit %}<a class="btn primary" href="/roster/workspace">명단 고치기</a>{% endif %}
+</div>
+
+{% if warnings %}
+<section class="card" style="border-color:var(--warn)">
+  <h2>확인 필요 {{ warnings|length }}건</h2>
+  {% for w in warnings %}<div class="small"><span class="badge warn">{{ w.who }}</span> {{ w.text }}</div>{% endfor %}
+</section>
+{% endif %}
+
+<div class="roster-board" style="margin-top:var(--gap)">
+  {% for g in groups %}
+  <section class="card roster-col">
+    <h2>{{ g.tl }} <span class="muted small">{{ g.count }}명</span></h2>
+    <table>
+      <thead><tr><th>Shift</th><th>이름</th><th>Display name</th></tr></thead>
+      <tbody>
+      {% for r in g.rows %}
+        <tr>
+          <td>{{ r.shift }}</td>
+          <td>{{ r.name }}{% if not r.emp_id %} <span class="badge neutral">임시</span>{% endif %}
+            <div class="muted small">{{ r.emp_id or "사번 없음" }}{% if r.date %} · {{ r.date }}{% endif %}</div></td>
+          <td>{{ r.display_name }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </section>
+  {% else %}
+  <div class="empty">등록된 명단이 없습니다.</div>
+  {% endfor %}
+</div>
+
+{% if versions %}
+<section class="card" style="margin-top:var(--gap)">
+  <h2>적용 이력</h2>
+  {% for v in versions %}
+  <div class="small">{{ v.saved_at[:16]|replace('T', ' ') }} · {{ v.saved_by }} · {{ v.count }}명</div>
+  {% endfor %}
+</section>
+{% endif %}
+{% endblock %}

@@ -28,6 +28,9 @@ from app.modules.agent360 import views  # noqa: E402
 from app.modules.capacity import views as cap_views  # noqa: E402
 from app.modules.capacity.data import get_store  # noqa: E402
 from app.modules.capacity.wiring import change_service  # noqa: E402
+from app.modules.roster import views as roster_views  # noqa: E402
+from app.modules.roster.data import get_store as roster_store  # noqa: E402
+from app.modules.roster.wiring import change_service as roster_changes  # noqa: E402
 
 OUT = ROOT / "preview"
 OUT.mkdir(exist_ok=True)
@@ -74,6 +77,23 @@ def main():
             except (PermissionDenied, NotFound) as e:
                 html = templating.render("errors/error.html", {"status": 403, "message": str(e)}, user=u,
                                          module=cap, with_routers=False)
+            p = OUT / f"{u.role}_{name}.html"
+            p.write_text(html, encoding="utf-8")
+            made.append(p.name)
+    ros = next(m for m in discover(with_routers=False) if m.name == "roster")
+    for email in ["wfm@example.com", "viewer@example.com"]:
+        u = load_user(email, b)
+        pages = {"roster_board": ("roster/board.html", lambda: roster_views.board(roster_store(), u, ros.screens), "board"),
+                 "roster_workspace": ("roster/workspace.html",
+                                      lambda: roster_views.workspace(roster_store(), u, ros.screens, roster_changes()),
+                                      "workspace")}
+        for name, (tpl, ctx, active) in pages.items():
+            try:
+                html = templating.render(tpl, ctx(), user=u, module=ros, active=active,
+                                         users_for_switch=b.list_users(), with_routers=False)
+            except (PermissionDenied, NotFound) as e:
+                html = templating.render("errors/error.html", {"status": 403, "message": str(e)}, user=u,
+                                         module=ros, with_routers=False)
             p = OUT / f"{u.role}_{name}.html"
             p.write_text(html, encoding="utf-8")
             made.append(p.name)

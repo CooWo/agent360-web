@@ -110,3 +110,26 @@ def test_capacity_change_api(client):
     v = _as(client, "manager@example.com")
     assert v.post("/api/capacity/changes/capacity.assumptions/preview",
                   json={"rows": [{"channel": "Async", "occupancy": 0.7}]}).status_code == 403
+
+
+def test_roster_workspace_flow(client):
+    import json
+    c = _as(client, "wfm@example.com")
+    assert c.get("/roster").status_code == 200 and c.get("/roster/workspace").status_code == 200
+    board = c.get("/api/roster/board").json()
+    rows = [r for g in board["groups"] for r in g["rows"]]
+    rows[0]["display_name"] = "Changed"
+    assert c.post("/roster/workspace/save", data={"rows_json": json.dumps(rows)}, follow_redirects=False).status_code == 303
+    assert "작업 중 초안" in c.get("/roster/workspace").text
+    pasted = c.post("/roster/workspace/paste", data={"rows_json": json.dumps(rows), "tl": "TL 신규",
+                                                       "paste": "US\t\t트레이닝9\t\t\n"}, follow_redirects=False)
+    assert pasted.status_code == 303
+    r = c.post("/roster/workspace/preview", data={"rows_json": json.dumps(rows)}, follow_redirects=False)
+    cid = r.headers["location"].split("change=")[1]
+    assert "미리보기 · 팀 구성 수정 1" in c.get(r.headers["location"]).text
+    assert c.post(f"/roster/workspace/{cid}/approve", follow_redirects=False).headers["location"] == "/roster"
+    assert "Changed" in c.get("/roster").text
+    assert c.post(f"/api/roster/changes/{cid}/undo").json()["status"] == "reverted"
+    v = _as(client, "viewer@example.com")
+    assert v.get("/roster").status_code == 200 and v.get("/roster/workspace").status_code == 403
+    assert v.post("/roster/workspace/save", data={"rows_json": "[]"}).status_code == 403

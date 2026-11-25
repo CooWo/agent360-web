@@ -42,6 +42,8 @@ DATE_FIELDS = tuple(f for f in FIELDS if KIND[f] == "date")
 HEADER_TO_FIELD = {h.replace("\n", " ").strip().lower(): f for f, h, _, _ in COLUMNS}
 ACTIVE, RETIRED = "재직자", "퇴직자"
 EMPTY_MARKS = {"-", "–", "#N/A", "#REF!", "N/A", "n/a"}
+# 날짜 칸에 날짜 대신 적힌 상태 표시 — 날짜는 비우고 문제로 세지 않는다 (원본은 info_raw 에 그대로 남음)
+DATE_TEXT_MARKS = {"퇴사", "확인안됨", "확인 안됨", "미정", "없음"}
 
 
 def is_retired(row: dict | None) -> bool:
@@ -134,6 +136,8 @@ class InfoCleaner:
             v = "" if v in EMPTY_MARKS else v
             if KIND[f] == "id":
                 v = clean_id(v)
+            elif KIND[f] == "date" and v in DATE_TEXT_MARKS:
+                v = ""
             elif KIND[f] == "date" and v:
                 d = parse_date(v)
                 if d is None:

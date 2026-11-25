@@ -47,7 +47,7 @@
   <select id="info-status">
     <option value="재직자">재직자만</option>
     <option value="">전체</option>
-    <option value="퇴직자">퇴직자만</option>
+    {% for k in status_counts if k != "재직자" %}<option value="{{ k }}">{{ k }}만</option>{% endfor %}
   </select>
   <select id="info-tl"><option value="">TL 전체</option>{% for t in tls %}<option>{{ t }}</option>{% endfor %}</select>
   <span class="muted small" id="info-count"></span>

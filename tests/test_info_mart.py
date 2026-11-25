@@ -38,14 +38,16 @@ def test_cleaner_rules():
     raw = raw_rows(HEADER, [row("'100", "가", email="Ga@UBASE.co.kr", onboarding="2021. 3. 9"),
                             row("", "사번없음"),
                             row("200", "나", status="퇴직자"), row("200", "나", status="재직자"),
-                            row("300", "다", joined="모름"), row("400.0", "라", status="-")])
+                            row("300", "다", joined="모름"), row("400.0", "라", status="-"),
+                            row("500", "마", joined="확인안됨", onboarding="퇴사")])
     res = InfoCleaner().clean(raw)
     by = {r["emp_id"]: r for r in res.rows}
-    assert list(by) == ["100", "200", "300", "400"]
+    assert list(by) == ["100", "200", "300", "400", "500"]
+    assert by["500"]["joined"] == "" and by["500"]["onboarding"] == ""          # 상태 표시는 문제로 안 셈
     assert by["100"]["email"] == "ga@ubase.co.kr" and by["100"]["onboarding"] == "2021-03-09"
     assert by["200"]["status"] == "재직자"                    # 중복이면 재직자 줄 우선
     assert by["300"]["joined"] == "" and by["400"]["status"] == ""
-    assert res.summary() == {"rows_read": 6, "rows_mart": 4, "dropped_no_id": 1, "duplicates": 1, "issues": 1}
+    assert res.summary() == {"rows_read": 7, "rows_mart": 5, "dropped_no_id": 1, "duplicates": 1, "issues": 1}
     assert res.issues[0]["field"] == "joined"
 
 

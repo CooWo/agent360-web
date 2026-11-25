@@ -1,15 +1,38 @@
 {% from "agent360/_macros.html" import delta %}
-<section class="grid g4">
-  {% for c in charts %}
-  <div class="card kpi-card">
-    <div class="label">{{ c.label }} · 최근 4주</div>
+{% macro vs_line(c) -%}
+  {%- if c.target is not none -%}목표 {{ c.target|num(c.digits) }} {{ delta(c.vs_target, c.better, c.digits) }} · {% endif -%}
+  직전 4주 {{ c.prior|num(c.digits) }} {{ delta(c.delta, c.better, c.digits) }}
+{%- endmacro %}
+{% if ramping_weeks %}
+<p class="small" style="margin:0 0 6px"><span class="badge warn">Ramping</span>
+  <span class="muted">Ramping 기간이 있는 주: {{ ramping_weeks|join(", ") }} — 팀 리뷰(WBR)에서는 NPS 외 지표에서 빠지는 기간입니다.</span></p>
+{% endif %}
+<section class="grid g3">
+  {% for c in charts if c.key not in ('work_time', 'handle_time') %}
+  <div class="card kpi-card" title="{{ c.help }}">
+    <div class="label">{{ loop.index }}. {{ c.label }} · 최근 4주</div>
     <div class="value num">{{ c.recent|num(c.digits) }}<span class="small muted"> {{ c.unit }}</span></div>
-    <div class="small muted">직전 4주 {{ c.prior|num(c.digits) }} {{ delta(c.delta, c.better, c.digits) }}</div>
+    <div class="small muted">{{ vs_line(c) }}</div>
   </div>
   {% endfor %}
+  {% set wt = charts|selectattr('key', 'equalto', 'work_time')|first %}
+  {% set ht = charts|selectattr('key', 'equalto', 'handle_time')|first %}
+  {% if wt and ht %}
+  <div class="card kpi-card" title="{{ wt.help }} / {{ ht.help }}">
+    <div class="label">6. Work / Handle time · 최근 4주 (처리 1건당)</div>
+    <div class="value num">{{ wt.recent|num(wt.digits) }}<span class="small muted"> / {{ ht.recent|num(ht.digits) }} 분</span></div>
+    <div class="small muted">Work: {{ vs_line(wt) }}</div>
+    <div class="small muted">Handle: 직전 4주 {{ ht.prior|num(ht.digits) }} {{ delta(ht.delta, ht.better, ht.digits) }}</div>
+  </div>
+  {% endif %}
+</section>
+<section class="grid g2" style="margin-top:var(--gap)">
   <div class="card kpi-card">
-    <div class="label">최근 30일 근태 · QA</div>
-    <div class="value num">결근 {{ attendance.absent }}<span class="small muted"> · 지각 {{ attendance.late }}</span></div>
+    <div class="label">최근 30일 근태</div>
+    <div class="value num">결근 {{ attendance.absent }}<span class="small muted"> · 지각 {{ attendance.late }} · 연차 {{ attendance.leave }}</span></div>
+  </div>
+  <div class="card kpi-card">
+    <div class="label">QA · 코칭</div>
     <div class="small muted">QA 평균 {{ qa_avg|num(1) }}점 ({{ qa|length }}건) · 코칭 {{ coaching_count }}회{% if last_coaching %}, 마지막 {{ days_ago(last_coaching, as_of) }}{% endif %}</div>
   </div>
 </section>

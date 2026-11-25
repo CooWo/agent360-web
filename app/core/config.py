@@ -5,6 +5,7 @@ DATA_BACKEND   sample | bigquery  sample 이면 sample_data/*.json 사용
 GCP_PROJECT    BigQuery 프로젝트
 BQ_LOCATION    BigQuery 리전 (예: asia-northeast3)
 COMMON_DATASET 공통 데이터셋 (dim_agent, fact_* — Capacity Web 과 공유)
+KPI_DATASET    KPI 마트 (v_agent 상담사 목록, v_agent_kpi_daily — v11 에서 매일 갱신)
 MODULE_DATASET 모듈 전용 데이터셋 (fact_coaching, mart_signals, user_roles, audit_log …)
 IAP_AUDIENCE   설정하면 IAP JWT 서명을 검증 (prod 권장)
 ALLOWED_DOMAINS 쉼표 구분. prod 에서 이 도메인 이메일만 통과 (예: ubase.co.kr)
@@ -56,6 +57,7 @@ class Settings:
     module_dataset: str = "agent360"
     capacity_dataset: str = "capacity"
     roster_dataset: str = "roster"
+    kpi_dataset: str = "kpi"
     iap_audience: str = ""
     allowed_domains: tuple[str, ...] = ()
     dev_user: str = "sv.kim@example.com"
@@ -97,6 +99,7 @@ def get_settings() -> Settings:
         module_dataset=e("MODULE_DATASET", "agent360"),
         capacity_dataset=e("CAPACITY_DATASET", "capacity"),
         roster_dataset=e("ROSTER_DATASET", "roster"),
+        kpi_dataset=e("KPI_DATASET", "kpi"),
         iap_audience=e("IAP_AUDIENCE", ""),
         allowed_domains=tuple(d.strip().lower().lstrip("@") for d in e("ALLOWED_DOMAINS", "").split(",") if d.strip()),
         dev_user=e("DEV_USER", "sv.kim@example.com"),

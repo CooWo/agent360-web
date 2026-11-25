@@ -106,6 +106,26 @@ def main(as_of: date) -> None:
     qa_rep = {"E240003", "E240024"}
 
     # ── KPI 일별 ───────────────────────────────────
+    # 분자·분모 합(v12 kpi.v_agent_kpi_daily 와 같은 열)은 별도 난수로 만든다 → 다른 샘플 값은 그대로 유지
+    def _kpi_sums(a, d, handled, aht, f, is_new):
+        k = random.Random(f"{a['agent_id']}-{d.isoformat()}")
+        solved = max(1, round(handled * k.gauss(0.58 * f, 0.05)))
+        solves = max(1, round(handled * 0.8))
+        msg = max(1, round(handled * 0.7))
+        ramping = is_new and d <= date.fromisoformat(a["nesting_end"])
+        days_in = (d - date.fromisoformat(a["hire_date"])).days
+        tenure = "Ramping" if ramping else ("0-30 Days" if days_in <= 30 else "31-60 Days" if days_in <= 60
+                                             else "61-90 Days" if days_in <= 90 else "91-180 Days" if days_in <= 180
+                                             else "181-365 Days" if days_in <= 365 else "365+ Days")
+        return {"tenure_group": tenure, "solved_volume": solved, "assignments": handled, "case_solves": solves,
+                "reopens": round(solves * k.uniform(0.05, 0.16 / f)), "msg_sessions": msg,
+                "ttresp_min": round(msg * max(2.0, k.gauss(13 / f, 3)), 1), "handle_sec": handled * aht,
+                "work_sec": round(handled * max(600.0, k.gauss(1750 / f, 180))),
+                "cases_solved": max(0, round(handled / 6.2 * f + k.gauss(0, 0.6))),
+                "logged_min": round(450 * k.uniform(0.92, 1.05)),
+                "target_spd": 6.0, "target_throughput": 0.56, "target_reopen": 0.12, "target_ttresp": 15.0,
+                "target_worktime": 30.7}
+
     kpi = []
     for a in agents:
         base_h = rnd.uniform(32, 44)
@@ -126,7 +146,8 @@ def main(as_of: date) -> None:
             det = sum(1 for _ in range(resp - prom) if rnd.random() < 0.6)
             kpi.append({"agent_id": a["agent_id"], "date": d.isoformat(), "handled": handled,
                         "aht_sec": aht, "nps_responses": resp, "nps_net": prom - det,
-                        "productivity": round(handled / 7.5, 2)})
+                        "productivity": round(handled / 7.5, 2),
+                        **_kpi_sums(a, d, handled, aht, f, is_new)})
 
     # ── 근태 ───────────────────────────────────────
     att = []

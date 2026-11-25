@@ -5,6 +5,7 @@
     python scripts/bq_setup.py sample  --project v12-2027        # 샘플 데이터 올리기 (덮어쓰기)
     python scripts/bq_setup.py check   --project v12-2027        # 앱이 쓰는 조회를 실제로 한 번씩 돌려 보기
     python scripts/bq_setup.py user    --project v12-2027 --email 나@ubase.co.kr --role admin [--teams R1-A,R1-B]
+    python scripts/bq_setup.py kpi-refresh --project v12-2027 [--days 400]   # v11 → kpi 지금 바로 갱신 (처음엔 --days 400)
 
 공통 옵션: --location asia-northeast3 --common common --module agent360 --dry-run(실행 없이 SQL 만 출력)
 """
@@ -20,10 +21,20 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 SAMPLE = ROOT / "sample_data"
 DDL_DIR = ROOT / "sql" / "ddl"
+KPI_REFRESH = ROOT / "sql" / "pipeline" / "kpi_refresh.sql"
+
+
+def kpi_refresh_sql(project: str, days: int = 120, kpi: str = "kpi", roster: str = "roster") -> str:
+    """매일 갱신 SQL (예약 쿼리 본문과 같음). days 는 정수만."""
+    days = int(days)
+    if not 1 <= days <= 1000:
+        raise ValueError("days 는 1~1000")
+    sql = KPI_REFRESH.read_text(encoding="utf-8").replace("${PROJECT}", project).replace("${DAYS}", str(days))
+    return re.sub(r"`%s\.kpi(\.|`)" % re.escape(project), rf"`{project}.{kpi}\1", sql)
 
 # sample_data 파일 → (데이터셋 종류, 테이블)
 SAMPLE_TABLES = {
-    "agents": ("common", "dim_agent"), "kpi_daily": ("common", "fact_kpi_daily"),
+    "agents": ("common", "dim_agent"),          # 운영 상담사 목록은 kpi.v_agent(INFO) — 이 표는 샘플 확인용
     "attendance": ("common", "fact_attendance"), "qa": ("common", "fact_qa"),
     "training": ("common", "fact_training"), "incentive": ("common", "fact_incentive"),
     "coaching": ("module", "fact_coaching"), "signals": ("module", "mart_signals"),
@@ -32,7 +43,7 @@ SAMPLE_TABLES = {
 
 
 def ddl_sql(project: str, common: str, module: str, location: str, recreate: bool = False,
-            capacity: str = "capacity", roster: str = "roster") -> list[tuple[str, str]]:
+            capacity: str = "capacity", roster: str = "roster", kpi: str = "kpi") -> list[tuple[str, str]]:
     out = []
     for f in sorted(DDL_DIR.glob("*.sql")):
         sql = f.read_text(encoding="utf-8").replace("${PROJECT}", project)
@@ -42,6 +53,7 @@ def ddl_sql(project: str, common: str, module: str, location: str, recreate: boo
         sql = re.sub(r"`%s\.agent360(\.|`)" % re.escape(project), rf"`{project}.{module}\1", sql)
         sql = re.sub(r"`%s\.capacity(\.|`)" % re.escape(project), rf"`{project}.{capacity}\1", sql)
         sql = re.sub(r"`%s\.roster(\.|`)" % re.escape(project), rf"`{project}.{roster}\1", sql)
+        sql = re.sub(r"`%s\.kpi(\.|`)" % re.escape(project), rf"`{project}.{kpi}\1", sql)
         sql = sql.replace("location = 'asia-northeast3'", f"location = '{location}'")
         out.append((f.name, sql))
     return out
@@ -95,6 +107,16 @@ def cmd_sample(a):
                                      source_format=bigquery.SourceFormat.NEWLINE_DELIMITED_JSON)
         client.load_table_from_json(data, tid, job_config=cfg).result()
         print(f"✅ {tid}: {len(data)}행")
+
+
+def cmd_kpi_refresh(a):
+    sql = kpi_refresh_sql(a.project, a.days)
+    if a.dry_run:
+        print(sql)
+        return
+    _client(a).query(sql).result()
+    rows = list(_client(a).query(f"SELECT * FROM `{a.project}.kpi.refresh_log` ORDER BY refreshed_at DESC LIMIT 1").result())
+    print(f"✅ KPI 갱신 완료: {dict(rows[0]) if rows else ''}")
 
 
 def cmd_user(a):
@@ -170,7 +192,8 @@ def cmd_check(a):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["ddl", "sample", "check", "user"])
+    ap.add_argument("cmd", choices=["ddl", "sample", "check", "user", "kpi-refresh"])
+    ap.add_argument("--days", type=int, default=120, help="kpi-refresh: 최근 며칠을 다시 넣을지")
     ap.add_argument("--project", required=True)
     ap.add_argument("--location", default="asia-northeast3")
     ap.add_argument("--common", default="common")
@@ -184,7 +207,7 @@ def main():
     a = ap.parse_args()
     if a.cmd == "user" and not (a.email and a.role):
         ap.error("user 는 --email, --role 이 필요합니다")
-    {"ddl": cmd_ddl, "sample": cmd_sample, "check": cmd_check, "user": cmd_user}[a.cmd](a)
+    {"ddl": cmd_ddl, "sample": cmd_sample, "check": cmd_check, "user": cmd_user, "kpi-refresh": cmd_kpi_refresh}[a.cmd](a)
 
 
 if __name__ == "__main__":

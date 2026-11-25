@@ -1,7 +1,8 @@
 """BigQueryBackend — 운영 데이터.
 
-- 공통 데이터셋(COMMON_DATASET): dim_agent, fact_kpi_daily, fact_attendance, fact_qa, fact_training, fact_incentive
+- 공통 데이터셋(COMMON_DATASET): fact_attendance, fact_qa, fact_training, fact_incentive
   → Capacity Web(기획안 2)과 같이 쓰는 데이터. 이 모듈은 읽기만 한다.
+- KPI 데이터세트(KPI_DATASET): v_agent(상담사 목록 = INFO 재직자, 팀 = TL), v_agent_kpi_daily(v11 에서 매일 갱신)
 - 모듈 데이터셋(MODULE_DATASET): user_roles, fact_coaching, mart_signals, signal_rules, issue_types, audit_log
 테이블 정의는 sql/ddl/*.sql.
 
@@ -21,9 +22,15 @@ from datetime import date, datetime
 
 from app.core.permissions import Scope
 
+# 상담사 × 일자 KPI 열 (분자·분모 합 + 목표값) — 지표 계산은 app/modules/agent360/services/kpi.py
+KPI_FIELDS = ("nps_net", "nps_responses", "solved_volume", "assignments", "reopens", "case_solves", "ttresp_min",
+              "msg_sessions", "handle_sec", "work_sec", "cases_solved", "logged_min", "target_spd", "target_throughput",
+              "target_reopen", "target_ttresp", "target_worktime")
+
 
 class BigQueryBackend:
-    def __init__(self, project: str, location: str, common_dataset: str, module_dataset: str, cache_seconds: int = 60):
+    def __init__(self, project: str, location: str, common_dataset: str, module_dataset: str, cache_seconds: int = 60,
+                 kpi_dataset: str = "kpi"):
         from google.cloud import bigquery  # 지연 import: sample 모드에서는 패키지 없어도 됨
 
         self._bq = bigquery
@@ -31,6 +38,8 @@ class BigQueryBackend:
         self.location = location
         self.c = f"`{self.client.project}.{common_dataset}`"
         self.m = f"`{self.client.project}.{module_dataset}`"
+        self.k = f"`{self.client.project}.{kpi_dataset}`"
+        self.agents_t = f"`{self.client.project}.{kpi_dataset}.v_agent`"
         self.ttl = cache_seconds
         self._cache: dict = {}
         self._lock = threading.Lock()
@@ -83,7 +92,9 @@ class BigQueryBackend:
 
     # ── 기준·마스터 ────────────────────────────────
     def as_of(self) -> str:
-        rows = self._cached(("as_of",), lambda: self._q(f"SELECT CAST(MAX(as_of) AS STRING) d FROM {self.m}.mart_signals"))
+        # 기준일 = KPI 가 있는 마지막 날 다음 날 (그날까지가 집계 대상)
+        rows = self._cached(("as_of",), lambda: self._q(
+            f"SELECT CAST(DATE_ADD(MAX(date), INTERVAL 1 DAY) AS STRING) d FROM {self.k}.specialist_case_daily"))
         return (rows[0]["d"] if rows and rows[0]["d"] else date.today().isoformat())
 
     def get_user(self, email: str) -> dict | None:
@@ -97,13 +108,14 @@ class BigQueryBackend:
 
     def list_teams(self) -> list[dict]:
         return self._cached(("teams",), lambda: self._q(
-            f"SELECT DISTINCT team, team AS label, sector FROM {self.c}.dim_agent WHERE status = '재직' ORDER BY team"))
+            f"""SELECT team, ANY_VALUE(team_label) AS label, APPROX_TOP_COUNT(sector, 1)[SAFE_OFFSET(0)].value AS sector
+                FROM {self.agents_t} WHERE status = '재직' GROUP BY team ORDER BY label"""))
 
     def list_agents(self, scope: Scope, q: str | None = None, team: str | None = None) -> list[dict]:
         sql = f"""
           SELECT agent_id, ldap, name, team, sv_email, CAST(hire_date AS STRING) hire_date, cohort,
                  CAST(nesting_end AS STRING) nesting_end, skill_tags, status
-          FROM {self.c}.dim_agent
+          FROM {self.agents_t}
           WHERE status = '재직'
             AND (@all_teams OR team IN UNNEST(@teams))
             AND (@team IS NULL OR team = @team)
@@ -124,8 +136,21 @@ class BigQueryBackend:
         return self._cached((table, agent_id, since), lambda: self._q(sql, agent_id=agent_id, since=since))
 
     def kpi_daily(self, agent_id, since):
-        return self._fact("fact_kpi_daily", "agent_id, CAST(date AS STRING) date, handled, aht_sec, nps_responses, nps_net, productivity",
-                          agent_id, since, "date")
+        sql = f"""SELECT agent_id, CAST(date AS STRING) date, tenure_group, {", ".join(KPI_FIELDS)}
+                   FROM {self.k}.v_agent_kpi_daily
+                   WHERE agent_id = @agent_id AND (@since IS NULL OR date >= DATE(@since)) ORDER BY date"""
+        return self._cached(("kpi", agent_id, since), lambda: self._q(sql, agent_id=agent_id, since=since))
+
+    def kpi_daily_many(self, agent_ids, since):
+        sql = f"""SELECT agent_id, CAST(date AS STRING) date, tenure_group, {", ".join(KPI_FIELDS)}
+                  FROM {self.k}.v_agent_kpi_daily
+                  WHERE agent_id IN UNNEST(@ids) AND date >= DATE(@since) ORDER BY agent_id, date"""
+        ids = sorted(set(agent_ids))
+        rows = self._cached(("kpi_many", tuple(ids), since), lambda: self._q(sql, ids=ids, since=since)) if ids else []
+        out: dict[str, list[dict]] = {a: [] for a in agent_ids}
+        for r in rows:
+            out.setdefault(r["agent_id"], []).append(r)
+        return out
 
     def attendance(self, agent_id, since):
         return self._fact("fact_attendance", "agent_id, CAST(date AS STRING) date, status", agent_id, since, "date")
@@ -149,7 +174,7 @@ class BigQueryBackend:
           SELECT c.coaching_id, c.agent_id, c.sv_email, CAST(c.date AS STRING) date, c.issue_type, c.summary,
                  c.agreed_action, CAST(c.follow_up_date AS STRING) follow_up_date, c.done,
                  CAST(c.done_at AS STRING) done_at, c.raw_note, a.team
-          FROM {self.m}.fact_coaching c JOIN {self.c}.dim_agent a USING (agent_id)
+          FROM {self.m}.fact_coaching c JOIN {self.agents_t} a USING (agent_id)
           WHERE (@all_teams OR a.team IN UNNEST(@teams)) AND (@agent_id IS NULL OR c.agent_id = @agent_id)
           ORDER BY c.date DESC, c.coaching_id DESC"""
         p = dict(self._scope(scope), agent_id=agent_id)
@@ -180,7 +205,7 @@ class BigQueryBackend:
         sql = f"""
           SELECT s.signal_id, CAST(s.as_of AS STRING) as_of, s.agent_id, s.type, s.label, s.severity, s.score,
                  s.evidence, s.status, a.team
-          FROM {self.m}.mart_signals s JOIN {self.c}.dim_agent a USING (agent_id)
+          FROM {self.m}.mart_signals s JOIN {self.agents_t} a USING (agent_id)
           WHERE s.as_of = DATE(@as_of) AND (@all_teams OR a.team IN UNNEST(@teams))"""
         p = dict(self._scope(scope), as_of=as_of)
         return self._cached(("signals", json.dumps(p, sort_keys=True)), lambda: self._q(sql, **p))
@@ -190,7 +215,7 @@ class BigQueryBackend:
                     WHERE signal_id = @id""", id=signal_id, status=status, by=by)
         self._clear()
         rows = self._q(f"""SELECT s.signal_id, s.agent_id, s.status, a.team FROM {self.m}.mart_signals s
-                           JOIN {self.c}.dim_agent a USING (agent_id) WHERE s.signal_id = @id""", id=signal_id)
+                           JOIN {self.agents_t} a USING (agent_id) WHERE s.signal_id = @id""", id=signal_id)
         return rows[0] if rows else None
 
     def signal_rules(self) -> list[dict]:

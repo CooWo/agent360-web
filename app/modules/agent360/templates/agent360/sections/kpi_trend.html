@@ -1,5 +1,5 @@
 <section class="card">
-  <h2>KPI 추이 · 최근 {{ weekly|length }}주 <span class="muted small">(주차 = 토요일 마감, 점선 = 직전 4주 평균, 마지막 주는 진행 중)</span></h2>
+  <h2>KPI 추이 · 최근 {{ weekly|length }}주 <span class="muted small">(주차 = 토요일 마감 · 점선 = 목표(없으면 직전 4주) · 진행 중인 주는 값이 바뀔 수 있음)</span></h2>
   <div class="grid g3">
     {% for c in charts %}
     <div>
@@ -8,4 +8,18 @@
     </div>
     {% endfor %}
   </div>
+  <div class="table-wrap" style="margin-top:var(--gap)">
+    <table>
+      <thead><tr><th>지표</th>{% for w in weekly %}<th class="r">{{ w.label }}{% if w.partial %}<span class="muted small"> 진행</span>{% endif %}{% if w.ramping %}<div><span class="badge warn">Ramping</span></div>{% endif %}</th>{% endfor %}</tr></thead>
+      <tbody>
+        {% for c in charts %}
+        <tr><td>{{ c.label }} <span class="muted small">{{ c.unit }}</span></td>
+          {% for w in weekly %}<td class="r num">{{ w[c.key]|num(c.digits) }}</td>{% endfor %}</tr>
+        {% endfor %}
+        <tr class="muted small"><td>NPS 응답 수</td>{% for w in weekly %}<td class="r num">{{ w.nps_responses|num(0) }}</td>{% endfor %}</tr>
+        <tr class="muted small"><td>처리 건수</td>{% for w in weekly %}<td class="r num">{{ w.assignments|num(0) }}</td>{% endfor %}</tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted">지표 정의는 AI BA CHAT 과 같습니다 (분자 합 ÷ 분모 합, 성과 제외 인원 제외). 원천: v11-2026 Dynamic → v12 kpi, 매일 갱신.</p>
 </section>

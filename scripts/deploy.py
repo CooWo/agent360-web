@@ -7,6 +7,7 @@
     python scripts/deploy.py grant  --project v12-2027 --member group:agent360-users@ubase.co.kr
     python scripts/deploy.py url    --project v12-2027     # 접속 주소 보기
     python scripts/deploy.py ai-access --project v12-2027  # 앱 계정이 기존 데이터 에이전트(v11-2026)를 쓰게 권한 주기
+    python scripts/deploy.py kpi-pipeline --project v12-2027  # KPI 매일 갱신 예약 쿼리 (v11 Dynamic → v12 kpi)
 
 공통 옵션: --region asia-northeast3 --service agent360 --dry-run(실행 없이 명령만 출력)
 접속 허용(grant)은 '들어올 수 있는 사람', 앱 안의 역할·팀은 bq_setup.py user 로 따로 등록한다.
@@ -70,9 +71,10 @@ def cmd_setup(run: Runner, a):
 
 
 def grant_datasets(a):
-    """앱 계정: common·capacity 는 읽기, agent360·roster 는 읽기·쓰기(코칭·신호·감사 로그·변경 기록 / 명단 버전·초안)."""
+    """앱 계정: common·capacity·kpi 는 읽기, agent360·roster 는 읽기·쓰기(코칭·신호·감사 로그·변경 기록 / 명단 버전·초안)."""
     grants = [(a.common, "roles/bigquery.dataViewer"), (a.module, "roles/bigquery.dataEditor"),
-              ("capacity", "roles/bigquery.dataViewer"), ("roster", "roles/bigquery.dataEditor")]
+              ("capacity", "roles/bigquery.dataViewer"), ("roster", "roles/bigquery.dataEditor"),
+              ("kpi", "roles/bigquery.dataViewer")]
     for ds, role in grants:
         sql = f'GRANT `{role}` ON SCHEMA `{a.project}.{ds}` TO "serviceAccount:{sa_email(a)}"'
         print(f"\n$ (BigQuery) {sql}")
@@ -108,6 +110,58 @@ def cmd_ai_access(run: Runner, a):
             bigquery.Client(project=p, location=a.region).query(sql).result()
     print(f"\n✅ AI 권한 완료 ({p}: 에이전트 사용·쿼리 실행, 데이터셋 {a.agent_datasets} 읽기)."
           f"\n   다음: python scripts\\deploy.py deploy --project {a.project}  (AI 설정이 들어간 채로 다시 배포)")
+
+
+KPI_SA = "kpi-pipeline"
+KPI_JOB = "KPI 매일 갱신 (v11 Dynamic → kpi)"
+
+
+def _bq_grant(a, project: str, sql: str):
+    print(f"\n$ (BigQuery) {sql}")
+    if not a.dry_run:
+        from google.cloud import bigquery
+        bigquery.Client(project=project, location=a.region).query(sql).result()
+
+
+def _dts(run: Runner, method: str, url: str, body: dict | None = None) -> dict:
+    """BigQuery Data Transfer REST (bq CLI 없이)."""
+    import json
+    import urllib.request
+    print(f"\n$ ({method}) {url}")
+    if run.dry:
+        return {}
+    token = run(["gcloud", "auth", "print-access-token"], capture=True)
+    req = urllib.request.Request(url, method=method, data=json.dumps(body).encode() if body else None,
+                                 headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"})
+    with urllib.request.urlopen(req) as r:
+        return json.loads(r.read() or b"{}")
+
+
+def cmd_kpi_pipeline(run: Runner, a):
+    """KPI 매일 갱신: 전용 서비스 계정(kpi-pipeline@)으로 매일 11:00(KST) 예약 쿼리 실행.
+    그 계정 권한 = v12 쿼리 실행 + kpi 데이터세트 쓰기 + v11-2026.Dynamic 읽기. 이미 있으면 쿼리·시간만 고친다."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from bq_setup import kpi_refresh_sql
+    sa = f"{KPI_SA}@{a.project}.iam.gserviceaccount.com"
+    run(["gcloud", "services", "enable", "bigquerydatatransfer.googleapis.com", f"--project={a.project}"])
+    run(["gcloud", "iam", "service-accounts", "create", KPI_SA, "--display-name=KPI daily refresh",
+         f"--project={a.project}"], ok_fail=True)
+    run(["gcloud", "projects", "add-iam-policy-binding", a.project, f"--member=serviceAccount:{sa}",
+         "--role=roles/bigquery.jobUser", "--condition=None", "--quiet"])
+    _bq_grant(a, a.project, f'GRANT `roles/bigquery.dataEditor` ON SCHEMA `{a.project}.kpi` TO "serviceAccount:{sa}"')
+    _bq_grant(a, a.agent_project,
+              f'GRANT `roles/bigquery.dataViewer` ON SCHEMA `{a.agent_project}.Dynamic` TO "serviceAccount:{sa}"')
+    base = f"https://bigquerydatatransfer.googleapis.com/v1/projects/{a.project}/locations/{a.region}/transferConfigs"
+    body = {"displayName": KPI_JOB, "dataSourceId": "scheduled_query", "schedule": "every day 02:00",   # UTC = 11:00 KST
+            "params": {"query": kpi_refresh_sql(a.project, a.kpi_days)}}
+    found = [c for c in _dts(run, "GET", f"{base}?dataSourceIds=scheduled_query").get("transferConfigs", [])
+             if c.get("displayName") == KPI_JOB]
+    if found:
+        out = _dts(run, "PATCH", f"https://bigquerydatatransfer.googleapis.com/v1/{found[0]['name']}"
+                   f"?updateMask=params,schedule&serviceAccountName={sa}", body)
+    else:
+        out = _dts(run, "POST", f"{base}?serviceAccountName={sa}", body)
+    print(f"\n✅ 예약 쿼리 {'수정' if found else '생성'}: {out.get('name', '(dry-run)')} · 다음 실행 {out.get('nextRunTime', '')}")
 
 
 def cmd_deploy(run: Runner, a):
@@ -236,7 +290,7 @@ def cmd_url(run: Runner, a):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["setup", "deploy", "grant", "url", "ai-access"])
+    ap.add_argument("cmd", choices=["setup", "deploy", "grant", "url", "ai-access", "kpi-pipeline"])
     ap.add_argument("--project", required=True)
     ap.add_argument("--region", default="asia-northeast3")
     ap.add_argument("--service", default="agent360")
@@ -251,11 +305,12 @@ def main():
     ap.add_argument("--agent-id", default="agent_f682354b-7695-4008-b37e-9d4cff706829",
                     help="데이터 에이전트 ID (AI BA CHAT (Volume)). 빈 값이면 AI 끔")
     ap.add_argument("--agent-datasets", default="Dynamic", help="에이전트가 읽는 데이터셋 (쉼표 구분)")
+    ap.add_argument("--kpi-days", type=int, default=120, help="kpi-pipeline: 매일 다시 넣을 최근 일수")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     run = Runner(a.dry_run)
     {"setup": cmd_setup, "deploy": cmd_deploy, "grant": cmd_grant, "url": cmd_url,
-     "ai-access": cmd_ai_access}[a.cmd](run, a)
+     "ai-access": cmd_ai_access, "kpi-pipeline": cmd_kpi_pipeline}[a.cmd](run, a)
 
 
 if __name__ == "__main__":

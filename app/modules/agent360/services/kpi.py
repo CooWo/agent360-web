@@ -1,14 +1,59 @@
-"""KPI 집계 — 일별 데이터를 주차(토요일 마감, WBR 과 같은 기준)로 묶는다.
+"""KPI 집계 — 일별 분자·분모 합을 주차(토요일 마감, WBR 과 같은 기준)로 묶어 지표를 계산한다.
 
-비율·평균은 항상 분자 합 / 분모 합으로 계산한다 (행 평균의 평균 금지).
-- 일평균 처리 건수 = 처리 건수 합 / 근무일 수
-- AHT              = Σ(AHT × 처리 건수) / Σ처리 건수
-- NPS              = Σ순추천 / Σ응답 × 100
+지표 정의는 AI BA CHAT(v11-2026 데이터 에이전트) 안내문 5장과 같다. 비율·평균은 항상 SUM(분자) / SUM(분모).
+- NPS              = Σ순추천 / Σ응답 × 100                       (final_view_case)
+- SPD              = Σ해결 건수 × 8 / (Σ로그인 생산 분 / 60)          (final_view)
+- Throughput       = ΣCases_Solved_Volume / Σ처리(assignments)   (final_view_case)
+- Reopen           = Σ재오픈 / Σ해결(case_solves)
+- Time to Response = Σ첫 응답 분(메시지 인바운드) / Σ메시지 인바운드 세션
+- Work time        = Σ작업 초 / 60 / Σ처리,  Handle time = Σ핸들 초 / 60 / Σ처리
+새 지표 = METRICS 에 Metric 하나 등록 (계산 코드는 그대로).
 """
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from dataclasses import dataclass
 from datetime import date, timedelta
+
+RAMPING = "Ramping"
+
+
+@dataclass(frozen=True)
+class Metric:
+    key: str
+    label: str
+    unit: str
+    num: str                      # 분자 열
+    den: str                      # 분모 열
+    scale: float = 1.0            # 값 = Σnum / Σden × scale
+    better: str = "up"            # up | down
+    digits: int = 1
+    target: str | None = None     # 목표값 열 (v11 final_view 의 섹터·테뉴어별 목표)
+    target_scale: float = 1.0
+    help: str = ""
+
+    def value(self, sums: dict) -> float | None:
+        d = sums.get(self.den) or 0
+        return (sums.get(self.num) or 0) / d * self.scale if d else None
+
+
+METRICS: tuple[Metric, ...] = (
+    Metric("nps", "NPS", "점", "nps_net", "nps_responses", 100, help="순추천 / 응답 × 100"),
+    Metric("spd", "SPD", "건", "cases_solved", "logged_min", 480, digits=2, target="target_spd",
+           help="해결 건수 × 8 / 로그인 생산 시간(시간)"),
+    Metric("throughput", "Throughput", "%", "solved_volume", "assignments", 100, target="target_throughput",
+           target_scale=100, help="해결 / 처리 건수"),
+    Metric("reopen", "Reopen", "%", "reopens", "case_solves", 100, better="down", target="target_reopen",
+           target_scale=100, help="재오픈 / 해결 건수"),
+    Metric("ttresp", "Time to Response", "분", "ttresp_min", "msg_sessions", better="down", digits=2,
+           target="target_ttresp", help="메시지 인바운드 첫 응답까지 평균 분"),
+    Metric("work_time", "Work time", "분", "work_sec", "assignments", 1 / 60, better="down", digits=2,
+           target="target_worktime", help="처리 1건당 작업 시간"),
+    Metric("handle_time", "Handle time", "분", "handle_sec", "assignments", 1 / 60, better="down", digits=2,
+           help="처리 1건당 상담(세션) 시간"),
+)
+BY_KEY = {m.key: m for m in METRICS}
+SUM_FIELDS = tuple(sorted({f for m in METRICS for f in (m.num, m.den)}))
 
 
 def week_end(d: date) -> date:
@@ -16,24 +61,23 @@ def week_end(d: date) -> date:
 
 
 def _agg(rows: list[dict]) -> dict:
-    if not rows:
-        return {"handled": None, "aht_sec": None, "nps": None, "days": 0, "nps_responses": 0}
-    h = sum(r["handled"] for r in rows)
-    resp = sum(r["nps_responses"] for r in rows)
-    return {
-        "handled": h / len(rows),
-        "aht_sec": (sum(r["aht_sec"] * r["handled"] for r in rows) / h) if h else None,
-        "nps": (sum(r["nps_net"] for r in rows) / resp * 100) if resp else None,
-        "days": len(rows),
-        "nps_responses": resp,
-    }
+    sums = {f: sum(r.get(f) or 0 for r in rows) for f in SUM_FIELDS}
+    out: dict = {m.key: m.value(sums) for m in METRICS}
+    for m in METRICS:
+        if m.target:
+            ts = [r[m.target] for r in rows if r.get(m.target) is not None]
+            out[f"{m.key}_target"] = ts[-1] * m.target_scale if ts else None
+    out.update({"days": len(rows), "nps_responses": sums["nps_responses"], "assignments": sums["assignments"],
+                "ramping": any(r.get("tenure_group") == RAMPING for r in rows),
+                "tenure_group": next((r.get("tenure_group") for r in reversed(rows) if r.get("tenure_group")), None)})
+    return out
 
 
 def weekly(rows: list[dict], as_of: str, weeks: int) -> list[dict]:
-    """최근 weeks 개 주차 (이번 주 포함, 진행 중이면 partial=True)."""
+    """최근 weeks 개 주차 (as_of 전날이 속한 주까지, 그 주가 아직 안 끝났으면 partial=True)."""
     end = week_end(date.fromisoformat(as_of) - timedelta(days=1))
     buckets = defaultdict(list)
-    for r in rows:
+    for r in sorted(rows, key=lambda r: r["date"]):
         buckets[week_end(date.fromisoformat(r["date"]))].append(r)
     out = []
     for k in range(weeks - 1, -1, -1):
@@ -46,10 +90,11 @@ def weekly(rows: list[dict], as_of: str, weeks: int) -> list[dict]:
 def compare(rows: list[dict], as_of: str, recent_days: int = 28, prior_days: int = 28) -> dict:
     """최근 N일 vs 직전 N일 비교 (요약 카드용)."""
     t = date.fromisoformat(as_of)
+    rows = sorted(rows, key=lambda r: r["date"])
     rec = [r for r in rows if 0 < (t - date.fromisoformat(r["date"])).days <= recent_days]
     pri = [r for r in rows if recent_days < (t - date.fromisoformat(r["date"])).days <= recent_days + prior_days]
     a, b = _agg(rec), _agg(pri)
-    delta = {k: (a[k] - b[k]) if (a[k] is not None and b[k] is not None) else None for k in ("handled", "aht_sec", "nps")}
+    delta = {m.key: (a[m.key] - b[m.key]) if (a[m.key] is not None and b[m.key] is not None) else None for m in METRICS}
     return {"recent": a, "prior": b, "delta": delta}
 
 

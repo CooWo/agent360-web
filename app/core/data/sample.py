@@ -85,6 +85,14 @@ class SampleBackend:
     def kpi_daily(self, agent_id, since):
         return [r for r in self._kpi if r["agent_id"] == agent_id and r["date"] >= since]
 
+    def kpi_daily_many(self, agent_ids, since):
+        want = set(agent_ids)
+        out: dict[str, list[dict]] = {a: [] for a in agent_ids}
+        for r in self._kpi:
+            if r["agent_id"] in want and r["date"] >= since:
+                out[r["agent_id"]].append(r)
+        return out
+
     def attendance(self, agent_id, since):
         return [r for r in self._att if r["agent_id"] == agent_id and r["date"] >= since]
 

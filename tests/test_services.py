@@ -10,14 +10,30 @@ from app.modules.agent360.services import signals as signal_svc
 
 def test_weekly_kpi_uses_sum_over_sum():
     rows = [
-        {"date": "2026-11-16", "handled": 10, "aht_sec": 600, "nps_responses": 2, "nps_net": 2},
-        {"date": "2026-11-17", "handled": 30, "aht_sec": 400, "nps_responses": 8, "nps_net": 0},
+        {"date": "2026-11-16", "nps_responses": 2, "nps_net": 2, "cases_solved": 6, "logged_min": 480,
+         "solved_volume": 5, "assignments": 10, "reopens": 1, "case_solves": 8, "ttresp_min": 30, "msg_sessions": 2,
+         "work_sec": 18000, "handle_sec": 6000, "target_spd": 6.0, "target_reopen": 0.12, "tenure_group": "Ramping"},
+        {"date": "2026-11-17", "nps_responses": 8, "nps_net": 0, "cases_solved": 4, "logged_min": 240,
+         "solved_volume": 15, "assignments": 30, "reopens": 3, "case_solves": 32, "ttresp_min": 90, "msg_sessions": 18,
+         "work_sec": 54000, "handle_sec": 18000, "target_spd": 6.0, "target_reopen": 0.12, "tenure_group": "0-30 Days"},
     ]
     wk = kpi_svc.weekly(rows, "2026-11-20", 1)[0]
     assert wk["week_end"] == "2026-11-21" and wk["partial"]
-    assert wk["handled"] == 20                         # 일평균
-    assert wk["aht_sec"] == pytest.approx(450)          # (10*600+30*400)/40
     assert wk["nps"] == pytest.approx(20)               # 2/10*100 (행 평균이면 50)
+    assert wk["spd"] == pytest.approx(10 * 8 / 12)      # 해결 10건 × 8 / 로그인 12시간 (행 평균이면 7.0)
+    assert wk["throughput"] == pytest.approx(50)        # 20/40
+    assert wk["reopen"] == pytest.approx(10)            # 4/40
+    assert wk["ttresp"] == pytest.approx(6)             # 120분/20세션 (행 평균이면 10)
+    assert wk["work_time"] == pytest.approx(30)         # 72000초/60/40건
+    assert wk["handle_time"] == pytest.approx(10)
+    assert wk["spd_target"] == 6.0 and wk["reopen_target"] == pytest.approx(12) and wk["throughput_target"] is None
+    assert wk["ramping"] and wk["tenure_group"] == "0-30 Days"
+
+
+def test_kpi_metric_order_and_empty_week():
+    assert [m.key for m in kpi_svc.METRICS][:6] == ["nps", "spd", "throughput", "reopen", "ttresp", "work_time"]
+    wk = kpi_svc.weekly([], "2026-11-20", 2)
+    assert all(w["nps"] is None and w["spd"] is None and not w["ramping"] for w in wk)
 
 
 def test_signals_ranked_desc_and_scoped(backend, users):

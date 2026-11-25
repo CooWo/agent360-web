@@ -17,18 +17,14 @@
     },
     "agents": {
       "title": "상담사 목록",
-      "spark_metric": "handled"
+      "spark_metric": "spd"
     },
     "agent_detail": {
       "sections": ["summary", "kpi_trend", "signals", "attendance", "qa", "coaching", "training", "incentive"],
       "kpi_weeks": 8,
       "attendance_days": 30,
       "qa_days": 90,
-      "kpi_metrics": [
-        {"key": "handled", "label": "일평균 처리 건수", "unit": "건", "better": "up", "digits": 1},
-        {"key": "aht_sec", "label": "AHT", "unit": "초", "better": "down", "digits": 0},
-        {"key": "nps", "label": "NPS", "unit": "", "better": "up", "digits": 1}
-      ]
+      "kpi_metrics": ["nps", "spd", "throughput", "reopen", "ttresp", "work_time", "handle_time"]
     },
     "coaching": {
       "title": "코칭 기록",

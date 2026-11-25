@@ -44,14 +44,38 @@ def agents(backend, user: User, screens: dict, q: str | None = None, team: str |
     for c in backend.coaching(user.scope):
         last_coach.setdefault(c["agent_id"], c["date"])
     out = []
+    kpi_by = backend.kpi_daily_many([a["agent_id"] for a in rows], since)
     for a in rows:
-        wk = kpi_svc.weekly(backend.kpi_daily(a["agent_id"], since), as_of, 8)
+        wk = kpi_svc.weekly(kpi_by.get(a["agent_id"], []), as_of, 8)
         out.append({**a, "score": score.get(a["agent_id"], 0), "last_coaching": last_coach.get(a["agent_id"]),
-                    "spark": sparkline([w[cfg.get("spark_metric", "handled")] for w in wk]),
-                    "handled_recent": wk[-2]["handled"] if len(wk) > 1 else None})
+                    "spark": sparkline([w[cfg.get("spark_metric", "spd")] for w in wk]),
+                    "recent": _last_full(wk)})
     teams = [t for t in backend.list_teams() if user.scope.allows(t["team"])]
     return {"cfg": cfg, "as_of": as_of, "rows": out, "q": q or "", "team": team or "", "teams": teams,
             "team_labels": _team_labels(backend)}
+
+
+def _last_full(wk: list[dict]) -> dict:
+    """지난 (끝난) 주 값 — 목록 화면용."""
+    done = [w for w in wk if not w["partial"]]
+    return done[-1] if done else {}
+
+
+def kpi_charts(wk: list[dict], cmp_: dict, keys: list[str]) -> list[dict]:
+    """지표 카드·추이 차트. 기준선 = 목표값(있으면) 아니면 직전 4주."""
+    out = []
+    for key in keys:
+        m = kpi_svc.BY_KEY[key]
+        target = next((w[f"{key}_target"] for w in reversed(wk) if w.get(f"{key}_target") is not None), None)
+        prior = cmp_["prior"][key]
+        ref, ref_label = (target, "목표") if target is not None else (prior, "직전 4주")
+        out.append({"key": key, "label": m.label, "unit": m.unit, "better": m.better, "digits": m.digits, "help": m.help,
+                    "svg": line_chart([w["label"] for w in wk], [w[key] for w in wk], unit=m.unit, ref=ref,
+                                      ref_label=ref_label if ref is not None else ""),
+                    "recent": cmp_["recent"][key], "prior": prior, "delta": cmp_["delta"][key], "target": target,
+                    "vs_target": (cmp_["recent"][key] - target) if (target is not None and cmp_["recent"][key] is not None)
+                    else None})
+    return out
 
 
 def agent_detail(backend, user: User, screens: dict, agent_id: str) -> dict:
@@ -65,13 +89,7 @@ def agent_detail(backend, user: User, screens: dict, agent_id: str) -> dict:
     kpi_rows = backend.kpi_daily(agent_id, (t - timedelta(days=7 * weeks + 35)).isoformat())
     wk = kpi_svc.weekly(kpi_rows, as_of, weeks)
     cmp_ = kpi_svc.compare(kpi_rows, as_of)
-    charts = []
-    for m in cfg["kpi_metrics"]:
-        vals = [w[m["key"]] for w in wk]
-        prior = cmp_["prior"][m["key"]]
-        charts.append({**m, "svg": line_chart([w["label"] for w in wk], vals, unit=m["unit"], ref=prior,
-                                               ref_label="직전 4주 평균" if prior is not None else ""),
-                       "recent": cmp_["recent"][m["key"]], "prior": prior, "delta": cmp_["delta"][m["key"]]})
+    charts = kpi_charts(wk, cmp_, cfg["kpi_metrics"])
     att = kpi_svc.attendance_summary(backend.attendance(agent_id, (t - timedelta(days=40)).isoformat()), as_of,
                                      cfg.get("attendance_days", 30))
     qa_rows = backend.qa(agent_id, (t - timedelta(days=cfg.get("qa_days", 90))).isoformat())
@@ -84,7 +102,7 @@ def agent_detail(backend, user: User, screens: dict, agent_id: str) -> dict:
         audit(backend, user, "view_sensitive", "agent", agent_id, {"sections": ["coaching", "incentive"]})
     return {
         "cfg": cfg, "as_of": as_of, "agent": agent, "team_label": _team_labels(backend).get(agent["team"], agent["team"]),
-        "charts": charts, "weekly": wk, "attendance": att, "qa": qa_rows,
+        "charts": charts, "weekly": wk, "ramping_weeks": [w["label"] for w in wk if w["ramping"]], "attendance": att, "qa": qa_rows,
         "qa_avg": (sum(q["score"] for q in qa_rows) / len(qa_rows)) if qa_rows else None,
         "training": backend.training(agent_id), "signals": sigs, "statuses": signal_svc.STATUSES,
         "sensitive": sensitive, "coaching": coaching_rows if sensitive else [],

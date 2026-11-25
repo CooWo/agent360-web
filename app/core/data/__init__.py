@@ -21,7 +21,8 @@ def _sample(s: Settings):
 @BACKENDS.register("bigquery")
 def _bigquery(s: Settings):
     from app.core.data.bigquery import BigQueryBackend
-    return BigQueryBackend(s.gcp_project, s.bq_location, s.common_dataset, s.module_dataset, s.cache_seconds)
+    return BigQueryBackend(s.gcp_project, s.bq_location, s.common_dataset, s.module_dataset, s.cache_seconds,
+                           s.kpi_dataset)
 
 
 @lru_cache

@@ -22,7 +22,7 @@
 <div class="table-wrap">
   <table>
     <thead>
-      <tr><th>신호</th><th>상담사</th><th>팀</th><th>기수</th><th>스킬</th><th>처리 건수 8주</th><th class="r">지난주 일평균</th><th>마지막 코칭</th></tr>
+      <tr><th>신호</th><th>상담사</th><th>팀</th><th>기수</th><th>스킬</th><th>SPD 8주</th><th class="r">지난주 NPS</th><th class="r">SPD</th><th class="r">Throughput</th><th>마지막 코칭</th></tr>
     </thead>
     <tbody>
       {% for a in rows|sort(attribute='score', reverse=True) %}
@@ -33,11 +33,11 @@
         <td>{{ a.cohort }}</td>
         <td>{% for t in a.skill_tags %}<span class="tag">{{ t }}</span>{% endfor %}</td>
         <td>{{ a.spark|safe }}</td>
-        <td class="r num">{{ a.handled_recent|num(1) }}</td>
+        <td class="r num">{{ a.recent.nps|num(1) }}</td><td class="r num">{{ a.recent.spd|num(2) }}</td><td class="r num">{{ a.recent.throughput|num(1) }}{% if a.recent.throughput is number %}%{% endif %}</td>
         <td>{% if a.last_coaching %}{{ a.last_coaching }} <span class="muted small">({{ days_ago(a.last_coaching, as_of) }})</span>{% else %}<span class="badge neutral">없음</span>{% endif %}</td>
       </tr>
       {% else %}
-      <tr><td colspan="8" class="empty">조건에 맞는 상담사가 없습니다.</td></tr>
+      <tr><td colspan="10" class="empty">조건에 맞는 상담사가 없습니다.</td></tr>
       {% endfor %}
     </tbody>
   </table>

@@ -19,9 +19,10 @@ def _ddl_columns() -> dict[str, dict[str, bool]]:
         for m in re.finditer(r"CREATE TABLE IF NOT EXISTS `[^`]+\.(\w+)` \((.*?)\n\)", f.read_text(encoding="utf-8"), re.S):
             cols = {}
             for line in m.group(2).splitlines():
-                c = re.match(r"\s+(\w+)\s+([A-Z0-9<>]+)(.*)", line)
-                if c:
-                    cols[c.group(1)] = "NOT NULL" in c.group(3)
+                for part in re.sub(r"OPTIONS \(.*?\)", "", line).split(","):   # 한 줄에 열 여러 개도 허용
+                    c = re.match(r"\s*(\w+)\s+([A-Z0-9<>]+)(.*)", part)
+                    if c:
+                        cols[c.group(1)] = "NOT NULL" in c.group(3)
             out[m.group(1)] = cols
     return out
 
@@ -46,6 +47,29 @@ def test_ddl_sql_project_and_dataset_rename():
     assert "${PROJECT}" not in sql
     assert "`v12-2027.common_dev.dim_agent`" in sql and "`v12-2027.agent360_dev.user_roles`" in sql
     assert "`v12-2027.common." not in sql and "`v12-2027.agent360." not in sql
+    assert "`v12-2027.kpi.v_agent`" in sql and "`v12-2027.roster.v_agent_info`" in sql
+
+
+def test_kpi_refresh_fills_every_table_column():
+    """갱신 SQL 의 INSERT SELECT 식 개수 = 표 열 개수, 앱이 읽는 열은 뷰에 있음."""
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import bq_setup
+    from app.core.data.bigquery import KPI_FIELDS
+    ddl = _ddl_columns()
+    sql = bq_setup.kpi_refresh_sql("v12-2027", 30)
+    assert "${" not in sql and "INTERVAL 30 DAY" in sql and "BEGIN TRANSACTION" in sql
+    for table in ("specialist_case_daily", "specialist_time_daily", "case_kpi_weekly", "survey_weekly"):
+        body = sql.split(f"INSERT INTO `v12-2027.kpi.{table}`")[1].split("FROM `v11-2026")[0]
+        exprs, depth, n = body.split("SELECT", 1)[1], 0, 1
+        for ch in exprs:
+            depth += ch == "("
+            depth -= ch == ")"
+            n += ch == "," and depth == 0
+        assert n == len(ddl[table]), f"{table}: SELECT {n}개, 표 열 {len(ddl[table])}개"
+    view = (ROOT / "sql" / "ddl" / "05_kpi.sql").read_text(encoding="utf-8").split("v_agent_kpi_daily")[1]
+    assert all(f in view for f in KPI_FIELDS)
+    with pytest.raises(ValueError):
+        bq_setup.kpi_refresh_sql("v12-2027", 0)
 
 
 class _FakeBQ(types.ModuleType):
@@ -102,7 +126,8 @@ def test_every_sql_param_is_bound(fake_backend):
     sv = Scope(all_teams=False, teams=("R1-A",))
     b.as_of(); b.get_user("a@ubase.co.kr"); b.list_users(); b.list_teams()
     b.list_agents(sv, q="kim", team="R1-A"); b.list_agents(sv)
-    b.kpi_daily("E1", "2026-01-01"); b.kpi_daily("E1", None); b.attendance("E1", "2026-01-01")
+    b.kpi_daily("E1", "2026-01-01"); b.kpi_daily("E1", None); b.kpi_daily_many(["E1", "E2"], "2026-01-01")
+    b.attendance("E1", "2026-01-01")
     b.qa("E1", "2026-01-01"); b.training("E1"); b.incentive("E1")
     b.coaching(sv); b.coaching(sv, "E1")
     b.add_coaching({"agent_id": "E1", "sv_email": "s@ubase.co.kr", "date": "2026-11-20", "issue_type": "근태",
@@ -116,7 +141,7 @@ def test_every_sql_param_is_bound(fake_backend):
     for sql, bound in fake.calls:
         used = set(re.findall(r"@(\w+)", sql))
         assert used <= bound, f"넘기지 않은 매개변수 {used - bound}:\n{sql}"
-        assert "`v12-2027.common`" in sql or "`v12-2027.agent360`" in sql
+        assert "`v12-2027.common`" in sql or "`v12-2027.agent360`" in sql or "`v12-2027.kpi`" in sql or "`v12-2027.kpi.v_agent`" in sql
 
 
 def test_each_ddl_creates_its_dataset():

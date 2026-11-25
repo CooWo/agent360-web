@@ -149,3 +149,21 @@ def test_info_menu_and_edit_flow(client):
     assert "웹 수정 · manager@example.com" in c.get("/info").text
     assert c.post(f"/info/changes/{cid}/undo", follow_redirects=False).status_code == 303
     assert _as(client, "sv.kim@example.com").get("/info").status_code == 403
+
+
+def test_info_bulk_paste_and_file(client):
+    c = _as(client, "manager@example.com")
+    page = c.get("/info").text
+    assert "한꺼번에 고치기" in page
+    emp = page.split('data-emp="')[1].split('"')[0]
+    r = c.post("/info/import", data={"paste": f"사번\tTier\t재직정보\n{emp}\tR9\t퇴직자\n"}, follow_redirects=False)
+    assert r.status_code == 303
+    cid = r.headers["location"].split("change=")[1].split("#")[0]
+    pv = c.get(f"/info?change={cid}").text
+    assert "1명 1칸 수정 (붙여넣기)" in pv and "건너뛴 열: 재직정보" in pv
+    c.post(f"/info/changes/{cid}/discard")
+    r = c.post("/info/import", files={"file": ("x.csv", f"사번,Tier\n{emp},R8\n".encode(), "text/csv")},
+               follow_redirects=False)
+    assert r.status_code == 303 and "(파일)" in c.get(r.headers["location"].split("#")[0]).text
+    assert c.post("/info/import", data={"paste": "아무거나"}).status_code == 400
+    assert _as(client, "viewer@example.com").post("/info/import", data={"paste": "x"}).status_code == 403

@@ -18,6 +18,7 @@ from app.modules.roster.services.info import (DATE_FIELDS, DATE_TEXT_MARKS, EMPT
                                               clean_id, parse_date)
 
 STATUS_VALUES = ("재직자", "퇴직자", "확인안됨")
+SOURCE_LABEL = {"paste": "붙여넣기", "file": "파일"}
 
 
 def can_edit(user: User, field: str) -> bool:
@@ -142,7 +143,8 @@ class InfoEditChange(ChangeHandler):
         edits = [d for d in plan if not d["is_new"]]
         people = sorted({d["emp_id"] for d in edits})
         parts = ([f"신규 {len(new)}명"] if new else []) + ([f"{len(people)}명 {len(edits)}칸 수정"] if edits else [])
-        return "상담사 INFO " + " · ".join(parts), diff
+        how = SOURCE_LABEL.get(str((payload.get("source") or {}).get("how") or ""))
+        return "상담사 INFO " + " · ".join(parts) + (f" ({how})" if how else ""), diff
 
     def apply(self, user: User, change: ChangeSet) -> dict:
         now = datetime.now(timezone.utc).isoformat()

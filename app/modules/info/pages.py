@@ -6,17 +6,20 @@ from datetime import date
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
+from starlette.datastructures import UploadFile
 
 from app.core.audit import audit
 from app.core.data import get_backend
 from app.core.deps import current_user, dev_users
-from app.core.errors import InvalidInput
+from app.core.errors import InvalidInput, PermissionDenied
 from app.core.modules import discover
 from app.core.permissions import User
 from app.core.sheets import GoogleSheetReader, SheetAccessError
 from app.core.templating import render
+from app.core.uploads import parse_grid, text_grid
 from app.modules.info import views
-from app.modules.info.services.edits import InfoEditChange
+from app.modules.info.services import bulk
+from app.modules.info.services.edits import InfoEditChange, effective_info
 from app.modules.info.wiring import change_service
 from app.modules.roster.data import get_store
 from app.modules.roster.data.info_loader import LoadRefused, info_loader
@@ -67,6 +70,26 @@ async def preview(request: Request, user: User = Depends(current_user)):
         return _page(user, errors={"payload": "화면 데이터를 읽지 못했습니다. 새로고침 후 다시 해 주세요."}, status_code=400)
     except InvalidInput as e:
         return _page(user, errors=e.errors, status_code=400)
+    return RedirectResponse(f"/info?change={ch.change_id}#preview", status_code=303)
+
+
+@router.post("/import", response_class=HTMLResponse)
+async def import_table(request: Request, user: User = Depends(current_user)):
+    """시트에서 복사한 글(paste) 또는 파일(file: .xlsx/.csv/.tsv) → 바뀐 칸만 미리보기."""
+    if not user.can("info.edit"):
+        raise PermissionDenied("상담사 INFO 수정 권한이 없습니다.")
+    form = await request.form()
+    upload, text = form.get("file"), str(form.get("paste") or "")
+    try:
+        if isinstance(upload, UploadFile) and upload.filename:
+            grid, how = parse_grid(upload.filename, await upload.read()), "file"
+        else:
+            grid, how = text_grid(text), "paste"
+        current = {r["emp_id"] for r in effective_info(get_store())}
+        p = bulk.plan(grid, current, user, how)
+        ch = change_service().preview(user, InfoEditChange.kind, p.payload)
+    except InvalidInput as e:
+        return _page(user, errors=e.errors, paste_text=text[:200_000], status_code=400)
     return RedirectResponse(f"/info?change={ch.change_id}#preview", status_code=303)
 
 

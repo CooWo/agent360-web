@@ -21,13 +21,20 @@
 {% if errors %}
 <section class="card" style="border-color:var(--danger);margin-bottom:var(--gap)">
   <h2 style="color:var(--danger)">고쳐야 저장할 수 있어요</h2>
-  {% for k, v in errors.items() %}<div class="small">{{ v }}</div>{% endfor %}
+  {% for k, v in errors.items() %}{% if loop.index <= 30 %}<div class="small">{{ v }}</div>{% endif %}{% endfor %}
+  {% if errors|length > 30 %}<div class="small muted">외 {{ errors|length - 30 }}건 더</div>{% endif %}
 </section>
 {% endif %}
 
 {% if preview %}
 <section class="card" id="preview" style="border-color:var(--warn);margin-bottom:var(--gap)">
   <h2>미리보기 · {{ preview.summary }}</h2>
+  {% set src = preview.payload.get('source') %}
+  {% if src %}
+  <p class="small muted">사번 있는 줄 {{ src.rows }}개를 읽었고, 지금 값과 다른 칸만 아래에 보입니다. 빈 칸은 바꾸지 않습니다.
+    {% if src.skipped_cols %}<br>고칠 권한이 없어 건너뛴 열: {{ src.skipped_cols|join(", ") }}{% endif %}
+    {% if src.unknown_cols %}<br>모르는 머리글이라 무시한 열: {{ src.unknown_cols|join(", ") }}{% endif %}</p>
+  {% endif %}
   <div class="table-wrap">
     <table>
       <thead><tr><th>사번</th><th>이름</th><th>항목</th><th>지금</th><th>바뀔 값</th></tr></thead>
@@ -87,6 +94,25 @@
   </aside>
   {% endif %}
 </div>
+
+{% if can_edit %}
+<details class="card" style="margin-bottom:var(--gap)"{% if errors %} open{% endif %}>
+  <summary><b>한꺼번에 고치기</b> <span class="small muted">— 시트에서 복사해 붙여넣기 · 엑셀/CSV 파일 올리기</span></summary>
+  <p class="small muted" style="margin:8px 0">INFO 자동화 시트에서 <b>머리글 줄(사번 · 한글명 …)까지 같이</b> 복사하세요. 열 순서·일부 열만 복사해도 됩니다.
+    사번으로 사람을 찾고, 없는 사번은 새 사람으로 등록합니다. <b>빈 칸은 바꾸지 않습니다.</b> 저장 전에 미리보기로 바뀌는 칸을 먼저 보여 줍니다.</p>
+  <div class="split">
+    <form method="post" action="/info/import">
+      <textarea name="paste" rows="6" placeholder="여기에 붙여넣기 (Ctrl+V)" style="width:100%;font-family:monospace">{{ paste_text or "" }}</textarea>
+      <button class="btn primary" style="margin-top:6px">붙여넣은 내용 미리보기</button>
+    </form>
+    <form method="post" action="/info/import" enctype="multipart/form-data">
+      <input type="file" name="file" accept=".xlsx,.csv,.tsv,.txt" required>
+      <p class="small muted">.xlsx(첫 번째 시트) · .csv · .tsv, 5MB 이하</p>
+      <button class="btn primary">파일 미리보기</button>
+    </form>
+  </div>
+</details>
+{% endif %}
 
 <div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
   <input id="info-q" placeholder="사번 · 이름 · Name · LDAP · Email 검색" style="min-width:260px">

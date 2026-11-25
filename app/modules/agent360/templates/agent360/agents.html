@@ -23,15 +23,15 @@
   <table>
     <thead>
       <tr><th>신호</th><th>상담사</th><th>팀</th><th>CCPAM</th><th>NPS 8주</th>
-          <th class="r">SPD</th><th class="r">Throughput</th><th class="r">Reopen</th><th>마지막 코칭</th></tr>
+          <th class="r">SPD</th><th class="r">Throughput</th><th class="r">Reopen</th><th style="white-space:nowrap">마지막 코칭</th></tr>
     </thead>
     <tbody>
       {% for a in rows|sort(attribute='score', reverse=True) %}
       <tr>
         <td>{% if a.score %}{{ score_badge(a.score) }}{% else %}<span class="muted">–</span>{% endif %}</td>
         <td><a href="/agent360/agents/{{ a.agent_id }}"><b>{{ a.name }}</b></a><div class="muted small mono">{{ a.agent_id }}{% if a.ldap %} · {{ a.ldap }}{% endif %}</div></td>
-        <td>{{ team_labels.get(a.team, a.team) }}</td>
-        <td class="small">{{ a.ccpam or '–' }}</td>
+        <td style="white-space:nowrap">{{ team_labels.get(a.team, a.team) }}</td>
+        <td class="small" title="{{ a.ccpam or '' }}">{{ (a.ccpam or '–')|replace('Atrium Partner CS ', '') }}</td>
         <td>{{ a.spark|safe }} <span class="num small">{{ a.recent.nps|num(1) }}</span></td>
         <td class="r num">{{ a.recent.spd|num(2) }}</td>
         <td class="r num">{{ a.recent.throughput|num(1) }}{% if a.recent.throughput is number %}%{% endif %}</td>

@@ -93,7 +93,8 @@ _SHEETS_EPOCH = date(1899, 12, 30)
 
 
 def parse_date(v: str) -> str | None:
-    """'2021-03-21', '2021. 3. 21', '2021/3/21', '20210321', 시트 날짜 숫자(45997) → 'YYYY-MM-DD'. 못 읽으면 None."""
+    """'2021-03-21', '2021. 3. 21', '2021/3/21', '20210321', 미국식 '7/31/2026'(월/일/연), 시트 날짜 숫자(45997)
+    → 'YYYY-MM-DD'. 못 읽으면 None."""
     s = str(v or "").strip().rstrip(".")
     if not s:
         return None
@@ -101,6 +102,9 @@ def parse_date(v: str) -> str | None:
     try:
         if m:
             return date(int(m[1]), int(m[2]), int(m[3])).isoformat()
+        us = re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", s)
+        if us:
+            return date(int(us[3]), int(us[1]), int(us[2])).isoformat()
         if re.fullmatch(r"\d{5}(\.0+)?", s):
             return (_SHEETS_EPOCH + timedelta(days=int(float(s)))).isoformat()
     except ValueError:

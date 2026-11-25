@@ -7,7 +7,7 @@ from app.core import templating
 from app.core.errors import PermissionDenied
 from app.core.modules import discover
 from app.core.permissions import User
-from app.modules.roster import views
+from app.modules.info import views
 from app.modules.roster.data.sample import RosterSample
 from app.modules.roster.services.info import FIELDS, InfoCleaner, parse_date, raw_rows, tenure_bucket
 
@@ -125,10 +125,10 @@ def test_loader_refuses_big_drop():
 
 # ── 화면 ───────────────────────────────────────────
 def test_info_screen(backend):
-    mod = next(m for m in discover(with_routers=False) if m.name == "roster")
+    mod = next(m for m in discover(with_routers=False) if m.name == "info")
     u = User("wfm@example.com", "w", "wfm")
     ctx = views.info(RosterSample(backend.dir), u, mod.screens, "2026-11-25")
-    html = templating.render("roster/info.html", ctx, user=u, module=mod, active="info", with_routers=False)
+    html = templating.render("info/info.html", {"sync": None, "sync_error": "", "errors": {}, **ctx}, user=u, module=mod, active="info", with_routers=False)
     assert "상담사 INFO" in html and "Tenure (계산)" in html and "own-wfm" in html and "info.js" in html
     with pytest.raises(PermissionDenied):
         views.info(RosterSample(backend.dir), User("v@x", "v", "viewer"), mod.screens, "2026-11-25")
@@ -146,7 +146,7 @@ class FakeReader:
 def test_sync_service_check_then_save_sample(backend):
     from app.modules.roster.data.info_loader import SampleInfoLoader
     from app.modules.roster.services.info_sync import InfoSyncService
-    mod = next(m for m in discover(with_routers=False) if m.name == "roster")
+    mod = next(m for m in discover(with_routers=False) if m.name == "info")
     store = RosterSample(backend.dir)
     cells = [HEADER] + [row(str(1000 + i), f"사람{i}") for i in range(30)] + [row("1000", "중복", status="퇴직자")]
     rd = FakeReader(cells)

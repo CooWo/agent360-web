@@ -133,3 +133,19 @@ def test_roster_workspace_flow(client):
     v = _as(client, "viewer@example.com")
     assert v.get("/roster").status_code == 200 and v.get("/roster/workspace").status_code == 403
     assert v.post("/roster/workspace/save", data={"rows_json": "[]"}).status_code == 403
+
+
+def test_info_menu_and_edit_flow(client):
+    import json
+    c = _as(client, "manager@example.com")
+    page = c.get("/info")
+    assert page.status_code == 200 and "상담사 INFO" in page.text and c.get("/roster/info").status_code == 404
+    emp = json.loads(json.dumps(c.get("/info").text.split('data-emp="')[1].split('"')[0]))
+    r = c.post("/info/preview", data={"payload_json": json.dumps({"cells": [{"emp_id": emp, "field": "tier", "value": "R7"}]})},
+               follow_redirects=False)
+    cid = r.headers["location"].split("change=")[1].split("#")[0]
+    assert "1명 1칸 수정" in c.get(f"/info?change={cid}").text
+    assert c.post(f"/info/changes/{cid}/approve", follow_redirects=False).status_code == 303
+    assert "웹 수정 · manager@example.com" in c.get("/info").text
+    assert c.post(f"/info/changes/{cid}/undo", follow_redirects=False).status_code == 303
+    assert _as(client, "sv.kim@example.com").get("/info").status_code == 403

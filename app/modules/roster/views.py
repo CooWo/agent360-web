@@ -5,7 +5,6 @@ from app.core.changes import PREVIEW, ChangeService
 from app.core.errors import PermissionDenied
 from app.core.permissions import User
 from app.modules.roster.data import RosterStore
-from app.modules.roster.services import info as info_svc
 from app.modules.roster.services.board import FIELDS, LABEL, BoardRules, by_tl
 
 
@@ -48,28 +47,3 @@ def workspace(store: RosterStore, user: User, screens: dict, changes: ChangeServ
         "counts": {g["tl"]: g["count"] for g in by_tl(norm)},
     }
 
-
-def info(store: RosterStore, user: User, screens: dict, today: str) -> dict:
-    """상담사 INFO (마트). 개인정보가 있어 info.view 권한만."""
-    _need(user, "info.view", "상담사 INFO 보기")
-    rows = store.agent_info()
-    for r in rows:
-        r["tenure"] = info_svc.tenure_bucket(r.get("joined", ""), today)
-        r["dates_ok"] = "" if str(r.get("dates_ok", True)).lower() in ("true", "1") else "확인 필요"
-    cols = [(f, info_svc.LABEL[f], info_svc.OWNER[f]) for f in info_svc.FIELDS]
-    cols.insert(cols.index(("joined", info_svc.LABEL["joined"], "BA")), ("tenure", "Tenure (계산)", "BA"))
-    cols.append(("dates_ok", "날짜 확인", "BA"))
-    status = {}
-    for r in rows:
-        status[r.get("status") or "(빈 값)"] = status.get(r.get("status") or "(빈 값)", 0) + 1
-    loads = store.info_loads(1)
-    return {"cfg": screens["screens"]["info"], "can_sync": user.can("info.sync"), "rows": rows, "cols": cols, "status_counts": status,
-            "tls": sorted({r["tl_ldap"] for r in rows if r.get("tl_ldap")}), "load": loads[0] if loads else None,
-            "today": today}
-
-
-def info_sync(service, user: User, screens: dict, dry_run: bool, force: bool = False) -> dict:
-    """시트에서 불러오기 (먼저 dry_run 으로 확인 → 저장). 감사 로그는 라우터 쪽 서비스가 남긴다."""
-    _need(user, "info.sync", "INFO 불러오기")
-    cfg = screens["screens"]["info"]
-    return service.run(cfg["source_sheet"], cfg["source_tab"], user.email, cfg.get("header_row", 2), dry_run, force)

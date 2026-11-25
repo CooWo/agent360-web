@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.title }}</h1>
+    <p class="muted">{{ cfg.subtitle }} · {{ rows|length }}명
+      {% for k, v in status_counts.items() %} · {{ k }} {{ v }}{% endfor %}
+      {% if edited_count %} · <span style="color:var(--primary)">웹 수정 {{ edited_count }}명</span>{% endif %}</p>
+    {% if load %}
+    <p class="small muted">시트 마지막 불러오기 {{ load.loaded_at[:16]|replace('T', ' ') }} · {{ load.loaded_by }}
+      · 읽은 행 {{ load.rows_read }} → {{ load.rows_mart }}명
+      {% if load.duplicates %} · 중복 사번 {{ load.duplicates }}{% endif %}
+      {% if load.issues %} · <span style="color:var(--warn)">확인 필요 칸 {{ load.issues }}</span>{% endif %}</p>
+    {% else %}
+    <p class="small" style="color:var(--warn)">아직 시트에서 불러온 적이 없습니다.</p>
+    {% endif %}
+  </div>
+</div>
+
+{% if errors %}
+<section class="card" style="border-color:var(--danger);margin-bottom:var(--gap)">
+  <h2 style="color:var(--danger)">고쳐야 저장할 수 있어요</h2>
+  {% for k, v in errors.items() %}<div class="small">{{ v }}</div>{% endfor %}
+</section>
+{% endif %}
+
+{% if preview %}
+<section class="card" id="preview" style="border-color:var(--warn);margin-bottom:var(--gap)">
+  <h2>미리보기 · {{ preview.summary }}</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>사번</th><th>이름</th><th>항목</th><th>지금</th><th>바뀔 값</th></tr></thead>
+      <tbody>
+      {% for d in preview.diff %}
+        <tr><td>{{ d.key }}</td><td>{{ d.name }}</td>
+            <td>{% if d.field == 'new' %}<span class="badge ok">신규 등록</span>{% else %}{{ d.label }}{% endif %}</td>
+            <td class="muted">{{ d.before }}</td><td><b>{{ d.after }}</b></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div style="display:flex;gap:8px;margin-top:10px">
+    <form method="post" action="/info/changes/{{ preview.change_id }}/approve"><button class="btn primary">저장</button></form>
+    <form method="post" action="/info/changes/{{ preview.change_id }}/discard"><button class="btn">취소</button></form>
+  </div>
+</section>
+{% endif %}
+
+<div class="split" style="margin-bottom:var(--gap)">
+  {% if can_sync %}
+  <section class="card">
+    <h2>시트에서 불러오기</h2>
+    <p class="small muted">원본 INFO 자동화 시트 → 받은 그대로 쌓고, 정리해서 마트를 바꿉니다. <b>웹에서 고친 칸은 그대로 남습니다.</b></p>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <form method="post" action="/info/sync"><input type="hidden" name="mode" value="check"><button class="btn">확인만 (저장 안 함)</button></form>
+      <form method="post" action="/info/sync" onsubmit="return confirm('시트 내용으로 마트를 바꿀까요? (받은 원본은 따로 쌓이고, 웹 수정분은 남습니다)')">
+        <input type="hidden" name="mode" value="save">
+        <label class="small"><input type="checkbox" name="force" value="1" style="width:auto"> 행 수가 크게 줄어도 저장</label>
+        <button class="btn primary">불러와서 저장</button>
+      </form>
+    </div>
+    {% if sync_error %}<p class="small" style="color:var(--danger);margin-top:8px">❌ {{ sync_error }}</p>{% endif %}
+    {% if sync %}
+    <div class="small" style="margin-top:8px">
+      {{ "✅ 저장 완료 (" ~ sync.load_id ~ ")" if sync.load_id else "확인 결과 (저장 안 함)" }} —
+      읽은 행 {{ sync.rows_read }} → {{ sync.rows_mart }}명 · 사번 없음 {{ sync.dropped_no_id }} · 중복 사번 {{ sync.duplicates }} · 확인 필요 칸 {{ sync.issues }}
+      {% for k, v in sync.status.items() %} · {{ k }} {{ v }}{% endfor %}
+      {% for i in sync.issue_samples %}<div class="muted">⚠ {{ i.emp_id }} {{ i.text }}: {{ i.value }}</div>{% endfor %}
+      {% if sync.duplicate_ids %}<div class="muted">중복 사번: {{ sync.duplicate_ids|join(", ") }}</div>{% endif %}
+    </div>
+    {% endif %}
+  </section>
+  {% endif %}
+  {% if can_edit %}
+  <aside class="card">
+    <h2>웹 수정 이력</h2>
+    {% for c in history %}
+    <div class="small" style="margin-bottom:6px">
+      <span class="badge {{ 'ok' if c.status == 'applied' else ('warn' if c.status == 'preview' else 'neutral') }}">{{ c.status_label }}</span>
+      {{ c.summary }} <span class="muted">· {{ c.created_at[:16]|replace('T', ' ') }} · {{ c.actor }}</span>
+      {% if c.change_id == latest_applied %}
+      <form method="post" action="/info/changes/{{ c.change_id }}/undo" onsubmit="return confirm('이 수정을 되돌릴까요? (시트 값으로 돌아갑니다)')"><button class="btn sm">되돌리기</button></form>
+      {% elif c.status == 'preview' %}<a href="/info?change={{ c.change_id }}#preview">미리보기 열기</a>{% endif %}
+    </div>
+    {% else %}<div class="empty">아직 없음</div>{% endfor %}
+  </aside>
+  {% endif %}
+</div>
+
+<div class="toolbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+  <input id="info-q" placeholder="사번 · 이름 · Name · LDAP · Email 검색" style="min-width:260px">
+  <select id="info-status">
+    <option value="재직자">재직자만</option>
+    <option value="">전체</option>
+    {% for k in status_counts if k != "재직자" %}<option value="{{ k }}">{{ k }}만</option>{% endfor %}
+  </select>
+  <select id="info-tl"><option value="">TL 전체</option>{% for t in tls %}<option>{{ t }}</option>{% endfor %}</select>
+  {% if can_add %}<button type="button" class="btn" id="info-add">+ 새 사람</button>{% endif %}
+  {% if can_edit %}
+  <form method="post" action="/info/preview" id="info-save" style="display:inline">
+    <input type="hidden" name="payload_json">
+    <button class="btn primary" id="info-save-btn" disabled>바뀐 칸 미리보기 (<span id="info-dirty">0</span>)</button>
+  </form>
+  {% endif %}
+  <span class="muted small" id="info-count"></span>
+</div>
+{% if can_edit %}<p class="small muted" style="margin:6px 0">흰 칸은 더블클릭(또는 Enter)으로 고칩니다. 회색 칸은 다른 담당 열이라 고칠 수 없습니다. 파란 칸 = 웹에서 고친 값.</p>{% endif %}
+
+<div class="table-wrap sheet" style="margin-top:6px">
+  <table id="info-grid">
+    <thead>
+      <tr class="owner-row">{% for c in cols %}<th class="own-{{ c.owner|lower }}">{{ c.owner }}</th>{% endfor %}</tr>
+      <tr>{% for c in cols %}<th data-f="{{ c.f }}" data-edit="{{ 1 if c.edit else 0 }}" data-date="{{ 1 if c.date else 0 }}">{{ c.label }}</th>{% endfor %}</tr>
+    </thead>
+    <tbody>
+    {% for r in rows %}
+      <tr data-emp="{{ r.emp_id }}" data-status="{{ r.status }}" data-tl="{{ r.tl_ldap }}">
+        {% for c in cols %}
+        {% set e = r._edited.get(c.f) %}
+        <td data-f="{{ c.f }}"{% if c.edit %} class="ed{{ ' web' if e }}" tabindex="0"{% elif e %} class="web"{% else %} class="ro"{% endif %}
+            {% if e %}title="웹 수정 · {{ e.by }} · {{ e.at|replace('T', ' ') }}"{% endif %}>{{ r[c.f] }}</td>
+        {% endfor %}
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+<script src="{{ static('js/info.js') }}"></script>
+{% endblock %}

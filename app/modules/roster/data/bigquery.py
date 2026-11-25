@@ -34,6 +34,24 @@ class RosterBigQuery:
                                   duplicates, issues FROM {self.d}.info_loads ORDER BY loaded_at DESC LIMIT @limit""",
                        limit=limit)
 
+    def info_edits(self) -> list[dict]:
+        return self._q(f"""SELECT edit_id, change_id, emp_id, field, value, is_new, edited_at, edited_by
+                           FROM {self.d}.info_edits WHERE active ORDER BY edited_at, edit_id""")
+
+    def add_info_edits(self, rows: list[dict]) -> None:
+        self._q(f"""INSERT INTO {self.d}.info_edits
+                      (edit_id, change_id, emp_id, field, value, is_new, edited_at, edited_by, active)
+                    SELECT JSON_VALUE(e, '$.edit_id'), JSON_VALUE(e, '$.change_id'), JSON_VALUE(e, '$.emp_id'),
+                           JSON_VALUE(e, '$.field'), JSON_VALUE(e, '$.value'), JSON_VALUE(e, '$.is_new') = 'true',
+                           TIMESTAMP(JSON_VALUE(e, '$.edited_at')), JSON_VALUE(e, '$.edited_by'), TRUE
+                    FROM UNNEST(JSON_QUERY_ARRAY(@rows)) AS e""",
+                rows=json.dumps([{**r, "is_new": "true" if r.get("is_new") else "false"} for r in rows],
+                                ensure_ascii=False))
+
+    def deactivate_info_edits(self, change_id: str, by: str) -> None:
+        self._q(f"""UPDATE {self.d}.info_edits SET active = FALSE, reverted_at = CURRENT_TIMESTAMP(), reverted_by = @by
+                    WHERE change_id = @change_id""", change_id=change_id, by=by)
+
     def board(self) -> list[dict]:
         rows = self._q(f"SELECT doc FROM {self.d}.board_versions ORDER BY saved_at DESC LIMIT 1")
         return json.loads(rows[0]["doc"]) if rows else []

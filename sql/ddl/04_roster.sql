@@ -98,3 +98,76 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.board_drafts` (
 
 -- 이미 만든 표에 열 추가 (CREATE IF NOT EXISTS 는 열을 더하지 않음)
 ALTER TABLE `${PROJECT}.roster.mart_agent_info` ADD COLUMN IF NOT EXISTS dates_ok BOOL;
+
+-- 웹에서 고친 칸 (상담사 INFO 화면 → 미리보기 → 저장). 시트를 다시 불러와도 남는다. 되돌리면 active = FALSE.
+CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.info_edits` (
+  edit_id     STRING    NOT NULL,
+  change_id   STRING    NOT NULL OPTIONS (description = 'agent360.change_log 의 변경 묶음'),
+  emp_id      STRING    NOT NULL,
+  field       STRING    NOT NULL OPTIONS (description = 'mart_agent_info 의 열 이름'),
+  value       STRING    OPTIONS (description = '저장 값 (날짜는 YYYY-MM-DD)'),
+  is_new      BOOL      OPTIONS (description = '웹에서 새로 등록한 사람'),
+  edited_at   TIMESTAMP NOT NULL,
+  edited_by   STRING    NOT NULL,
+  active      BOOL      NOT NULL,
+  reverted_at TIMESTAMP,
+  reverted_by STRING
+);
+
+-- 지금 상태 = 시트 마트 + 웹 수정분 (같은 칸은 가장 최근 수정). BI·다른 모듈은 이 뷰를 읽는다.
+CREATE OR REPLACE VIEW `${PROJECT}.roster.v_agent_info` AS
+WITH latest AS (
+  SELECT * FROM `${PROJECT}.roster.info_edits` WHERE active
+  QUALIFY ROW_NUMBER() OVER (PARTITION BY emp_id, field ORDER BY edited_at DESC, edit_id DESC) = 1
+), w AS (
+  SELECT e.emp_id,
+    ANY_VALUE(IF(e.field = 'name', e.value, NULL)) AS name,
+    ANY_VALUE(IF(e.field = 'e_name', e.value, NULL)) AS e_name,
+    ANY_VALUE(IF(e.field = 'email', e.value, NULL)) AS email,
+    ANY_VALUE(IF(e.field = 'airbnb_id', e.value, NULL)) AS airbnb_id,
+    ANY_VALUE(IF(e.field = 'batch', e.value, NULL)) AS batch,
+    ANY_VALUE(IF(e.field = 'shift_type', e.value, NULL)) AS shift_type,
+    ANY_VALUE(IF(e.field = 'location', e.value, NULL)) AS location,
+    ANY_VALUE(IF(e.field = 'tl_ldap', e.value, NULL)) AS tl_ldap,
+    ANY_VALUE(IF(e.field = 'type', e.value, NULL)) AS type,
+    ANY_VALUE(IF(e.field = 'tier', e.value, NULL)) AS tier,
+    ANY_VALUE(IF(e.field = 'ldap', e.value, NULL)) AS ldap,
+    ANY_VALUE(IF(e.field = 'fte', e.value, NULL)) AS fte,
+    ANY_VALUE(IF(e.field = 'onboarding', e.value, NULL)) AS onboarding,
+    ANY_VALUE(IF(e.field = 'r2_onboarding', e.value, NULL)) AS r2_onboarding,
+    ANY_VALUE(IF(e.field = 'universal', e.value, NULL)) AS universal,
+    ANY_VALUE(IF(e.field = 'incentive_date', e.value, NULL)) AS incentive_date,
+    ANY_VALUE(IF(e.field = 'joined', e.value, NULL)) AS joined,
+    ANY_VALUE(IF(e.field = 'status', e.value, NULL)) AS status,
+    ANY_VALUE(IF(e.field = 'tier_before_universal', e.value, NULL)) AS tier_before_universal,
+    ANY_VALUE(IF(e.field = 'note', e.value, NULL)) AS note,
+    LOGICAL_OR(e.is_new) AS is_new
+  FROM latest e GROUP BY e.emp_id
+)
+SELECT
+  COALESCE(m.emp_id, w.emp_id) AS emp_id,
+  COALESCE(w.name, m.name) AS name,
+  COALESCE(w.e_name, m.e_name) AS e_name,
+  COALESCE(w.email, m.email) AS email,
+  COALESCE(w.airbnb_id, m.airbnb_id) AS airbnb_id,
+  COALESCE(w.batch, m.batch) AS batch,
+  COALESCE(w.shift_type, m.shift_type) AS shift_type,
+  COALESCE(w.location, m.location) AS location,
+  COALESCE(w.tl_ldap, m.tl_ldap) AS tl_ldap,
+  COALESCE(w.type, m.type) AS type,
+  COALESCE(w.tier, m.tier) AS tier,
+  COALESCE(w.ldap, m.ldap) AS ldap,
+  COALESCE(w.fte, m.fte) AS fte,
+  IF(w.onboarding IS NOT NULL, SAFE.PARSE_DATE('%Y-%m-%d', NULLIF(w.onboarding, '')), m.onboarding) AS onboarding,
+  IF(w.r2_onboarding IS NOT NULL, SAFE.PARSE_DATE('%Y-%m-%d', NULLIF(w.r2_onboarding, '')), m.r2_onboarding) AS r2_onboarding,
+  COALESCE(w.universal, m.universal) AS universal,
+  IF(w.incentive_date IS NOT NULL, SAFE.PARSE_DATE('%Y-%m-%d', NULLIF(w.incentive_date, '')), m.incentive_date) AS incentive_date,
+  IF(w.joined IS NOT NULL, SAFE.PARSE_DATE('%Y-%m-%d', NULLIF(w.joined, '')), m.joined) AS joined,
+  COALESCE(w.status, m.status) AS status,
+  COALESCE(w.tier_before_universal, m.tier_before_universal) AS tier_before_universal,
+  COALESCE(w.note, m.note) AS note,
+  m.dates_ok,
+  w.emp_id IS NOT NULL AS web_edited,
+  m.emp_id IS NULL AS web_only
+FROM `${PROJECT}.roster.mart_agent_info` m
+FULL OUTER JOIN w ON w.emp_id = m.emp_id;

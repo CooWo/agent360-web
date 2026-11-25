@@ -14,6 +14,13 @@ class AgentInfoSource(Protocol):
     def info_loads(self, limit: int = 10) -> list[dict]: ...
 
 
+class InfoEditStore(Protocol):
+    """웹에서 고친 INFO 칸 (사번·항목·값). 시트를 다시 불러와도 남고, 되돌리면 active=False."""
+    def info_edits(self) -> list[dict]: ...
+    def add_info_edits(self, rows: list[dict]) -> None: ...
+    def deactivate_info_edits(self, change_id: str, by: str) -> None: ...
+
+
 class BoardStore(Protocol):
     """지금 보드와 버전. 적용할 때마다 보드 전체가 새 버전으로 쌓인다."""
     def board(self) -> list[dict]: ...
@@ -28,7 +35,7 @@ class DraftStore(Protocol):
     def clear_draft(self, email: str) -> None: ...
 
 
-class RosterStore(AgentInfoSource, BoardStore, DraftStore, Protocol):
+class RosterStore(AgentInfoSource, InfoEditStore, BoardStore, DraftStore, Protocol):
     """팀 구성 화면이 쓰는 저장소 전체."""
 
 

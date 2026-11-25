@@ -70,8 +70,9 @@ def cmd_setup(run: Runner, a):
 
 
 def grant_datasets(a):
-    """앱 계정: common 은 읽기, agent360 은 읽기·쓰기(코칭·신호 상태·감사 로그)."""
-    grants = [(a.common, "roles/bigquery.dataViewer"), (a.module, "roles/bigquery.dataEditor")]
+    """앱 계정: common·capacity 는 읽기, agent360·roster 는 읽기·쓰기(코칭·신호·감사 로그·변경 기록 / 명단 버전·초안)."""
+    grants = [(a.common, "roles/bigquery.dataViewer"), (a.module, "roles/bigquery.dataEditor"),
+              ("capacity", "roles/bigquery.dataViewer"), ("roster", "roles/bigquery.dataEditor")]
     for ds, role in grants:
         sql = f'GRANT `{role}` ON SCHEMA `{a.project}.{ds}` TO "serviceAccount:{sa_email(a)}"'
         print(f"\n$ (BigQuery) {sql}")

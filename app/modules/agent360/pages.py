@@ -53,7 +53,8 @@ def coaching_page(agent_id: str | None = None, user: User = Depends(current_user
 async def coaching_save(request: Request, user: User = Depends(current_user)):
     form = dict(await request.form())
     try:
-        rec = coaching_svc.create(get_backend(), user, form)
+        rec = coaching_svc.create(get_backend(), user, form,
+                                  _module().screens["screens"]["coaching"].get("categories"))
     except InvalidInput as e:
         ctx = views.coaching(get_backend(), user, _module().screens, form=form, errors=e.errors)
         return _page("agent360/coaching.html", ctx, user, "coaching", status_code=400)

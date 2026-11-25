@@ -75,8 +75,20 @@ class InfoEditChange(ChangeHandler):
     title = "상담사 INFO"
     permission = "info.edit"
 
-    def __init__(self, store):
-        self.store = store
+    def __init__(self, store, writeback=None):
+        self.store, self.writeback = store, writeback
+
+    def _push_sheet(self, emp_ids: list[str]) -> dict | None:
+        """원본 시트 맨 아래에 지금 값으로 줄 더하기. 실패해도 웹 저장은 유지하고 결과만 돌려준다."""
+        if self.writeback is None or not emp_ids:
+            return None
+        from datetime import datetime as _dt, timezone as _tz
+        at = _dt.now(_tz.utc).isoformat(timespec="seconds")
+        try:
+            current = {r["emp_id"]: r for r in effective_info(self.store)}
+            return {**self.writeback.push(current, emp_ids), "at": at}
+        except Exception as e:  # noqa: BLE001 — 시트 문제(권한·네트워크)는 저장을 막지 않는다
+            return {"ok": False, "error": str(e)[:300], "at": at}
 
     def _plan(self, user: User, payload: dict) -> list[dict]:
         if not isinstance(payload, dict):
@@ -153,14 +165,25 @@ class InfoEditChange(ChangeHandler):
                  "edited_at": now, "edited_by": user.email}
                 for d in self._plan(user, change.payload)]
         self.store.add_info_edits(rows)
-        return {"change_id": change.change_id}
+        emp_ids = sorted({r["emp_id"] for r in rows})
+        return {"change_id": change.change_id, "emp_ids": emp_ids, "sheet": self._push_sheet(emp_ids)}
 
     def revert(self, user: User, change: ChangeSet) -> None:
         self.store.deactivate_info_edits(change.change_id, user.email)
+        undo = change.undo or {}
+        undo["sheet_revert"] = self._push_sheet(undo.get("emp_ids") or [])
+        change.undo = undo
+
+    def retry(self, user: User, change: ChangeSet) -> dict:
+        """시트 쓰기 다시 (지금 값으로)."""
+        undo = dict(change.undo or {})
+        key = "sheet_revert" if change.status == "reverted" else "sheet"
+        undo[key] = self._push_sheet(undo.get("emp_ids") or [])
+        return undo
 
 
-def handlers(store) -> Registry[ChangeHandler]:
+def handlers(store, writeback=None) -> Registry[ChangeHandler]:
     reg: Registry[ChangeHandler] = Registry("상담사 INFO 변경")
-    h = InfoEditChange(store)
+    h = InfoEditChange(store, writeback)
     reg.register(h.kind, h)
     return reg

@@ -27,8 +27,8 @@
     </table>
   </section>
   <section class="card">
-    <h2>코칭 이슈 유형</h2>
-    {% for t in issue_types %}<span class="tag">{{ t }}</span>{% endfor %}
+    <h2>코칭 카테고리 <span class="muted small">(screens.json coaching.categories)</span></h2>
+    {% for p, cats in categories.items() %}<div style="margin-bottom:4px"><b>{{ p }}</b> {% for t in cats %}<span class="tag">{{ t }}</span>{% endfor %}</div>{% endfor %}
   </section>
 </div>
 {% endblock %}

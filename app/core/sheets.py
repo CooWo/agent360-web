@@ -11,6 +11,7 @@ from typing import Protocol
 from urllib.parse import quote
 
 SCOPES = ["https://www.googleapis.com/auth/spreadsheets.readonly", "https://www.googleapis.com/auth/cloud-platform"]
+WRITE_SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/cloud-platform"]
 
 
 class SheetAccessError(Exception):
@@ -41,3 +42,36 @@ class GoogleSheetReader:
             raise SheetAccessError("시트 또는 탭을 찾을 수 없습니다.")
         r.raise_for_status()
         return r.json().get("values", [])
+
+
+class SheetWriter(Protocol):
+    def append(self, spreadsheet_id: str, a1_range: str, rows: list[list[str]]) -> int: ...
+
+
+def safe_cell(v) -> str:
+    """시트에 쓸 값 — '=' '+' '-' '@' 로 시작하면 수식으로 읽히지 않게 앞에 ' 를 붙인다."""
+    v = "" if v is None else str(v)
+    return "'" + v if v[:1] in ("=", "+", "-", "@") else v
+
+
+class GoogleSheetWriter:
+    """표 맨 아래에 줄 더하기 (values.append, INSERT_ROWS). 서버 서비스 계정에 시트 '편집자' 공유가 필요하다."""
+
+    def __init__(self, session=None):
+        if session is None:
+            import google.auth
+            from google.auth.transport.requests import AuthorizedSession
+            cred, _ = google.auth.default(scopes=WRITE_SCOPES)
+            session = AuthorizedSession(cred)
+        self.s = session
+
+    def append(self, spreadsheet_id: str, a1_range: str, rows: list[list[str]]) -> int:
+        url = (f"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}/values/{quote(a1_range)}:append"
+               "?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS")
+        r = self.s.post(url, json={"values": [[safe_cell(c) for c in row] for row in rows]}, timeout=60)
+        if r.status_code == 403:
+            raise SheetAccessError("시트에 쓸 권한이 없습니다. 원본 시트를 서버 서비스 계정에 '편집자'로 공유해 주세요.")
+        if r.status_code == 404:
+            raise SheetAccessError("시트 또는 탭을 찾을 수 없습니다.")
+        r.raise_for_status()
+        return int(r.json().get("updates", {}).get("updatedRows", len(rows)))

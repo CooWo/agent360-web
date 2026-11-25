@@ -52,11 +52,17 @@ class SignalStatusIn(BaseModel):
 class CoachingIn(BaseModel):
     agent_id: str
     date: str = Field(description="YYYY-MM-DD")
-    issue_type: str = Field(description="issue_types 목록 중 하나")
-    summary: str
-    agreed_action: str
+    issue_type: str = Field(description="코칭 필요 영역 카테고리 (screens.json coaching.categories, P0~P3)")
+    summary: str = Field(description="Opportunities (개선점)")
+    agreed_action: str = Field(description="Actions moving forward (개선 방향 및 타겟 설정)")
     follow_up_date: str = Field(description="YYYY-MM-DD, 코칭 일자 이후")
     raw_note: str = Field(default="", description="자유 입력 원문 (6단계에서 AI 구조화 입력)")
+    area_detail: str = Field(default="", description="Areas Where Coaching is needed — 세부")
+    desired_outcome: str = Field(default="", description="Desired Outcomes of Coaching")
+    case_number: str = Field(default="", description="Case Number")
+    root_cause: str = Field(default="", description="Root cause (근본 원인)")
+    agent_comment: str = Field(default="", description="Agent's Comments")
+    agent_ack: bool = Field(default=False, description="Agent's Signature (상담사 확인)")
 
 
 class CoachingOut(Loose):

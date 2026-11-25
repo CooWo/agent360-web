@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from app.core.data import get_backend
 from app.core.deps import current_user
 from app.core.errors import NotFound
+from app.core.modules import discover
 from app.core.permissions import User
 from app.modules.agent360 import schemas
 from app.modules.agent360.services import coaching as coaching_svc
@@ -63,7 +64,8 @@ def list_coaching(agent_id: str | None = None, user: User = Depends(current_user
 
 @router.post("/coaching", response_model=schemas.CoachingOut, status_code=201, summary="코칭 기록 저장")
 def create_coaching(body: schemas.CoachingIn, user: User = Depends(current_user)):
-    return coaching_svc.create(get_backend(), user, body.model_dump())
+    cats = next(m for m in discover() if m.name == "agent360").screens["screens"]["coaching"].get("categories")
+    return coaching_svc.create(get_backend(), user, body.model_dump(), cats)
 
 
 @router.post("/coaching/{coaching_id}/complete", response_model=schemas.CoachingOut, summary="후속 확인 완료")

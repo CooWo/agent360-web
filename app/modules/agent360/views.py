@@ -133,10 +133,13 @@ def coaching(backend, user: User, screens: dict, agent_id: str | None = None,
     choices = [a for a in backend.list_agents(user.scope) if user.can_view_sensitive(a["team"])]
     names = {a["agent_id"]: a["name"] for a in choices}
     default = {"agent_id": agent_id or "", "date": as_of, "issue_type": "", "summary": "", "agreed_action": "",
-               "follow_up_date": (t + timedelta(days=cfg.get("default_followup_days", 7))).isoformat(), "raw_note": ""}
+               "follow_up_date": (t + timedelta(days=cfg.get("default_followup_days", 7))).isoformat(), "raw_note": "",
+               "area_detail": "", "desired_outcome": "", "case_number": "", "root_cause": "", "agent_comment": "",
+               "agent_ack": ""}
     recent = [c for c in backend.coaching(user.scope) if user.can_view_sensitive(c["team"])][:30]
     return {
-        "cfg": cfg, "as_of": as_of, "agents": choices, "names": names, "issue_types": backend.issue_types(),
+        "cfg": cfg, "as_of": as_of, "agents": choices, "names": names,
+        "categories": cfg.get("categories") or coaching_svc.CATEGORIES,
         "form": {**default, **(form or {})}, "errors": errors or {},
         "followups": coaching_svc.followups(backend, user, as_of, 7), "recent": recent,
     }
@@ -146,7 +149,8 @@ def admin(backend, user: User, screens: dict) -> dict:
     if not user.can("admin"):
         raise PermissionDenied("관리 화면은 관리자만 볼 수 있습니다.")
     return {"rules": backend.signal_rules(), "users": backend.list_users(), "teams": _team_labels(backend),
-            "issue_types": backend.issue_types()}
+            "issue_types": backend.issue_types(),
+            "categories": screens["screens"]["coaching"].get("categories") or coaching_svc.CATEGORIES}
 
 
 def qa(backend, user: User, screens: dict, changes=None, change_id: str | None = None) -> dict:

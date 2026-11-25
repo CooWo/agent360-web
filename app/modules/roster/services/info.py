@@ -189,9 +189,8 @@ class InfoCleaner:
                 continue
             if k in by_id:
                 res.duplicates.append(k)
-                # 재직자 줄을 우선, 같으면 아래쪽(나중) 줄
-                if not (by_id[k]["status"] == ACTIVE and row["status"] != ACTIVE):
-                    by_id[k] = row
+                # 아래쪽(나중) 줄이 지금 값 — 웹에서 고친 사람은 시트 맨 아래에 줄이 더해진다
+                by_id[k] = row
                 continue
             by_id[k] = row
             order.append(k)

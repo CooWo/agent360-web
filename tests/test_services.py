@@ -64,7 +64,7 @@ def test_set_status_rules(backend, users):
 
 
 def _form(agent_id, **kw):
-    f = {"agent_id": agent_id, "date": "2026-11-20", "issue_type": "정책 오안내", "summary": "환불 정책 오안내 2건",
+    f = {"agent_id": agent_id, "date": "2026-11-20", "issue_type": "Soft Skill", "summary": "환불 정책 오안내 2건",
          "agreed_action": "KB 재숙지", "follow_up_date": "2026-11-27", "raw_note": ""}
     f.update(kw)
     return f
@@ -99,3 +99,20 @@ def test_runtime_persists_after_reload(backend, users):
     rec = coaching_svc.create(backend, users["sv"], _form(aid))
     again = SampleBackend(backend.dir)
     assert any(c["coaching_id"] == rec["coaching_id"] for c in again.coaching(users["sv"].scope))
+
+
+def test_coaching_form_fields_and_priority(backend, users):
+    from app.modules.agent360.services import coaching as cs
+    aid = backend.list_agents(users["sv"].scope)[0]["agent_id"]
+    rec = cs.create(backend, users["sv"], {"agent_id": aid, "date": "2026-11-20", "issue_type": "ZTP",
+                                           "summary": "공감 표현 부족", "agreed_action": "대기 시간 고려해 공감",
+                                           "follow_up_date": "2026-11-27", "case_number": "A100000001",
+                                           "root_cause": "잘못된 공감 표현", "area_detail": "잘못된 공감 표현",
+                                           "desired_outcome": "공감 표현 개선", "agent_comment": "매크로 저장",
+                                           "agent_ack": "1"})
+    assert rec["priority"] == "P0" and rec["agent_ack"] is True and rec["case_number"] == "A100000001"
+    assert cs.priority_of("Nova Guide") == "P3" and cs.priority_of("근태") is None
+    with pytest.raises(InvalidInput) as e:
+        cs.create(backend, users["sv"], {"agent_id": aid, "date": "2026-11-20", "issue_type": "ZTP", "summary": "s",
+                                         "agreed_action": "a", "follow_up_date": "2026-11-27", "case_number": "x" * 61})
+    assert set(e.value.errors) == {"case_number"}

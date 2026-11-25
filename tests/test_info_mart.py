@@ -49,7 +49,7 @@ def test_cleaner_rules():
     assert by["500"]["joined"] == "" and by["500"]["onboarding"] == ""          # 상태 표시는 문제로 안 셈
     assert by["500"]["dates_ok"] and not by["300"]["dates_ok"]
     assert by["100"]["email"] == "ga@ubase.co.kr" and by["100"]["onboarding"] == "2021-03-09"
-    assert by["200"]["status"] == "재직자"                    # 중복이면 재직자 줄 우선
+    assert by["200"]["status"] == "재직자"                    # 중복이면 아래쪽(나중) 줄
     assert by["300"]["joined"] == "" and by["400"]["status"] == ""
     assert res.summary() == {"rows_read": 7, "rows_mart": 5, "dropped_no_id": 1, "duplicates": 1, "issues": 1}
     assert res.issues[0]["field"] == "joined"

@@ -48,18 +48,28 @@ def info(change: str | None = None, user: User = Depends(current_user)):
 
 @router.post("/sync", response_class=HTMLResponse)
 async def sync(request: Request, user: User = Depends(current_user)):
-    """시트에서 불러오기: mode=check(확인만) | save(저장). 서버의 서비스 계정이 시트를 읽는다."""
+    """시트에서 불러오기 — INFO 자동화 시트 + OPS TL(팀 구성)을 한 번에 저장. 서버의 서비스 계정이 시트를 읽는다."""
     form = await request.form()
-    save = form.get("mode") == "save"
+    force = form.get("force") == "1"
+    reader = GoogleSheetReader()
+    extra: dict = {}
     try:
-        svc = InfoSyncService(GoogleSheetReader(), info_loader(get_store()) if save else None)
-        out = views.info_sync(svc, user, _module().screens, dry_run=not save, force=form.get("force") == "1")
-    except (SheetAccessError, LoadRefused, ValueError) as e:
-        return _page(user, sync_error=str(e), status_code=400)
-    if save:
+        out = views.info_sync(InfoSyncService(reader, info_loader(get_store())), user, _module().screens,
+                              dry_run=False, force=force)
         audit(get_backend(), user, "info_sync", "info", out["load_id"] or "", {k: out[k] for k in (
             "rows_read", "rows_mart", "dropped_no_id", "duplicates", "issues")})
-    return _page(user, sync=out)
+        extra["sync"] = out
+    except (SheetAccessError, LoadRefused, ValueError) as e:
+        extra["sync_error"] = str(e)
+    try:
+        team = views.team_sync(TeamRosterSync(reader, team_loader(get_store())), user, _module().screens,
+                               dry_run=False, force=force)
+        audit(get_backend(), user, "team_sync", "roster", team["load_id"] or "", {"rows": team["rows"],
+                                                                                "tls": len(team["tls"])})
+        extra["team"] = team
+    except (SheetAccessError, LoadRefused, ValueError) as e:
+        extra["team_error"] = str(e)
+    return _page(user, status_code=400 if ("sync_error" in extra or "team_error" in extra) else 200, **extra)
 
 
 @router.post("/team-sync", response_class=HTMLResponse)
@@ -113,7 +123,7 @@ async def import_table(request: Request, user: User = Depends(current_user)):
 @router.post("/changes/{change_id}/{action}")
 def act(change_id: str, action: str, user: User = Depends(current_user)):
     svc = change_service()
-    do = {"approve": svc.approve, "undo": svc.undo, "discard": svc.discard}.get(action)
+    do = {"approve": svc.approve, "undo": svc.undo, "discard": svc.discard, "retry": svc.retry}.get(action)
     if do is None:
         return RedirectResponse("/info", status_code=303)
     try:

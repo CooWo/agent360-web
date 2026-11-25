@@ -34,7 +34,13 @@
     },
     "coaching": {
       "title": "코칭 기록",
-      "default_followup_days": 7
+      "default_followup_days": 7,
+      "categories": {
+        "P0": ["ZTP", "Compliance"],
+        "P1": ["NPS(CSQ)"],
+        "P2": ["Soft Skill", "Investigation", "Loss", "Reopen", "Pending SOP", "SH task(status etc)"],
+        "P3": ["Mis-escalation", "Handoff", "First touch delays", "KSG", "Others", "Nova Guide"]
+      }
     }
   }
 }

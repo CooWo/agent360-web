@@ -154,6 +154,17 @@ class ChangeService:
         self._audit(user, "change_revert", ch)
         return ch
 
+    def retry(self, user: User, change_id: str) -> ChangeSet:
+        """적용 뒤 바깥 반영(예: 원본 시트에 줄 쓰기)이 실패했을 때 다시. 처리기에 retry 가 있어야 한다."""
+        ch, h = self._load(change_id)
+        h.check(user)
+        if not hasattr(h, "retry"):
+            raise InvalidInput({"change_id": "다시 할 작업이 없는 변경입니다."})
+        ch.undo = h.retry(user, ch)
+        self.log.save(ch.to_dict())
+        self._audit(user, "change_retry", ch)
+        return ch
+
     def discard(self, user: User, change_id: str) -> ChangeSet:
         ch, h = self._load(change_id)
         h.check(user)

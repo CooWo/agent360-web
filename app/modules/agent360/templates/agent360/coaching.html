@@ -11,19 +11,10 @@
 
 <div class="split">
   <section class="card">
-    <h2>새 코칭 기록</h2>
+    <h2>새 코칭 기록 <span class="muted small">(Coaching Form)</span></h2>
     {% if errors %}<div class="notice" style="background:var(--danger-weak);color:var(--danger)">입력값을 확인해 주세요.</div>{% endif %}
-    <form method="post" action="/agent360/coaching">
+    <form method="post" action="/agent360/coaching" class="coach-form">
       <div class="form-grid">
-        <div class="full {{ 'has-error' if errors.raw_note }}">
-          <label for="raw_note">면담 메모 (자유 입력)</label>
-          <textarea id="raw_note" name="raw_note" placeholder="예) 환불 정책 오안내 2건, 재교육 진행, 다음 주 금요일까지 KB 숙지 확인">{{ form.raw_note }}</textarea>
-          {{ err('raw_note') }}
-          <div class="toolbar" style="margin-top:6px">
-            <button class="btn sm" type="button" disabled title="6단계에서 Gemini 연결">AI로 아래 칸 채우기 (준비 중)</button>
-            <span class="muted small">주민번호·연락처 같은 개인정보는 입력하지 마세요.</span>
-          </div>
-        </div>
         <div class="{{ 'has-error' if errors.agent_id }}">
           <label for="agent_id">상담사</label>
           <select id="agent_id" name="agent_id">
@@ -32,31 +23,77 @@
           </select>
           {{ err('agent_id') }}
         </div>
+        <div class="{{ 'has-error' if errors.date }}">
+          <label for="date">코칭 일자 (Date)</label>
+          <input id="date" type="date" name="date" value="{{ form.date }}">{{ err('date') }}
+        </div>
+      </div>
+
+      <h3 class="coach-h">Areas Where Coaching is needed <span class="muted small">코칭 필요 영역</span></h3>
+      <div class="form-grid">
         <div class="{{ 'has-error' if errors.issue_type }}">
-          <label for="issue_type">이슈 유형</label>
+          <label for="issue_type">카테고리 (우선순위)</label>
           <select id="issue_type" name="issue_type">
             <option value="">선택</option>
-            {% for t in issue_types %}<option {{ 'selected' if t == form.issue_type }}>{{ t }}</option>{% endfor %}
+            {% for p, cats in categories.items() %}
+            <optgroup label="{{ p }}">{% for t in cats %}<option value="{{ t }}" {{ 'selected' if t == form.issue_type }}>{{ p }} · {{ t }}</option>{% endfor %}</optgroup>
+            {% endfor %}
           </select>
           {{ err('issue_type') }}
         </div>
-        <div class="{{ 'has-error' if errors.date }}">
-          <label for="date">코칭 일자</label>
-          <input id="date" type="date" name="date" value="{{ form.date }}">{{ err('date') }}
+        <div class="{{ 'has-error' if errors.area_detail }}">
+          <label for="area_detail">세부 내용</label>
+          <input id="area_detail" name="area_detail" value="{{ form.area_detail }}" placeholder="예) 잘못된 공감 표현">{{ err('area_detail') }}
         </div>
+      </div>
+
+      <h3 class="coach-h">Desired Outcomes of Coaching <span class="muted small">코칭 목표</span></h3>
+      <div class="{{ 'has-error' if errors.desired_outcome }}">
+        <textarea id="desired_outcome" name="desired_outcome" style="min-height:48px">{{ form.desired_outcome }}</textarea>{{ err('desired_outcome') }}
+      </div>
+
+      <h3 class="coach-h">TL's Comments</h3>
+      <div class="form-grid">
+        <div class="{{ 'has-error' if errors.case_number }}">
+          <label for="case_number">• Case Number (케이스 번호)</label>
+          <input id="case_number" name="case_number" value="{{ form.case_number }}" placeholder="예) A100000001">{{ err('case_number') }}
+        </div>
+        <div></div>
+        <div class="full {{ 'has-error' if errors.summary }}">
+          <label for="summary">• Opportunities (개선점) <span class="req">필수</span></label>
+          <textarea id="summary" name="summary" style="min-height:70px" placeholder="어떤 상황에서 무엇이 부족했는지">{{ form.summary }}</textarea>{{ err('summary') }}
+        </div>
+        <div class="full {{ 'has-error' if errors.root_cause }}">
+          <label for="root_cause">• Root cause (근본 원인)</label>
+          <input id="root_cause" name="root_cause" value="{{ form.root_cause }}">{{ err('root_cause') }}
+        </div>
+        <div class="full {{ 'has-error' if errors.agreed_action }}">
+          <label for="agreed_action">• Actions moving forward (개선 방향 및 타겟 설정) <span class="req">필수</span></label>
+          <textarea id="agreed_action" name="agreed_action" style="min-height:60px">{{ form.agreed_action }}</textarea>{{ err('agreed_action') }}
+        </div>
+      </div>
+
+      <h3 class="coach-h">Agent's Comments <span class="muted small">상담사 코멘트</span></h3>
+      <div class="{{ 'has-error' if errors.agent_comment }}">
+        <textarea id="agent_comment" name="agent_comment" style="min-height:60px">{{ form.agent_comment }}</textarea>{{ err('agent_comment') }}
+      </div>
+
+      <div class="form-grid" style="margin-top:10px">
         <div class="{{ 'has-error' if errors.follow_up_date }}">
           <label for="follow_up_date">후속 확인일</label>
           <input id="follow_up_date" type="date" name="follow_up_date" value="{{ form.follow_up_date }}">{{ err('follow_up_date') }}
         </div>
-        <div class="full {{ 'has-error' if errors.summary }}">
-          <label for="summary">요약</label>
-          <textarea id="summary" name="summary" style="min-height:60px">{{ form.summary }}</textarea>{{ err('summary') }}
-        </div>
-        <div class="full {{ 'has-error' if errors.agreed_action }}">
-          <label for="agreed_action">합의 행동</label>
-          <textarea id="agreed_action" name="agreed_action" style="min-height:60px">{{ form.agreed_action }}</textarea>{{ err('agreed_action') }}
+        <div>
+          <label>서명</label>
+          <div class="small">TL: <b>{{ user.name or user.email }}</b> (저장하는 사람)</div>
+          <label class="small" style="font-weight:normal"><input type="checkbox" name="agent_ack" value="1" style="width:auto" {{ 'checked' if form.agent_ack in (True, '1', 'on') }}> 상담사 확인 (Agent's Signature)</label>
         </div>
       </div>
+
+      <details style="margin-top:10px"{% if form.raw_note %} open{% endif %}>
+        <summary class="small">면담 메모 (자유 입력, 선택)</summary>
+        <textarea id="raw_note" name="raw_note" placeholder="주민번호·연락처 같은 개인정보는 입력하지 마세요.">{{ form.raw_note }}</textarea>{{ err('raw_note') }}
+      </details>
       <div class="toolbar" style="margin-top:14px"><button class="btn primary" type="submit">저장</button></div>
     </form>
   </section>

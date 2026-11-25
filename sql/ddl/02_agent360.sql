@@ -34,6 +34,16 @@ CREATE TABLE IF NOT EXISTS `${PROJECT}.agent360.fact_coaching` (
 PARTITION BY date
 CLUSTER BY agent_id;
 
+-- 코칭 폼 (기존 Coaching Form 양식) 항목 — 있으면 통과
+ALTER TABLE `${PROJECT}.agent360.fact_coaching`
+  ADD COLUMN IF NOT EXISTS priority STRING OPTIONS (description = 'P0~P3 (카테고리로 정해짐)'),
+  ADD COLUMN IF NOT EXISTS area_detail STRING OPTIONS (description = 'Areas Where Coaching is needed — 세부'),
+  ADD COLUMN IF NOT EXISTS desired_outcome STRING OPTIONS (description = 'Desired Outcomes of Coaching'),
+  ADD COLUMN IF NOT EXISTS case_number STRING OPTIONS (description = 'Case Number'),
+  ADD COLUMN IF NOT EXISTS root_cause STRING OPTIONS (description = 'Root cause (근본 원인)'),
+  ADD COLUMN IF NOT EXISTS agent_comment STRING OPTIONS (description = "Agent's Comments"),
+  ADD COLUMN IF NOT EXISTS agent_ack BOOL OPTIONS (description = "Agent's Signature (상담사 확인)");
+
 -- 매일 배치(스케줄 쿼리/프로시저)가 as_of 날짜로 채우고, 앱은 status 만 바꾼다.
 CREATE TABLE IF NOT EXISTS `${PROJECT}.agent360.mart_signals` (
   signal_id  STRING NOT NULL,

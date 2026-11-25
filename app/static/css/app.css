@@ -226,3 +226,17 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
 .sheet td.web { background: var(--primary-weak); }
 .sheet td.dirty { background: var(--warn-weak); }
 .sheet td input { padding: 1px 4px; font-size: 12px; min-width: 90px; }
+
+/* 코칭 폼 (기존 Coaching Form 양식 — 굵은 소제목 단위) */
+.coach-form .coach-h { margin: 16px 0 6px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 14px; }
+.coach-form .req { color: var(--danger); font-size: 11px; font-weight: normal; }
+.coach-card { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 10px 12px; margin-bottom: 10px; }
+.coach-card dt { font-weight: 600; font-size: 12px; margin-top: 6px; }
+.coach-card dd { margin: 0 0 2px; white-space: pre-wrap; }
+
+/* 상담사 INFO: 왼쪽 웹 수정 이력 + 오른쪽 본문 */
+.info-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--gap); align-items: start; }
+.info-side { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow: auto; }
+.info-side-item { padding: 6px 0; border-bottom: 1px solid var(--border); }
+.info-side-item:last-child { border-bottom: 0; }
+@media (max-width: 1100px) { .info-layout { grid-template-columns: 1fr; } .info-side { position: static; max-height: none; } }

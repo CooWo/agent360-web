@@ -173,7 +173,8 @@ class BigQueryBackend:
         sql = f"""
           SELECT c.coaching_id, c.agent_id, c.sv_email, CAST(c.date AS STRING) date, c.issue_type, c.summary,
                  c.agreed_action, CAST(c.follow_up_date AS STRING) follow_up_date, c.done,
-                 CAST(c.done_at AS STRING) done_at, c.raw_note, a.team
+                 CAST(c.done_at AS STRING) done_at, c.raw_note, c.priority, c.area_detail, c.desired_outcome,
+                 c.case_number, c.root_cause, c.agent_comment, IFNULL(c.agent_ack, FALSE) agent_ack, a.team
           FROM {self.m}.fact_coaching c JOIN {self.agents_t} a USING (agent_id)
           WHERE (@all_teams OR a.team IN UNNEST(@teams)) AND (@agent_id IS NULL OR c.agent_id = @agent_id)
           ORDER BY c.date DESC, c.coaching_id DESC"""
@@ -184,11 +185,15 @@ class BigQueryBackend:
         rec = {"coaching_id": "C" + uuid.uuid4().hex[:10].upper(), "done": False, "done_at": None, **record}
         self._q(f"""
           INSERT INTO {self.m}.fact_coaching
-            (coaching_id, agent_id, sv_email, date, issue_type, summary, agreed_action, follow_up_date, done, raw_note, created_at)
+            (coaching_id, agent_id, sv_email, date, issue_type, summary, agreed_action, follow_up_date, done, raw_note,
+             priority, area_detail, desired_outcome, case_number, root_cause, agent_comment, agent_ack, created_at)
           VALUES (@coaching_id, @agent_id, @sv_email, DATE(@date), @issue_type, @summary, @agreed_action,
-                  DATE(@follow_up_date), FALSE, @raw_note, CURRENT_TIMESTAMP())""",
+                  DATE(@follow_up_date), FALSE, @raw_note, @priority, @area_detail, @desired_outcome, @case_number,
+                  @root_cause, @agent_comment, @agent_ack, CURRENT_TIMESTAMP())""",
                 **{k: rec.get(k) for k in ("coaching_id", "agent_id", "sv_email", "date", "issue_type", "summary",
-                                           "agreed_action", "follow_up_date", "raw_note")})
+                                           "agreed_action", "follow_up_date", "raw_note", "priority", "area_detail",
+                                           "desired_outcome", "case_number", "root_cause", "agent_comment")},
+                agent_ack=bool(rec.get("agent_ack")))
         self._clear()
         return rec
 

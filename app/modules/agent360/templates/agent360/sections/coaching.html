@@ -3,24 +3,28 @@
   {% if not sensitive %}
   <div class="locked">코칭 내용은 담당 SV와 매니저만 볼 수 있습니다. (기록 {{ coaching_count }}건)</div>
   {% elif coaching %}
-  <table>
-    <thead><tr><th>일자</th><th>이슈 유형</th><th>요약 · 합의 행동</th><th>후속 확인</th><th></th></tr></thead>
-    <tbody>
-      {% for c in coaching %}
-      <tr>
-        <td>{{ c.date }}<div class="muted small">{{ c.sv_email }}</div></td>
-        <td><span class="tag">{{ c.issue_type }}</span></td>
-        <td>{{ c.summary }}<div class="muted small">→ {{ c.agreed_action }}</div></td>
-        <td>{{ c.follow_up_date }}
-          {% if c.done %}<div><span class="badge ok">완료</span></div>
-          {% elif c.follow_up_date < as_of %}<div><span class="badge danger">기한 지남</span></div>
-          {% else %}<div><span class="badge neutral">예정</span></div>{% endif %}</td>
-        <td>{% if can_write and not c.done %}
-          <form method="post" action="/agent360/coaching/{{ c.coaching_id }}/complete"><button class="btn sm">후속 완료</button></form>
-        {% endif %}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {% for c in coaching %}
+  <div class="coach-card">
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <b>{{ c.date }}</b>
+      {% if c.priority %}<span class="badge {{ 'danger' if c.priority in ('P0', 'P1') else 'warn' if c.priority == 'P2' else 'neutral' }}">{{ c.priority }}</span>{% endif %}
+      <span class="tag">{{ c.issue_type }}</span>{% if c.area_detail %}<span class="small">{{ c.area_detail }}</span>{% endif %}
+      <span class="muted small">· TL {{ c.sv_email }}{% if c.case_number %} · 케이스 {{ c.case_number }}{% endif %}</span>
+      <span style="margin-left:auto" class="small">후속 {{ c.follow_up_date }}
+        {% if c.done %}<span class="badge ok">완료</span>
+        {% elif c.follow_up_date < as_of %}<span class="badge danger">기한 지남</span>
+        {% else %}<span class="badge neutral">예정</span>{% endif %}
+        {% if can_write and not c.done %}<form method="post" action="/agent360/coaching/{{ c.coaching_id }}/complete" style="display:inline"><button class="btn sm">후속 완료</button></form>{% endif %}</span>
+    </div>
+    <dl style="margin:4px 0 0">
+      {% if c.desired_outcome %}<dt>Desired Outcomes (코칭 목표)</dt><dd>{{ c.desired_outcome }}</dd>{% endif %}
+      <dt>Opportunities (개선점)</dt><dd>{{ c.summary }}</dd>
+      {% if c.root_cause %}<dt>Root cause (근본 원인)</dt><dd>{{ c.root_cause }}</dd>{% endif %}
+      <dt>Actions moving forward (개선 방향 및 타겟)</dt><dd>{{ c.agreed_action }}</dd>
+      {% if c.agent_comment %}<dt>Agent's Comments (상담사 코멘트)</dt><dd>{{ c.agent_comment }}</dd>{% endif %}
+    </dl>
+    <div class="small muted" style="margin-top:4px">상담사 확인: {% if c.agent_ack %}<span class="badge ok">서명함</span>{% else %}아직{% endif %}</div>
+  </div>
+  {% endfor %}
   {% else %}<div class="muted">코칭 기록이 없습니다.</div>{% endif %}
 </section>

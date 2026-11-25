@@ -32,7 +32,7 @@ def test_api_signal_status_and_coaching(client):
     r = c.post(f"/api/agent360/signals/{sid}/status", json={"status": "확인"})
     assert r.status_code == 200 and r.json()["status"] == "확인"
     aid = c.get("/api/agent360/agents").json()[0]["agent_id"]
-    body = {"agent_id": aid, "date": "2026-11-20", "issue_type": "정책 오안내", "summary": "s",
+    body = {"agent_id": aid, "date": "2026-11-20", "issue_type": "Soft Skill", "summary": "s",
             "agreed_action": "a", "follow_up_date": "2026-11-27"}
     r = c.post("/api/agent360/coaching", json=body)
     assert r.status_code == 201
@@ -50,7 +50,7 @@ def test_outside_scope_404_and_viewer_forbidden(client):
 def test_form_post_redirects(client):
     c = _as(client, "sv.kim@example.com")
     aid = c.get("/api/agent360/agents").json()[0]["agent_id"]
-    r = c.post("/agent360/coaching", data={"agent_id": aid, "date": "2026-11-20", "issue_type": "근태",
+    r = c.post("/agent360/coaching", data={"agent_id": aid, "date": "2026-11-20", "issue_type": "Reopen",
                                            "summary": "s", "agreed_action": "a", "follow_up_date": "2026-11-27"},
                follow_redirects=False)
     assert r.status_code == 303 and f"/agent360/agents/{aid}" in r.headers["location"]

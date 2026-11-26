@@ -81,7 +81,7 @@ def render(template: str, ctx: dict, *, user: User | None, module=None, active: 
     s = get_settings()
     mods = discover(with_routers)
     nav = [{"title": m.title, "path": m.base_path, "current": m is module} for m in mods
-           if user and m.menu_for(user.role)]
+           if user and m.menu_for(user.role) and m.screens.get("in_nav", True)]
     side = module.menu_for(user.role) if (module and user) else []
     ai_dock = _ai_dock(mods, module, user)
     base = {

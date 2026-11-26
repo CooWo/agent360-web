@@ -10,7 +10,7 @@
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="/">{{ app_title }}</a>
+    <a class="brand" href="/" title="대시보드">{{ app_title }}</a>
     <nav class="modnav">
       {% for n in nav %}<a href="{{ n.path }}" class="{{ 'current' if n.current }}">{{ n.title }}</a>{% endfor %}
     </nav>

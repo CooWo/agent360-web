@@ -2,6 +2,7 @@
   "module": "dashboard",
   "title": "대시보드",
   "base_path": "/dashboard",
+  "in_nav": false,
   "menu": [
     {"id": "dashboard", "label": "대시보드", "path": "/dashboard", "roles": ["admin", "manager", "sv", "wfm", "viewer"]}
   ],

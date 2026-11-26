@@ -80,3 +80,16 @@ def test_root_is_dashboard_and_briefing(backend, users, monkeypatch):
     r = c.post("/api/agent360/briefing", json={"kind": "detractor", "agent_id": "E240001"})   # 설문 없음 → AI 안 부름
     assert r.json()["facts"]["detractors"] == 0 and len(ag.questions) == n + 1
     assert 'data-kind="detractor"' in c.get(f"/agent360/agents/{aid}").text
+
+
+def test_brand_links_dashboard_and_no_dashboard_button(backend):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+    c = TestClient(app)
+    c.cookies.set("dev_user", "manager@example.com")
+    page = c.get("/agent360").text
+    assert '<a class="brand" href="/"' in page and ">Ubase Hub</a>" in page
+    nav = page.split('<nav class="modnav">')[1].split("</nav>")[0]
+    assert "/dashboard" not in nav and "/agent360" in nav
+    assert c.get("/", follow_redirects=False).headers["location"].startswith("/dashboard")

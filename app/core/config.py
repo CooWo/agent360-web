@@ -49,7 +49,7 @@ def _clean_value(v: str) -> str:
 @dataclass(frozen=True)
 class Settings:
     env: str = "local"
-    app_title: str = "상담사 360"
+    app_title: str = "Ubase Hub"
     data_backend: str = "sample"
     gcp_project: str = ""
     bq_location: str = "asia-northeast3"
@@ -92,7 +92,7 @@ def get_settings() -> Settings:
         raise ValueError(f"DATA_BACKEND 는 sample 또는 bigquery 여야 합니다 (지금 값: {backend!r}).")
     return Settings(
         env=env,
-        app_title=e("APP_TITLE", "상담사 360"),
+        app_title=e("APP_TITLE", "Ubase Hub"),
         data_backend=backend,
         gcp_project=e("GCP_PROJECT", ""),
         bq_location=e("BQ_LOCATION", "asia-northeast3"),

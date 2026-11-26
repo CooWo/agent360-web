@@ -3,13 +3,14 @@
   --font: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  --bg: #f6f7f9;
+  --bg: #f4eee2;                  /* 화면 바탕 (따뜻한 베이지) */
   --surface: #ffffff;
   --surface-2: #f1f3f6;
   --border: #e3e6eb;
   --text: #1d2330;
   --text-2: #5b6474;
   --text-3: #8a93a3;
+  --agent-name: #0f4e8c;          /* 상담사 이름 (링크) */
 
   /* 브랜드 색 (KR WBR 표지) — 상단바·선택된 메뉴·버튼 */
   --primary: #fe375c;

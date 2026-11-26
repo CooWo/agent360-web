@@ -4,6 +4,8 @@ html, body { margin: 0; }
 body { font-family: var(--font); color: var(--text); background: var(--bg); font-size: 14px; line-height: 1.5; }
 a { color: var(--primary-strong); text-decoration: none; }
 a:hover { text-decoration: underline; }
+/* 상담사 이름 — 어느 화면이든 상담사 상세로 가는 링크는 같은 색 */
+a[href^="/agent360/agents/"] { color: var(--agent-name); }
 h1 { font-size: 20px; margin: 0; }
 h2 { font-size: 15px; margin: 0 0 12px; }
 h3 { font-size: 14px; margin: 0 0 8px; }

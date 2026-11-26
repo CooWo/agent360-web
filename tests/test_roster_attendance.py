@@ -33,6 +33,8 @@ W, LATE, EARLY = "#ffffff", "#ff9900", "#f9cb9c"
     ("Training", "#ff00ff", "교육"), ("Refresher Training", "#ff00ff", "교육"),
     ("Resignation", "#666666", None), ("Move to CS Labs Tab", "#666666", None), ("End of contract", "", None),
     ("", "#666666", None), ("Hyunji", W, "기타"),
+    ("BOT", "#fff2cc", "연장근로"), ("12:00~21:00 (BOT 60mins)", "#fff2cc", "정상"),
+    ("NUbase", "#db8740", "기타"), ("Blending", W, "기타"),
 ])
 def test_classify(text, bg, want):
     assert classify(text, bg) == want

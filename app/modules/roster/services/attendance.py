@@ -7,8 +7,8 @@
    …휴직·Military → 휴직, …휴가·검진 → 휴가, Training → 교육
 4. 근무시간(09:00~18:00 …, NOT·BOT 표기 포함): 배경 #ff9900 → 지각, #f9cb9c → 조퇴, 글에 Late → 지각,
    Early → 조퇴, 그 밖 → 정상
-5. Early left → 조퇴, Late → 지각
-6. 나머지 → 기타 (글은 detail 에 그대로, 요약의 '모르는 값'에 보임)
+5. Early left → 조퇴, Late → 지각, 시간 없이 BOT → 연장근로 (쉬는 날 하루 연장근로)
+6. 나머지 (NUbase·Blending 등) → 기타 (글은 detail 에 그대로, 요약의 '모르는 값'에 보임)
 숫자는 만들지 않는다: 칸 글(detail)과 배경색(bg)을 그대로 같이 저장한다.
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ from collections import Counter
 from datetime import date
 
 LATE_BG, EARLY_BG = "#ff9900", "#f9cb9c"
-STATUSES = ("정상", "지각", "조퇴", "결근", "연차", "휴가", "휴직", "휴무", "교육", "기타")
+STATUSES = ("정상", "지각", "조퇴", "결근", "연차", "휴가", "휴직", "휴무", "교육", "연장근로", "기타")
 _TIME = r"\d{1,2}\s*:\s*\d{2}"
 SHIFT_RE = re.compile(rf"{_TIME}\s*:?\s*[~\-–—～]\s*{_TIME}")
 DATE_RE = re.compile(r"^\s*(\d{4})\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})\s*\.?\s*$")
@@ -67,6 +67,8 @@ def classify(text: str, bg: str = "") -> str | None:
         return "조퇴"
     if k.startswith("late"):
         return "지각"
+    if k.startswith("bot"):
+        return "연장근로"
     return "기타"
 
 

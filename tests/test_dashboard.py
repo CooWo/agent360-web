@@ -35,6 +35,7 @@ def test_dashboard_renders_by_role(backend, users, who):
     assert sum(t["agents"] for t in ctx["teams"]) == ctx["headcount"]["agents"]      # 팀 합 = 전체
     html = render("dashboard/dashboard.html", ctx, user=users[who], module=mod, active="dashboard", with_routers=False)
     assert "팀별 비교" in html and 'data-kind="dashboard"' in html
+    assert "근태 주차별" in html and "평균" in html
 
 
 class FakeAgent:
@@ -93,3 +94,29 @@ def test_brand_links_dashboard_and_no_dashboard_button(backend):
     nav = page.split('<nav class="modnav">')[1].split("</nav>")[0]
     assert "/dashboard" not in nav and "/agent360" in nav
     assert c.get("/", follow_redirects=False).headers["location"].startswith("/dashboard")
+
+
+def test_attendance_weekly_vs_prev_and_avg_hand_checked():
+    # 기준일 11-20(금) → 러닝 주 11-21(6일), 끝난 주 10-24(데이터 없음)·10-31·11-07·11-14
+    def a(d, s, n=1):
+        return [{"agent_id": "A", "date": d, "status": s}] * n
+    att = a("2026-10-27", "결근", 2) + a("2026-10-27", "정상") + a("2026-11-03", "결근") + a("2026-11-03", "지각") \
+        + a("2026-11-10", "결근", 4) + a("2026-11-10", "연차") + a("2026-11-18", "결근")
+    w = summary.attendance_weekly(att, "2026-11-20", 4)
+    assert [r["week_end"] for r in w["rows"]] == ["2026-10-24", "2026-10-31", "2026-11-07", "2026-11-14", "2026-11-21"]
+    assert w["running"] and w["rows"][-1]["days"] == 6 and w["base"] == "2026-11-14" and w["prev"] == "2026-11-07"
+    assert w["rows"][0]["counts"]["결근"] is None and w["avg_weeks"] == 2          # 10-24 = 시트 불러오기 전 → 평균에서 뺌
+    c = {x["status"]: x for x in w["compare"]}
+    # 결근: 기준 4, 전 주 1 → +3, 평균 (2+1)/2 = 1.5 → +2.5, +166.7%
+    assert (c["결근"]["now"], c["결근"]["prev"], c["결근"]["d_prev"], c["결근"]["avg"], c["결근"]["d_avg"]) == (4, 1, 3, 1.5, 2.5)
+    assert round(c["결근"]["d_avg_pct"], 1) == 166.7 and c["결근"]["bad_up"]
+    assert c["지각"]["d_prev"] == -1 and c["지각"]["d_avg_pct"] == -100.0                 # 0 vs 평균 0.5
+    assert c["연차"]["d_avg_pct"] is None and not c["연차"]["bad_up"]                     # 평균 0 → % 없음
+    assert c["결근"]["series"] == [None, 2, 1, 4, 1]
+    assert w["rows"][2]["delta"]["결근"] == -1 and w["rows"][1]["delta"]["결근"] is None   # 앞 주 데이터 없음
+    assert w["rows"][-1]["delta"]["결근"] is None                                         # 러닝 주는 비교 안 함
+
+
+def test_attendance_weekly_on_saturday_has_no_running_week():
+    w = summary.attendance_weekly([{"date": "2026-11-21", "status": "지각"}], "2026-11-21", 2)
+    assert not w["running"] and w["base"] == "2026-11-21" and [r["week_end"] for r in w["rows"]] == ["2026-11-14", "2026-11-21"]

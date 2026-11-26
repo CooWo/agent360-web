@@ -2,6 +2,12 @@
 {% from "agent360/_macros.html" import delta, score_badge %}
 {% from "agent360/_brief.html" import ai_brief with context %}
 {% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% macro cdelta(v, bad_up, suffix='') -%}
+{% if v is none %}<span class="delta flat">–</span>
+{% elif v|abs < 0.05 %}<span class="delta flat">±0{{ suffix }}</span>
+{% else %}<span class="delta {{ ('bad' if v > 0 else 'good') if bad_up else 'flat' }}">{{ '▲' if v > 0 else '▼' }} {{ v|abs|num(0 if suffix == '' else 0) }}{{ suffix }}</span>
+{% endif %}
+{%- endmacro %}
 {% block content %}
 <div class="page-head">
   <div>
@@ -76,17 +82,37 @@
       </div>
     </section>
 
-    {# 4. 근태 주차별 #}
+    {# 4. 근태 주차별 — 전 주·평균 대비 + 항목별 막대 #}
+    {% set aw = att_weekly %}
     <section class="card">
-      <h2>근태 주차별 <span class="muted small">(원본 시트 Schedule KR · 칸 수)</span></h2>
-      <div class="table-wrap">
-        <table class="fit">
-          <thead><tr><th>주 (토요일 마감)</th><th class="ncol">결근</th><th class="ncol">지각</th><th class="ncol">조퇴</th><th class="ncol">연차</th><th class="ncol">휴가</th><th class="ncol">휴직</th></tr></thead>
-          <tbody>{% for w in attendance.weekly %}<tr><td>{{ w.week_end }}</td>
-            {% for s in ('결근', '지각', '조퇴', '연차', '휴가', '휴직') %}<td class="ncol num">{{ w[s] }}</td>{% endfor %}</tr>
+      <h2>근태 주차별 <span class="muted small">(원본 시트 Schedule KR · 칸 수 · 토요일 마감)</span></h2>
+      {% if aw.base %}
+      <p class="small muted" style="margin:0 0 10px">비교 기준 <b>{{ aw.base[5:] }} 주</b> — 전 주({{ aw.prev[5:] if aw.prev else '–' }}) 대비 ·
+        앞선 {{ aw.avg_weeks }}주 평균 대비 · 결근·지각·조퇴는 <span class="delta bad">▲ 늘면 빨강</span> <span class="delta good">▼ 줄면 초록</span>,
+        연차·휴가·휴직은 회색 · 막대: <b>진한 막대</b> = 기준 주{% if aw.running %}, 흐린 막대 = 러닝 주(덜 끝남){% endif %}, 점선 = 평균</p>
+      <div class="att-wk-grid">
+        {% for c in aw.compare %}
+        <div class="att-wk">
+          <div class="att-wk-head"><b>{{ c.status }}</b>
+            <span class="num"><b class="att-wk-v">{{ c.now if c.now is not none else '–' }}</b> <span class="small muted">칸</span></span></div>
+          <div class="small">전 주 {{ c.prev if c.prev is not none else '–' }} {{ cdelta(c.d_prev, c.bad_up) }}
+            · 평균 {{ c.avg|num(1) }} {{ cdelta(c.d_avg_pct, c.bad_up, '%') }}</div>
+          <div class="chart">{{ c.svg|safe }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="table-wrap" style="margin-top:12px">
+        <table class="fit att-wk-table">
+          <thead><tr><th>주 (토요일 마감)</th>{% for s in aw.compare %}<th class="ncol">{{ s.status }}</th>{% endfor %}</tr></thead>
+          <tbody>{% for w in aw.rows|reverse %}<tr class="{{ 'running' if w.partial }}{{ ' base' if w.week_end == aw.base }}">
+            <td>{{ w.week_end }}{% if w.partial %} <span class="badge neutral">러닝 · {{ w.days }}일</span>{% elif w.week_end == aw.base %} <span class="badge base">기준</span>{% endif %}</td>
+            {% for c in aw.compare %}{% set s = c.status %}<td class="ncol num">{% if w.counts[s] is none %}<span class="muted">–</span>{% else %}{{ w.counts[s] }}
+              {% if w.delta[s] is not none and w.delta[s] != 0 %}<span class="small {{ ('bad' if w.delta[s] > 0 else 'good') if c.bad_up else 'muted' }}">{{ '+' if w.delta[s] > 0 }}{{ w.delta[s] }}</span>{% endif %}{% endif %}</td>{% endfor %}</tr>
           {% else %}<tr><td colspan="7" class="empty">근태 기록이 없습니다.</td></tr>{% endfor %}</tbody>
         </table>
       </div>
+      <p class="small muted" style="margin:6px 0 0">표의 작은 숫자 = 바로 앞 주 대비 증감. 시트를 불러오기 전 주는 –.</p>
     </section>
   </div>
 

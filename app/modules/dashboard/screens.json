@@ -14,6 +14,7 @@
       "kpi_metrics": ["nps", "spd", "throughput", "reopen", "ttresp", "work_time"],
       "team_metrics": ["nps", "spd", "throughput", "reopen"],
       "attendance_days": 28,
+      "attendance_weeks": 8,
       "new_hire_days": 90,
       "followup_days": 3
     }

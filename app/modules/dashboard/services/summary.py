@@ -71,15 +71,65 @@ def attendance_overview(att: list[dict], as_of: str, days: int) -> dict:
     rows = [r for r in att if since <= r["date"] <= as_of]
     total = Counter(r["status"] for r in rows)
     work = sum(v for k, v in total.items() if k not in ("휴무",) + LEAVE)
-    weekly: dict[str, Counter] = defaultdict(Counter)
-    for r in rows:
-        weekly[kpi_svc.week_end(date.fromisoformat(r["date"])).isoformat()][r["status"]] += 1
     last = max((r["date"] for r in rows), default=None)
     day = Counter(r["status"] for r in rows if r["date"] == last) if last else Counter()
     return {"days": days, "count": dict(total), "work_days": work,
             "absence_rate": (sum(total[s] for s in ABSENCE) / work * 100) if work else None,
-            "weekly": [{"week_end": k, "label": k[5:], **{s: v[s] for s in ABSENCE + LEAVE}} for k, v in sorted(weekly.items())],
             "last_day": last, "last": dict(day)}
+
+
+WEEK_STATUSES = ABSENCE + LEAVE
+
+
+def attendance_weekly(att: list[dict], as_of: str, weeks: int = 8) -> dict:
+    """근태 주차별 (토요일 마감) — 끝난 주 weeks 개 + 러닝 주(이번 주, 안 끝났을 때).
+
+    비교 기준 = 가장 최근 끝난 주. 전 주 대비 = 그 주 − 바로 앞 주, 평균 대비 = 그 주 − 앞선 끝난 주들의 평균.
+    근태 칸이 하나도 없는 주는 '데이터 없음'(None) — 평균에서 뺀다 (시트를 불러오기 전 기간).
+    """
+    t = date.fromisoformat(as_of)
+    last_end = kpi_svc.week_end(t)
+    running = last_end > t
+    ends = [last_end - timedelta(days=7 * k) for k in range(weeks + (1 if running else 0))][::-1]
+    start = ends[0] - timedelta(days=6)
+    buckets: dict[date, Counter] = {e: Counter() for e in ends}
+    for r in att:
+        d = date.fromisoformat(r["date"])
+        if start <= d <= t:
+            buckets[kpi_svc.week_end(d)][r["status"]] += 1
+    rows = []
+    for e in ends:
+        c = buckets[e]
+        has = sum(c.values()) > 0
+        partial = running and e == last_end
+        rows.append({"week_end": e.isoformat(), "label": e.isoformat()[5:], "partial": partial,
+                     "days": ((t - (e - timedelta(days=6))).days + 1) if partial else 7,
+                     "has": has, "counts": {s: (c[s] if has else None) for s in WEEK_STATUSES}})
+    full = [r for r in rows if not r["partial"]]
+    prev_row = None
+    for r in rows:                                   # 표의 칸별 '전 주 대비' (러닝 주는 덜 끝나서 비교 안 함)
+        ok = r["has"] and not r["partial"] and prev_row is not None and prev_row["has"]
+        r["delta"] = {s: (r["counts"][s] - prev_row["counts"][s]) if ok else None for s in WEEK_STATUSES}
+        prev_row = r
+    base = full[-1] if full else None
+    prev = full[-2] if len(full) > 1 else None
+    earlier = [r for r in full[:-1] if r["has"]]
+    compare = []
+    for s in WEEK_STATUSES:
+        now = base["counts"][s] if base and base["has"] else None
+        p = prev["counts"][s] if prev and prev["has"] else None
+        avg = (sum(r["counts"][s] for r in earlier) / len(earlier)) if earlier else None
+        compare.append({
+            "status": s, "now": now, "prev": p, "avg": avg,
+            "d_prev": (now - p) if now is not None and p is not None else None,
+            "d_avg": (now - avg) if now is not None and avg is not None else None,
+            "d_avg_pct": ((now - avg) / avg * 100) if now is not None and avg else None,
+            "bad_up": s in ABSENCE,                  # 결근·지각·조퇴는 늘면 나쁨, 연차·휴가·휴직은 중립
+            "series": [r["counts"][s] for r in rows],
+        })
+    return {"weeks": weeks, "rows": rows, "running": running, "compare": compare,
+            "base": base["week_end"] if base else None, "prev": prev["week_end"] if prev else None,
+            "avg_weeks": len(earlier), "labels": [r["label"] for r in rows]}
 
 
 def qa_overview(qa_rows: list[dict]) -> dict:

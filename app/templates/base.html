@@ -27,7 +27,7 @@
       {% if user %}<span>{{ user.name }}</span><span class="role">{{ user.role_label }}</span>{% endif %}
     </div>
   </header>
-  <div class="layout{{ ' with-ai' if ai_dock }}">
+  <div class="layout{{ ' with-ai' if ai_dock }}{{ ' no-side' if not side }}">
     <aside class="side">
       {% for m in side %}<a href="{{ m.path }}" class="{{ 'active' if m.id == active }}">{{ m.label }}</a>{% endfor %}
       {% block side_extra %}{% endblock %}

@@ -63,7 +63,7 @@ def test_root_is_dashboard_and_briefing(backend, users, monkeypatch):
     r = c.get("/", follow_redirects=False)
     assert r.headers["location"] == "/dashboard"
     page = c.get("/dashboard").text
-    assert ">대시보드</a>" in page and "AI 브리핑" in page
+    assert "<h1>대시보드</h1>" in page and "AI 브리핑" in page
     r = c.post("/api/dashboard/briefing", json={})
     assert r.status_code == 200 and "<b>" in r.json()["html"]                          # 팀#1 → 팀 이름
     from app.core.modules import discover
@@ -94,6 +94,9 @@ def test_brand_links_dashboard_and_no_dashboard_button(backend):
     nav = page.split('<nav class="modnav">')[1].split("</nav>")[0]
     assert "/dashboard" not in nav and "/agent360" in nav
     assert c.get("/", follow_redirects=False).headers["location"].startswith("/dashboard")
+    dash = c.get("/dashboard").text                                    # 대시보드는 왼쪽 메뉴 없음
+    assert 'class="layout with-ai no-side"' in dash or 'class="layout no-side"' in dash
+    assert "no-side" not in page                                        # 다른 화면은 그대로
 
 
 def test_attendance_weekly_vs_prev_and_avg_hand_checked():

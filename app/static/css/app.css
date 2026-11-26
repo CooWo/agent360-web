@@ -199,6 +199,11 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
   border-top-color: var(--primary); animation: ai-spin .8s linear infinite; }
 @keyframes ai-spin { to { transform: rotate(360deg); } }
 
+/* 왼쪽 메뉴가 없는 화면 (대시보드) — 메뉴 칸 폭 0 */
+.layout.no-side { --side-w: 0px; }
+.layout.no-side > .side { padding: 0; border: 0; overflow: hidden; }
+@media (max-width: 900px) { .layout.no-side > .side { display: none; } }
+
 /* ── 오른쪽 AI 패널 (모든 화면) ───────────────── */
 :root { --ai-w: 400px; }
 .layout.with-ai { grid-template-columns: var(--side-w) minmax(0, 1fr) var(--ai-w); }

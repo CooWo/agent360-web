@@ -1,0 +1,20 @@
+{
+  "module": "dashboard",
+  "title": "대시보드",
+  "base_path": "/dashboard",
+  "menu": [
+    {"id": "dashboard", "label": "대시보드", "path": "/dashboard", "roles": ["admin", "manager", "sv", "wfm", "viewer"]}
+  ],
+  "screens": {
+    "dashboard": {
+      "title": "대시보드",
+      "subtitle": "담당 범위 전체 — KPI 최근 4주 · 근태 · QA·코칭 · 오늘 할 일",
+      "kpi_weeks": 8,
+      "kpi_metrics": ["nps", "spd", "throughput", "reopen", "ttresp", "work_time"],
+      "team_metrics": ["nps", "spd", "throughput", "reopen"],
+      "attendance_days": 28,
+      "new_hire_days": 90,
+      "followup_days": 3
+    }
+  }
+}

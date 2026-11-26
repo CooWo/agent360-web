@@ -132,7 +132,7 @@
       var t0 = Date.now(), my = ++seq, k = key(); again.disabled = true;
       body.innerHTML = '<div class="ai-wait">AI 가 요약하는 중… <span class="ai-sec">0</span>초 (보통 20초~1분)</div>';
       var timer = setInterval(function () { var s = body.querySelector('.ai-sec'); if (s) s.textContent = Math.round((Date.now() - t0) / 1000); }, 1000);
-      fetch('/api/agent360/briefing', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      fetch(card.dataset.url || '/api/agent360/briefing', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kind: card.dataset.kind, agent_id: card.dataset.agent || null, refresh: !!refresh }) })
         .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
         .then(function (res) {
@@ -145,7 +145,7 @@
         .then(function () { clearInterval(timer); if (my === seq) again.disabled = false; });
     }
     function start() {
-      if (card.dataset.kind === 'agent' && !card.dataset.agent) {
+      if ((card.dataset.kind === 'agent' || card.dataset.kind === 'detractor') && !card.dataset.agent) {
         seq++; again.disabled = true; meta.textContent = note;
         body.innerHTML = '<div class="muted">상담사를 고르면 요약합니다.</div>'; return;
       }

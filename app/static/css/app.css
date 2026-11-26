@@ -18,9 +18,11 @@ h3 { font-size: 14px; margin: 0 0 8px; }
 .brand { font-weight: 800; color: var(--on-primary); }
 .brand:hover { text-decoration: none; }
 .modnav { display: flex; gap: 4px; flex: 1; }
-.modnav a { padding: 6px 10px; border-radius: var(--radius-sm); color: var(--on-primary-dim); }
-.modnav a:hover { background: var(--on-primary-hover); color: var(--on-primary); text-decoration: none; }
-.modnav a.current { background: var(--on-primary); color: var(--primary-strong); font-weight: 700; }
+.modnav { gap: 8px; }
+.modnav a { padding: 4px 12px; border-radius: 6px; background: var(--on-primary); color: var(--primary-strong);
+  font-weight: 700; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.modnav a:hover { background: var(--primary-weak); text-decoration: none; }
+.modnav a.current { color: var(--primary-deep); box-shadow: inset 0 -3px 0 var(--primary-strong), 0 2px 6px rgba(0, 0, 0, .18); }
 .who { display: flex; align-items: center; gap: 10px; color: var(--on-primary); font-size: 13px; }
 .role { padding: 2px 8px; border-radius: 999px; background: var(--on-primary); color: var(--primary-strong); font-size: 12px; font-weight: 600; }
 .devswitch select { font: inherit; font-size: 12px; padding: 3px 6px; border: 1px dashed var(--warn); border-radius: var(--radius-sm); background: var(--warn-weak); }
@@ -290,3 +292,8 @@ th.ncol, td.ncol { text-align: center; width: 56px; min-width: 56px; padding-lef
 .tl-sheet td.w-shift input { width: 50px; text-align: center; font-weight: 600; } .tl-sheet td.w-id input { width: 78px; }
 .tl-sheet td.w-name input { width: 58px; } .tl-sheet td.w-en input { width: 118px; } .tl-sheet td.w-disp input { width: 96px; }
 .tl-wrap { overflow: auto; max-height: calc(100vh - 230px); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+/* 대시보드 */
+a.dash-tile { color: inherit; display: block; }
+a.dash-tile:hover { text-decoration: none; border-color: var(--primary); }
+.dash-kpi { padding: 4px 2px; }
+.dash-kpi-v { font-size: 20px; }

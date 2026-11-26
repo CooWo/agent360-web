@@ -111,6 +111,10 @@ class SampleBackend:
     def attendance(self, agent_id, since):
         return [r for r in self._att if r["agent_id"] == agent_id and r["date"] >= since]
 
+    def attendance_many(self, agent_ids, since):
+        want = set(agent_ids)
+        return [r for r in self._att if r["agent_id"] in want and r["date"] >= since]
+
     def qa(self, agent_id, since):
         return sorted([r for r in self._qa if r["agent_id"] == agent_id and r["date"] >= since], key=lambda r: r["date"], reverse=True)
 

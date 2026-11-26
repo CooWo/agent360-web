@@ -113,6 +113,23 @@ def agent_prompt(ctx: dict, alias: Alias) -> str:
     return "\n".join(lines)[:MAX_PROMPT]
 
 
+DETRACTOR_WEEKS = 8
+
+
+def detractor_prompt(ldap: str, as_of: str, weeks: int = DETRACTOR_WEEKS) -> str:
+    """디트랙터(GDA) — 숫자·코멘트가 v11 Dynamic.gda_clean 에만 있어 에이전트가 직접 조회한다 (상담사 LDAP 로만 찾음)."""
+    from datetime import date
+    since = (date.fromisoformat(as_of) - timedelta(days=7 * weeks)).isoformat()
+    return (f"[상담사 디트랙터 요약] Dynamic.gda_clean 에서 gda_specialist_ldap = '{ldap}' 이고 "
+            f"gda_case_solved_date 가 {since} ~ {as_of} 인 디트랙터 평가(GDA)를 조회해 주세요.\n"
+            "1) 디트랙터 건수 합계와 주차(gda_week)별 건수\n"
+            "2) 주요 원인 테마(gda_q1_theme_l1, gda_q2_primary) 상위 3개와 건수\n"
+            "3) 고객 코멘트(gda_q1_comment)·케이스 요약(gda_q5_case_summary)·평가자 코멘트(gda_q6_evaluator_comment)를 "
+            "주제별로 묶어 3~5줄 한국어 요약 (원문을 길게 옮기지 말고, 고객 이름·연락처·예약번호 같은 개인정보는 쓰지 마세요)\n"
+            "4) 이 상담사 코칭 포인트 1~2줄\n"
+            "건수는 조회 결과 그대로 쓰고, 해당 기간 데이터가 없으면 '최근 디트랙터 없음' 이라고만 답하세요. 짧은 글머리표로.")
+
+
 def brief(backend, agent, user, screen: dict, key: str, prompt: str, alias: Alias, refresh: bool = False) -> dict:
     """요약 받기 (캐시). 반환 {html, secs, cached, asked_at}. 권한·감사 로그는 AI 질문과 같은 규칙."""
     ck = (user.email, key, hashlib.sha1(prompt.encode("utf-8")).hexdigest())

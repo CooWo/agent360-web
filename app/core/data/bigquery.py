@@ -155,6 +155,12 @@ class BigQueryBackend:
     def attendance(self, agent_id, since):
         return self._fact("fact_attendance", "agent_id, CAST(date AS STRING) date, status, detail", agent_id, since, "date")
 
+    def attendance_many(self, agent_ids, since):
+        ids = sorted(set(agent_ids))
+        sql = f"""SELECT agent_id, CAST(date AS STRING) date, status FROM {self.c}.fact_attendance
+                  WHERE agent_id IN UNNEST(@ids) AND date >= DATE(@since)"""
+        return self._cached(("att_many", tuple(ids), since), lambda: self._q(sql, ids=ids, since=since)) if ids else []
+
     def qa(self, agent_id, since):
         return self._fact("fact_qa", "qa_id, agent_id, CAST(date AS STRING) date, score, error_types", agent_id, since, "date DESC")
 

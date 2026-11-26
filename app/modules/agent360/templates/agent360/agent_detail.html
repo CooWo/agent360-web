@@ -28,6 +28,7 @@
 </div>
 <aside class="stack rail">
   {{ ai_brief("AI 요약", "agent", as_of, agent.agent_id, note="이 화면의 KPI·근태·QA·신호 숫자를 AI 가 요약합니다. 이름은 가명으로 보냅니다.") }}
+  {{ ai_brief("최근 디트랙터", "detractor", as_of, agent.agent_id, note="최근 8주 디트랙터 평가(GDA) 건수와 고객·평가자 코멘트를 AI BA CHAT 이 조회해 요약합니다 (LDAP 으로 찾음).") }}
 </aside>
 </div>
 {% endblock %}

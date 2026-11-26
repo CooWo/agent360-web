@@ -15,6 +15,7 @@
   --primary: #fe375c;
   --primary-strong: #d81b4f;      /* 흰 바탕 위 글자·링크 (읽기 쉬운 진한 쪽) */
   --primary-weak: #ffe9ee;
+  --primary-deep: #a8123d;        /* 지금 보고 있는 메뉴 글자 */
   --primary-shadow: rgba(254, 55, 92, .35);
   --brand-bar: linear-gradient(135deg, #e5245e 0%, #d6175f 100%);
   --on-primary: #ffffff;

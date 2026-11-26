@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from "agent360/_macros.html" import delta, score_badge %}
+{% from "agent360/_brief.html" import ai_brief with context %}
+{% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ cfg.title }}</h1>
+    <p class="muted">{{ as_of }} 기준 · {{ cfg.subtitle }}</p>
+  </div>
+</div>
+
+<div class="with-rail">
+  <div class="stack">
+    {# 1. 한눈에: 인원 · 근태 · QA·코칭 · 오늘 할 일 #}
+    <section class="grid g4">
+      <a class="card kpi-card dash-tile" href="/info">
+        <div class="label">인원</div>
+        <div class="value num">{{ headcount.agents }}<span class="small muted"> 명</span></div>
+        <div class="small muted">팀 {{ headcount.teams }}개 · 최근 {{ cfg.new_hire_days }}일 입사 {{ headcount.new_hires }}명</div>
+      </a>
+      <div class="card kpi-card dash-tile">
+        <div class="label">근태 · 최근 {{ attendance.days }}일</div>
+        <div class="value num">{{ attendance.absence_rate|num(1) }}<span class="small muted"> % 결근·지각·조퇴</span></div>
+        <div class="small muted">결근 {{ attendance.count.get('결근', 0) }} · 지각 {{ attendance.count.get('지각', 0) }} · 조퇴 {{ attendance.count.get('조퇴', 0) }}
+          · 연차 {{ attendance.count.get('연차', 0) }}</div>
+        {% if attendance.last_day %}<div class="small muted">{{ attendance.last_day }}: 결근 {{ attendance.last.get('결근', 0) }} · 휴가·연차 {{ attendance.last.get('연차', 0) + attendance.last.get('휴가', 0) }}</div>{% endif %}
+      </div>
+      <a class="card kpi-card dash-tile" href="/agent360/qa">
+        <div class="label">QA · 코칭 (올린 파일)</div>
+        <div class="value num">{{ qa.qa_avg|num(1) }}<span class="small muted"> 점 · Rate {{ qa.rate|num(0) }}%</span></div>
+        <div class="small muted">평가 {{ qa.evaluations }} · 코칭 {{ qa.coaching }} · 코칭 부족 <b>{{ qa.gaps }}</b>명 · 80점 미만 {{ qa.below80 }}명</div>
+      </a>
+      <a class="card kpi-card dash-tile" href="/agent360">
+        <div class="label">오늘 할 일</div>
+        <div class="value num">{{ signals.agents }}<span class="small muted"> 명 신호</span></div>
+        <div class="small muted">미확인 {{ signals.open }}건 · 코칭 후속 기한 지남 <b>{{ followups.overdue }}</b>건 · {{ cfg.followup_days }}일 안 {{ followups.soon }}건</div>
+      </a>
+    </section>
+
+    {# 2. KPI 최근 4주 + 8주 추이 #}
+    <section class="card">
+      <h2>KPI · 최근 4주 <span class="muted small">(담당 전체 합계 · 직전 4주 대비 · 점선 = 직전 4주 · 응답 {{ kpi.responses }}건 · 처리 {{ kpi.assignments }}건)</span></h2>
+      <div class="grid g3">
+        {% for m in kpi.metrics %}
+        <div class="dash-kpi">
+          <div class="small muted">{{ m.label }}</div>
+          <div class="num"><b class="dash-kpi-v">{{ m.recent|num(m.digits) }}</b> <span class="small muted">{{ m.unit }}</span>
+            <span class="small">직전 {{ m.prior|num(m.digits) }} {{ delta(m.delta, m.better, m.digits) }}</span></div>
+          <div class="chart">{{ m.svg|safe }}</div>
+        </div>
+        {% endfor %}
+      </div>
+    </section>
+
+    {# 3. 팀별 비교 #}
+    <section class="card">
+      <h2>팀별 비교 <span class="muted small">(KPI 최근 4주 · 근태 최근 {{ attendance.days }}일 · QA·코칭은 올린 파일)</span></h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>팀(TL)</th><th class="r">인원</th>
+            {% for c in team_cols %}<th class="r">{{ c.label }}</th>{% endfor %}
+            <th class="r">QA 평균</th><th class="r">코칭 Rate</th><th class="r">코칭 부족</th>
+            <th class="r">결근</th><th class="r">지각</th><th class="r">조퇴</th><th class="r">연차·휴가</th></tr></thead>
+          <tbody>
+          {% for t in teams %}
+            <tr><td><a href="/agent360/agents?team={{ t.team|urlencode }}">{{ t.label }}</a></td><td class="r num">{{ t.agents }}</td>
+              {% for c in team_cols %}<td class="r num">{{ t[c.key]|num(c.digits) }}</td>{% endfor %}
+              <td class="r num">{{ t.qa_avg|num(1) }}</td>
+              <td class="r num" {% if t.coach_rate is not none and t.coach_rate < 50 %}style="color:var(--danger)"{% endif %}>{{ t.coach_rate|num(0) }}{{ '%' if t.coach_rate is not none }}</td>
+              <td class="r num">{{ t.gaps }}</td>
+              <td class="r num">{{ t['결근'] }}</td><td class="r num">{{ t['지각'] }}</td><td class="r num">{{ t['조퇴'] }}</td><td class="r num">{{ t.leave }}</td></tr>
+          {% else %}<tr><td colspan="20" class="empty">팀이 없습니다.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {# 4. 근태 주차별 #}
+    <section class="card">
+      <h2>근태 주차별 <span class="muted small">(원본 시트 Schedule KR · 칸 수)</span></h2>
+      <div class="table-wrap">
+        <table class="fit">
+          <thead><tr><th>주 (토요일 마감)</th><th class="ncol">결근</th><th class="ncol">지각</th><th class="ncol">조퇴</th><th class="ncol">연차</th><th class="ncol">휴가</th><th class="ncol">휴직</th></tr></thead>
+          <tbody>{% for w in attendance.weekly %}<tr><td>{{ w.week_end }}</td>
+            {% for s in ('결근', '지각', '조퇴', '연차', '휴가', '휴직') %}<td class="ncol num">{{ w[s] }}</td>{% endfor %}</tr>
+          {% else %}<tr><td colspan="7" class="empty">근태 기록이 없습니다.</td></tr>{% endfor %}</tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <aside class="stack rail">
+    {{ ai_brief("AI 브리핑", "dashboard", as_of, url="/api/dashboard/briefing",
+                note="이 화면의 KPI·근태·QA·코칭·신호 숫자를 AI 가 요약합니다. 팀 이름은 가명으로 보냅니다.") }}
+    <section class="card">
+      <h2>먼저 볼 상담사 <span class="muted small"><a href="/agent360">전체 {{ signals.agents }}명</a></span></h2>
+      {% for r in signals.top %}
+      <div class="small" style="display:flex;gap:8px;align-items:center;margin-bottom:6px">{{ score_badge(r.score) }}
+        <a href="/agent360/agents/{{ r.agent.agent_id }}">{{ r.agent.name }}</a>
+        <span class="muted">{{ r.signals[0].label }}{% if r.signals|length > 1 %} 외 {{ r.signals|length - 1 }}{% endif %}</span></div>
+      {% else %}<div class="muted small">오늘 신호가 없습니다.</div>{% endfor %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

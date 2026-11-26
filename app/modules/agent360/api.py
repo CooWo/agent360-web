@@ -92,7 +92,14 @@ def briefing(body: BriefIn, user: User = Depends(current_user)):
     screens = next(m for m in discover() if m.name == "agent360").screens
     screen = next(m for m in discover() if m.name == "assistant").screen("ask")
     alias = brief_svc.Alias()
-    if body.kind == "agent" and body.agent_id:
+    if body.kind == "detractor" and body.agent_id:
+        a = b.get_agent(user.scope, body.agent_id)
+        if not a:
+            raise NotFound("상담사를 찾을 수 없거나 권한 밖입니다.")
+        if not a.get("ldap"):
+            return JSONResponse({"detail": "이 상담사의 LDAP 이 없어 디트랙터를 찾을 수 없습니다 (상담사 INFO 확인)."}, status_code=400)
+        prompt, key = brief_svc.detractor_prompt(a["ldap"], b.as_of()), f"detractor:{body.agent_id}:{b.as_of()}"
+    elif body.kind == "agent" and body.agent_id:
         ctx = views.agent_detail(b, user, screens, body.agent_id, audit_view=False)
         prompt, key = brief_svc.agent_prompt(ctx, alias), f"agent:{body.agent_id}:{ctx['as_of']}"
     else:

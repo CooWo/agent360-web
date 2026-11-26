@@ -103,16 +103,28 @@
       </div>
       {% endif %}
       <div class="table-wrap" style="margin-top:12px">
-        <table class="fit att-wk-table">
-          <thead><tr><th>주 (토요일 마감)</th>{% for s in aw.compare %}<th class="ncol">{{ s.status }}</th>{% endfor %}</tr></thead>
+        <table class="att-wk-table">
+          <colgroup><col class="wk">{% for c in aw.compare %}<col>{% endfor %}</colgroup>
+          <thead>
+            <tr><th rowspan="2" class="wk">주 <span class="muted small">(일 ~ 토)</span></th>
+              <th colspan="3" class="grp bad-grp">근태 이상 <span class="small">늘면 ▲빨강</span></th>
+              <th colspan="3" class="grp leave-grp grp-start">휴가 · 휴직 <span class="small">참고</span></th></tr>
+            <tr>{% for c in aw.compare %}<th class="awc-h{{ ' grp-start' if loop.index0 == 3 }}">{{ c.status }}</th>{% endfor %}</tr>
+          </thead>
           <tbody>{% for w in aw.rows|reverse %}<tr class="{{ 'running' if w.partial }}{{ ' base' if w.week_end == aw.base }}">
-            <td>{{ w.week_end }}{% if w.partial %} <span class="badge neutral">러닝 · {{ w.days }}일</span>{% elif w.week_end == aw.base %} <span class="badge base">기준</span>{% endif %}</td>
-            {% for c in aw.compare %}{% set s = c.status %}<td class="ncol num">{% if w.counts[s] is none %}<span class="muted">–</span>{% else %}{{ w.counts[s] }}
-              {% if w.delta[s] is not none and w.delta[s] != 0 %}<span class="small {{ ('bad' if w.delta[s] > 0 else 'good') if c.bad_up else 'muted' }}">{{ '+' if w.delta[s] > 0 }}{{ w.delta[s] }}</span>{% endif %}{% endif %}</td>{% endfor %}</tr>
+            <td class="wk"><span class="num">{{ w.start[5:] }} ~ {{ w.end[5:] }}</span>
+              {% if w.partial %}<span class="badge neutral">러닝 · {{ w.days }}일</span>{% elif w.week_end == aw.base %}<span class="badge base">기준</span>{% endif %}</td>
+            {% for c in aw.compare %}{% set v = w.counts[c.status] %}{% set d = w.delta[c.status] %}
+            <td class="awc {{ 'heat-bad' if c.bad_up else 'heat-leave' }}{{ ' grp-start' if loop.index0 == 3 }}"
+                {% if v is not none and c.max %}style="--heat: {{ '%.2f'|format(v / c.max) }}"{% endif %}>
+              <span class="awc-in"><span class="awc-v{{ " zero" if v == 0 }}">{{ v if v is not none else '–' }}</span>
+                <span class="awc-d {{ ('bad' if d > 0 else 'good') if (c.bad_up and d) else 'flat' }}">{% if d %}{{ '▲' if d > 0 else '▼' }}{{ d|abs }}{% endif %}</span></span></td>
+            {% endfor %}</tr>
           {% else %}<tr><td colspan="7" class="empty">근태 기록이 없습니다.</td></tr>{% endfor %}</tbody>
         </table>
       </div>
-      <p class="small muted" style="margin:6px 0 0">표의 작은 숫자 = 바로 앞 주 대비 증감. 시트를 불러오기 전 주는 –.</p>
+      <p class="small muted" style="margin:8px 0 0">칸 숫자 = 그 주 칸 수 · 옆 ▲▼ = 바로 앞 주 대비 증감 · 칸 색이 진할수록 이 기간 중 많은 주 ·
+        러닝 주는 덜 끝나 증감 없음 · 시트를 불러오기 전 주는 –</p>
     </section>
   </div>
 

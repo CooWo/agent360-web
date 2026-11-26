@@ -35,7 +35,7 @@ def test_dashboard_renders_by_role(backend, users, who):
     assert sum(t["agents"] for t in ctx["teams"]) == ctx["headcount"]["agents"]      # 팀 합 = 전체
     html = render("dashboard/dashboard.html", ctx, user=users[who], module=mod, active="dashboard", with_routers=False)
     assert "팀별 비교" in html and 'data-kind="dashboard"' in html
-    assert "근태 주차별" in html and "평균" in html
+    assert "근태 주차별" in html and "평균" in html and "근태 이상" in html and "awc-in" in html
 
 
 class FakeAgent:
@@ -116,6 +116,7 @@ def test_attendance_weekly_vs_prev_and_avg_hand_checked():
     assert c["지각"]["d_prev"] == -1 and c["지각"]["d_avg_pct"] == -100.0                 # 0 vs 평균 0.5
     assert c["연차"]["d_avg_pct"] is None and not c["연차"]["bad_up"]                     # 평균 0 → % 없음
     assert c["결근"]["series"] == [None, 2, 1, 4, 1]
+    assert c["결근"]["max"] == 4 and w["rows"][-1]["end"] == "2026-11-20" and w["rows"][-1]["start"] == "2026-11-15"
     assert w["rows"][2]["delta"]["결근"] == -1 and w["rows"][1]["delta"]["결근"] is None   # 앞 주 데이터 없음
     assert w["rows"][-1]["delta"]["결근"] is None                                         # 러닝 주는 비교 안 함
 

@@ -103,6 +103,7 @@ def attendance_weekly(att: list[dict], as_of: str, weeks: int = 8) -> dict:
         has = sum(c.values()) > 0
         partial = running and e == last_end
         rows.append({"week_end": e.isoformat(), "label": e.isoformat()[5:], "partial": partial,
+                     "start": (e - timedelta(days=6)).isoformat(), "end": (t if partial else e).isoformat(),
                      "days": ((t - (e - timedelta(days=6))).days + 1) if partial else 7,
                      "has": has, "counts": {s: (c[s] if has else None) for s in WEEK_STATUSES}})
     full = [r for r in rows if not r["partial"]]
@@ -126,6 +127,7 @@ def attendance_weekly(att: list[dict], as_of: str, weeks: int = 8) -> dict:
             "d_avg_pct": ((now - avg) / avg * 100) if now is not None and avg else None,
             "bad_up": s in ABSENCE,                  # 결근·지각·조퇴는 늘면 나쁨, 연차·휴가·휴직은 중립
             "series": [r["counts"][s] for r in rows],
+            "max": max([r["counts"][s] for r in rows if r["counts"][s] is not None] or [0]),   # 칸 색 진하기 기준
         })
     return {"weeks": weeks, "rows": rows, "running": running, "compare": compare,
             "base": base["week_end"] if base else None, "prev": prev["week_end"] if prev else None,

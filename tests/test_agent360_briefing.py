@@ -80,3 +80,5 @@ def test_briefing_api(backend, monkeypatch):
     assert 'data-kind="home"' in c.get("/agent360").text
     monkeypatch.setattr(ai, "get_data_agent", lambda: ag)                       # AI 켜짐 → 카드가 자동 요약을 시작
     assert 'data-enabled="1"' in c.get("/agent360").text and 'data-enabled="1"' in c.get(f"/agent360/agents/{aid}").text
+    coach = c.get(f"/agent360/coaching?agent_id={aid}").text                     # 코칭 기록: 고른 상담사 따라감
+    assert f'data-agent="{aid}"' in coach and 'data-follow="#agent_id"' in coach

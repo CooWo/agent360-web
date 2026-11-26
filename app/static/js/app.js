@@ -121,31 +121,42 @@
   document.querySelectorAll('.ai-brief').forEach(function (card) {
     var body = card.querySelector('.ai-brief-body'), meta = card.querySelector('.ai-brief-meta');
     var again = card.querySelector('.ai-brief-again'), note = meta.textContent;
-    var key = 'a360.brief.' + card.dataset.kind + '.' + (card.dataset.agent || '') + '.' + card.dataset.asof;
+    function key() { return 'a360.brief.' + card.dataset.kind + '.' + (card.dataset.agent || '') + '.' + card.dataset.asof; }
     if (card.dataset.enabled !== '1') { again.disabled = true; return; }
+    var seq = 0;
     function show(b) {
       body.innerHTML = b.html;
       meta.textContent = (b.cached ? '저장된 요약 · ' : '') + b.asked_at + ' 요약 · ' + b.secs + '초 · ' + note;
     }
     function run(refresh) {
-      var t0 = Date.now(); again.disabled = true;
+      var t0 = Date.now(), my = ++seq, k = key(); again.disabled = true;
       body.innerHTML = '<div class="ai-wait">AI 가 요약하는 중… <span class="ai-sec">0</span>초 (보통 20초~1분)</div>';
       var timer = setInterval(function () { var s = body.querySelector('.ai-sec'); if (s) s.textContent = Math.round((Date.now() - t0) / 1000); }, 1000);
       fetch('/api/agent360/briefing', { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ kind: card.dataset.kind, agent_id: card.dataset.agent || null, refresh: !!refresh }) })
         .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
         .then(function (res) {
+          if (my !== seq) return;                                   // 그사이 다른 상담사를 고름
           if (!res.ok) { body.innerHTML = '<div class="ai-msg err">' + esc(res.body.detail || '요약을 받지 못했습니다.') + '</div>'; return; }
           show(res.body);
-          try { sessionStorage.setItem(key, JSON.stringify(res.body)); } catch (e) {}
+          try { sessionStorage.setItem(k, JSON.stringify(res.body)); } catch (e) {}
         })
         .catch(function () { body.innerHTML = '<div class="ai-msg err">네트워크 오류로 요약을 받지 못했습니다.</div>'; })
-        .then(function () { clearInterval(timer); again.disabled = false; });
+        .then(function () { clearInterval(timer); if (my === seq) again.disabled = false; });
+    }
+    function start() {
+      if (card.dataset.kind === 'agent' && !card.dataset.agent) {
+        seq++; again.disabled = true; meta.textContent = note;
+        body.innerHTML = '<div class="muted">상담사를 고르면 요약합니다.</div>'; return;
+      }
+      var saved = null;
+      try { saved = JSON.parse(sessionStorage.getItem(key())); } catch (e) {}
+      if (saved && saved.html) { seq++; again.disabled = false; show(Object.assign(saved, { cached: true })); } else run(false);
     }
     again.addEventListener('click', function () { run(true); });
-    var saved = null;
-    try { saved = JSON.parse(sessionStorage.getItem(key)); } catch (e) {}
-    if (saved && saved.html) show(Object.assign(saved, { cached: true })); else run(false);
+    var sel = card.dataset.follow && document.querySelector(card.dataset.follow);   // 코칭 기록: 고른 상담사를 따라감
+    if (sel) sel.addEventListener('change', function () { card.dataset.agent = sel.value; start(); });
+    start();
   });
 
   // 사용자 전환(local 전용)

@@ -2,7 +2,7 @@
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body { font-family: var(--font); color: var(--text); background: var(--bg); font-size: 14px; line-height: 1.5; }
-a { color: var(--primary); text-decoration: none; }
+a { color: var(--primary-strong); text-decoration: none; }
 a:hover { text-decoration: underline; }
 h1 { font-size: 20px; margin: 0; }
 h2 { font-size: 15px; margin: 0 0 12px; }
@@ -14,19 +14,22 @@ h3 { font-size: 14px; margin: 0 0 8px; }
 
 /* 레이아웃 */
 .topbar { height: 52px; display: flex; align-items: center; gap: 20px; padding: 0 20px;
-  background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
-.brand { font-weight: 700; color: var(--text); }
+  background: var(--brand-bar); border-bottom: 0; position: sticky; top: 0; z-index: 10; }
+.brand { font-weight: 800; color: var(--on-primary); }
+.brand:hover { text-decoration: none; }
 .modnav { display: flex; gap: 4px; flex: 1; }
-.modnav a { padding: 6px 10px; border-radius: var(--radius-sm); color: var(--text-2); }
-.modnav a.current { background: var(--primary-weak); color: var(--primary); font-weight: 600; }
-.who { display: flex; align-items: center; gap: 10px; color: var(--text-2); font-size: 13px; }
-.role { padding: 2px 8px; border-radius: 999px; background: var(--surface-2); font-size: 12px; }
+.modnav a { padding: 6px 10px; border-radius: var(--radius-sm); color: var(--on-primary-dim); }
+.modnav a:hover { background: var(--on-primary-hover); color: var(--on-primary); text-decoration: none; }
+.modnav a.current { background: var(--on-primary); color: var(--primary-strong); font-weight: 700; }
+.who { display: flex; align-items: center; gap: 10px; color: var(--on-primary); font-size: 13px; }
+.role { padding: 2px 8px; border-radius: 999px; background: var(--on-primary); color: var(--primary-strong); font-size: 12px; font-weight: 600; }
 .devswitch select { font: inherit; font-size: 12px; padding: 3px 6px; border: 1px dashed var(--warn); border-radius: var(--radius-sm); background: var(--warn-weak); }
 .layout { display: grid; grid-template-columns: var(--side-w) 1fr; min-height: calc(100vh - 52px); }
 .side { background: var(--surface); border-right: 1px solid var(--border); padding: 16px 10px; }
 .side a { display: block; padding: 8px 12px; border-radius: var(--radius-sm); color: var(--text); margin-bottom: 2px; }
-.side a.active { background: var(--primary-weak); color: var(--primary); font-weight: 600; }
-.side a:hover { background: var(--surface-2); text-decoration: none; }
+.side a.active { background: var(--primary); color: var(--on-primary); font-weight: 600; }
+.side a:hover { background: var(--primary-weak); text-decoration: none; }
+.side a.active:hover { background: var(--primary); }
 main { padding: 24px 28px 48px; max-width: 1280px; }
 .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
 .page-head p { margin: 4px 0 0; }
@@ -128,15 +131,15 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
 .has-error input, .has-error select, .has-error textarea { border-color: var(--danger); }
 .btn { font: inherit; display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: var(--radius-sm);
   border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
-.btn:hover { text-decoration: none; background: var(--surface-2); }
-.btn.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+.btn:hover { text-decoration: none; background: var(--primary-weak); border-color: var(--primary); }
+.btn.primary { background: var(--primary); border-color: var(--primary); color: var(--on-primary); }
 .btn.primary:hover { filter: brightness(.95); }
 .btn.sm { padding: 4px 10px; font-size: 12px; }
 .btn[disabled] { opacity: .5; cursor: not-allowed; }
 .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .toolbar input, .toolbar select { width: auto; min-width: 180px; }
 
-.notice { padding: 10px 14px; border-radius: var(--radius-sm); background: var(--primary-weak); color: var(--primary); margin-bottom: 16px; }
+.notice { padding: 10px 14px; border-radius: var(--radius-sm); background: var(--primary-weak); color: var(--primary-strong); margin-bottom: 16px; }
 .notice.ok { background: var(--ok-weak); color: var(--ok); }
 .locked { color: var(--text-3); font-size: 13px; padding: 12px 0; }
 .empty { color: var(--text-3); padding: 18px 0; text-align: center; }
@@ -162,7 +165,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
 .ai-examples { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
 .chip-btn { font: inherit; font-size: 12px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border);
   background: var(--surface-2); color: var(--text); cursor: pointer; }
-.chip-btn:hover { border-color: var(--primary); color: var(--primary); }
+.chip-btn:hover { border-color: var(--primary); color: var(--primary-strong); }
 .ai-msg { border-radius: var(--radius); padding: 10px 14px; line-height: 1.65; }
 .ai-msg.q { align-self: flex-end; max-width: 80%; background: var(--primary-weak); white-space: pre-wrap; }
 .ai-msg.a { background: var(--surface); border: 1px solid var(--border); }
@@ -208,7 +211,7 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
 .ai-dock-open { display: none; }
 .ai-closed .ai-dock-open { display: flex; flex-direction: column; align-items: center; gap: 2px; position: fixed; right: 16px; bottom: 72px;
   z-index: 20; width: 56px; height: 56px; justify-content: center; border-radius: 50%; border: none; cursor: pointer;
-  background: var(--primary); color: #fff; font: inherit; font-weight: 700; font-size: 14px; box-shadow: 0 4px 14px rgba(47, 91, 234, .35); }
+  background: var(--primary); color: #fff; font: inherit; font-weight: 700; font-size: 14px; box-shadow: 0 4px 14px var(--primary-shadow); }
 .ai-dock-open span { font-size: 10px; font-weight: 500; }
 @media (max-width: 1439px) {
   .layout.with-ai, .ai-closed .layout.with-ai { grid-template-columns: var(--side-w) minmax(0, 1fr); }

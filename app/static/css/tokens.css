@@ -11,8 +11,15 @@
   --text-2: #5b6474;
   --text-3: #8a93a3;
 
-  --primary: #2f5bea;
-  --primary-weak: #e8eefe;
+  /* 브랜드 색 (KR WBR 표지) — 상단바·선택된 메뉴·버튼 */
+  --primary: #fe375c;
+  --primary-strong: #d81b4f;      /* 흰 바탕 위 글자·링크 (읽기 쉬운 진한 쪽) */
+  --primary-weak: #ffe9ee;
+  --primary-shadow: rgba(254, 55, 92, .35);
+  --brand-bar: linear-gradient(135deg, #e5245e 0%, #d6175f 100%);
+  --on-primary: #ffffff;
+  --on-primary-dim: rgba(255, 255, 255, .85);
+  --on-primary-hover: rgba(255, 255, 255, .14);
   --ok: #1f8a4c;
   --ok-weak: #e3f4ea;
   --warn: #b26a00;

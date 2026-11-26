@@ -110,6 +110,36 @@
       <span class="muted">{% for t in team.tls %}{{ t.tl }} {{ t.n }}{{ " · " if not loop.last }}{% endfor %}</span></div>
     {% endif %}
   </section>
+
+  <section class="card" id="attendance" style="margin-bottom:var(--gap)">
+    <h2>근태 불러오기 <span class="small muted">— 원본 시트 Schedule KR → 상담사 360 근태</span></h2>
+    <p class="small muted">1시간마다 자동으로 <b>지난달 1일 ~ 오늘</b>을 읽어 바뀐 칸만 반영합니다.
+      Approved AL → 연차 · 배경 <span class="swatch" style="background:var(--sheet-late)"></span> 지각 · <span class="swatch" style="background:var(--sheet-early)"></span> 조퇴 ·
+      Absent → 결근 · …휴가/휴직 · Sat off·PH → 휴무 · 근무시간 → 정상.
+      {% if att_loads %}<br>마지막 반영: {{ att_loads[0].loaded_at[:16]|replace('T', ' ') }} UTC ({{ att_loads[0].loaded_by }}) ·
+        {{ att_loads[0].agents }}명 {{ att_loads[0].cells }}칸 · 바뀐 칸 {{ att_loads[0].upserts }} · 뺀 칸 {{ att_loads[0].deletes }}{% endif %}</p>
+    <form method="post" action="/info/attendance-sync#attendance" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn" name="mode" value="preview">미리보기 (저장 안 함)</button>
+      <button class="btn primary" name="mode" value="save">지금 반영</button>
+      <label class="small"><input type="checkbox" name="force" value="1" style="width:auto"> 지울 칸이 많아도 저장 (보통은 끄기)</label>
+    </form>
+    {% if att_error %}<p class="small" style="color:var(--danger);margin-top:8px">❌ 근태: {{ att_error }}</p>{% endif %}
+    {% if att %}
+    <div class="small" style="margin-top:8px">
+      {% if att_saved %}✅ 근태 반영 ({{ att.load_id }}){% else %}👀 근태 미리보기 (아직 저장 안 함){% endif %}
+      — {{ att.since }} ~ {{ att.until }} ({{ att.days }}일) · {{ att.agents }}명 {{ att.cells }}칸 · 바뀔 칸 <b>{{ att.upserts }}</b> · 뺄 칸 <b>{{ att.deletes }}</b> (저장돼 있던 칸 {{ att.stored_before }})
+      <div>{% for k, v in att.by_status.items() %}{{ k }} {{ v }}{{ " · " if not loop.last }}{% endfor %}</div>
+      {% if att.refused %}<div style="color:var(--danger)">⚠ {{ att.refused }}</div>{% endif %}
+      {% if att.unknown %}<div class="muted">기타(모르는 값): {% for v, n in att.unknown %}{{ v }} {{ n }}{{ " · " if not loop.last }}{% endfor %}</div>{% endif %}
+      {% if att.duplicate_ids %}<div class="muted">두 줄인 사번 (위 줄 값 사용): {{ att.duplicate_ids|join(', ') }}</div>{% endif %}
+      {% if att.samples %}<div class="table-wrap" style="max-height:240px;margin-top:6px"><table class="fit">
+        <thead><tr><th>사번</th><th>날짜</th><th>상태</th><th>시트 칸</th><th>전</th></tr></thead>
+        <tbody>{% for u in att.samples %}<tr><td class="mono">{{ u.agent_id }}</td><td>{{ u.date }}</td><td>{{ u.status }}</td>
+          <td>{% if u.bg %}<span class="swatch" style="background:{{ u.bg }}"></span>{% endif %}{{ u.detail }}</td><td class="muted">{{ u.before }}</td></tr>{% endfor %}</tbody>
+      </table></div>{% endif %}
+    </div>
+    {% endif %}
+  </section>
   {% endif %}
 
   {% if can_edit %}

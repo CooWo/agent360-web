@@ -23,6 +23,7 @@ from app.modules.info.services.edits import InfoEditChange, effective_info
 from app.modules.info.wiring import change_service
 from app.modules.roster.data import get_store
 from app.modules.roster.data.info_loader import LoadRefused, info_loader, team_loader
+from app.modules.roster.services.attendance_sync import AttendanceRefused, AttendanceSync
 from app.modules.roster.services.info_sync import InfoSyncService
 from app.modules.roster.services.team_sync import TeamRosterSync
 
@@ -36,6 +37,7 @@ def _module():
 def _page(user: User, change: str | None = None, status_code: int = 200, **extra) -> HTMLResponse:
     ctx = views.info(get_store(), user, _module().screens, date.today().isoformat(), change_service(), change)
     html = render("info/info.html", {"sync": None, "sync_error": "", "team": None, "team_error": "", "errors": {},
+                                     "att": None, "att_error": "", "att_loads": [],
                                      **ctx, **extra}, user=user,
                   module=_module(), active="info", users_for_switch=dev_users())
     return HTMLResponse(html, status_code=status_code)
@@ -73,6 +75,22 @@ async def sync(request: Request, user: User = Depends(current_user)):
     except (SheetAccessError, LoadRefused, ValueError) as e:
         extra["team_error"] = str(e)
     return _page(user, status_code=400 if ("sync_error" in extra or "team_error" in extra) else 200, **extra)
+
+
+@router.post("/attendance-sync", response_class=HTMLResponse)
+async def attendance_sync(request: Request, user: User = Depends(current_user)):
+    """근태(시트 Schedule KR) 지금 불러오기: mode=preview | save. 평소에는 예약 실행이 1시간마다 한다."""
+    form = await request.form()
+    save = form.get("mode") == "save"
+    try:
+        out = views.attendance_sync(AttendanceSync(GoogleSheetReader(), get_store()), user, _module().screens,
+                                    dry_run=not save, force=form.get("force") == "1")
+    except (SheetAccessError, AttendanceRefused, ValueError) as e:
+        return _page(user, att_error=str(e), status_code=400)
+    if save:
+        audit(get_backend(), user, "attendance_sync", "attendance", out["load_id"] or "",
+              {k: out[k] for k in ("since", "until", "upserts", "deletes", "cells")})
+    return _page(user, att=out, att_saved=save)
 
 
 @router.post("/team-sync", response_class=HTMLResponse)

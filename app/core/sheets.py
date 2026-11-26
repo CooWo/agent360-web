@@ -43,6 +43,31 @@ class GoogleSheetReader:
         r.raise_for_status()
         return r.json().get("values", [])
 
+    def cells(self, spreadsheet_id: str, a1_range: str) -> list[list[tuple[str, str]]]:
+        """칸 값 + 배경색 ('#rrggbb', 조건부 서식 결과 포함). 범위의 첫 칸이 [0][0]. 필요한 필드만 받는다."""
+        url = f"https://sheets.googleapis.com/v4/spreadsheets/{spreadsheet_id}"
+        params = {"ranges": a1_range, "includeGridData": "true",
+                  "fields": "sheets(data(rowData(values(formattedValue,"
+                            "effectiveFormat(backgroundColor,backgroundColorStyle)))))"}
+        r = self.s.get(url, params=params, timeout=180)
+        if r.status_code == 403:
+            raise SheetAccessError("시트를 읽을 권한이 없습니다. 서버 서비스 계정에 시트 공유가 필요합니다.")
+        if r.status_code == 404:
+            raise SheetAccessError("시트 또는 탭을 찾을 수 없습니다.")
+        r.raise_for_status()
+        sheets = r.json().get("sheets") or [{}]
+        data = (sheets[0].get("data") or [{}])[0]
+        return [[(v.get("formattedValue", ""), cell_bg(v.get("effectiveFormat") or {})) for v in row.get("values", [])]
+                for row in data.get("rowData", [])]
+
+
+def cell_bg(fmt: dict) -> str:
+    """effectiveFormat → '#rrggbb' (값이 없으면 ''). 빠진 색 성분은 0 (API 규칙)."""
+    c = (fmt.get("backgroundColorStyle") or {}).get("rgbColor") or fmt.get("backgroundColor")
+    if not c:
+        return ""
+    return "#" + "".join(f"{round(float(c.get(k, 0)) * 255):02x}" for k in ("red", "green", "blue"))
+
 
 class SheetWriter(Protocol):
     def append(self, spreadsheet_id: str, a1_range: str, rows: list[list[str]]) -> int: ...

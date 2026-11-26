@@ -45,6 +45,7 @@ def info(store, user: User, screens: dict, today: str, changes: ChangeService | 
             "today": today, "can_sync": user.can("info.sync"), "can_edit": any(c["edit"] for c in cols),
             "can_add": can_edit(user, "name"), "edited_count": sum(1 for r in rows if r["_edited"]),
             "preview": preview, "history": history, "latest_applied": latest, "header_help": header_help(user), "ba_headers": ba_headers(),
+            "att_loads": store.attendance_loads(5) if user.can("info.sync") else [],
             "team_load": {"rows": len(team), "tls": len({r["tl_name"] for r in team}),
                           "loaded_at": str(team[0].get("loaded_at") or ""), "loaded_by": team[0].get("loaded_by")}
             if team else None}
@@ -55,6 +56,13 @@ def info_sync(service, user: User, screens: dict, dry_run: bool, force: bool = F
     _need(user, "info.sync", "INFO 불러오기")
     cfg = screens["screens"]["info"]
     return service.run(cfg["source_sheet"], cfg["source_tab"], user.email, cfg.get("header_row", 2), dry_run, force)
+
+
+def attendance_sync(service, user: User, screens: dict, dry_run: bool, force: bool = False) -> dict:
+    """근태(시트 Schedule KR) 불러오기 — 지난달 1일 ~ 오늘, 바뀐 칸만. 예약 실행(1시간마다)과 같은 서비스."""
+    _need(user, "info.sync", "근태 불러오기")
+    cfg = screens["screens"]["info"]
+    return service.run(cfg["attendance_sheet"], cfg["attendance_tab"], user.email, dry_run=dry_run, force=force)
 
 
 def team_sync(service, user: User, screens: dict, dry_run: bool, force: bool = False) -> dict:

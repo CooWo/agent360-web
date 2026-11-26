@@ -102,4 +102,5 @@ def attendance_summary(rows: list[dict], as_of: str, days: int) -> dict:
     t = date.fromisoformat(as_of)
     recent = sorted([r for r in rows if 0 < (t - date.fromisoformat(r["date"])).days <= days], key=lambda r: r["date"])
     c = Counter(r["status"] for r in recent)
-    return {"days": recent, "count": dict(c), "absent": c.get("결근", 0), "late": c.get("지각", 0), "leave": c.get("연차", 0)}
+    return {"days": recent, "count": dict(c), "absent": c.get("결근", 0), "late": c.get("지각", 0), "leave": c.get("연차", 0),
+            "early": c.get("조퇴", 0), "off_leave": c.get("휴가", 0) + c.get("휴직", 0)}

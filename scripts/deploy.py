@@ -8,6 +8,7 @@
     python scripts/deploy.py url    --project v12-2027     # 접속 주소 보기
     python scripts/deploy.py ai-access --project v12-2027  # 앱 계정이 기존 데이터 에이전트(v11-2026)를 쓰게 권한 주기
     python scripts/deploy.py kpi-pipeline --project v12-2027  # KPI 매일 갱신 예약 쿼리 (v11 Dynamic → v12 kpi)
+    python scripts/deploy.py attendance-job --project v12-2027  # 근태(Schedule KR) 1시간마다 불러오기 (작업 + 예약)
 
 공통 옵션: --region asia-northeast3 --service agent360 --dry-run(실행 없이 명령만 출력)
 접속 허용(grant)은 '들어올 수 있는 사람', 앱 안의 역할·팀은 bq_setup.py user 로 따로 등록한다.
@@ -169,6 +170,47 @@ def cmd_kpi_pipeline(run: Runner, a):
     print(f"\n✅ 예약 쿼리 {'수정' if found else '생성'}: {out.get('name', '(dry-run)')} · 다음 실행 {out.get('nextRunTime', '')}")
 
 
+ATT_DDL = [
+    "ALTER TABLE `{p}.common.fact_attendance` ADD COLUMN IF NOT EXISTS detail STRING",
+    "ALTER TABLE `{p}.common.fact_attendance` ADD COLUMN IF NOT EXISTS bg STRING",
+    "ALTER TABLE `{p}.common.fact_attendance` ADD COLUMN IF NOT EXISTS source STRING",
+    "ALTER TABLE `{p}.common.fact_attendance` ADD COLUMN IF NOT EXISTS load_id STRING",
+    "ALTER TABLE `{p}.common.fact_attendance` ADD COLUMN IF NOT EXISTS loaded_at TIMESTAMP",
+]
+
+
+def cmd_attendance_job(run: Runner, a):
+    """근태 불러오기 예약: Cloud Run 작업(웹과 같은 코드, 웹 서버와 따로 실행) + Cloud Scheduler (기본 1시간마다).
+    앱 계정에는 common.fact_attendance 표 하나만 쓰기 권한을 준다. 표 열 더하기·기록 표 만들기도 같이 한다."""
+    from google.cloud import bigquery
+    sa, job = sa_email(a), f"{a.service}-attendance"
+    roster_ddl = (ROOT / "sql" / "ddl" / "04_roster.sql").read_text(encoding="utf-8")
+    loads_ddl = "CREATE TABLE" + roster_ddl.split("CREATE TABLE")[-1]           # 맨 끝 = attendance_loads
+    sqls = [q.format(p=a.project) for q in ATT_DDL] + [loads_ddl.replace("${PROJECT}", a.project),
+            f'GRANT `roles/bigquery.dataEditor` ON TABLE `{a.project}.{a.common}.fact_attendance` TO "serviceAccount:{sa}"']
+    for sql in sqls:
+        print(f"\n$ (BigQuery) {sql.splitlines()[0]} ...")
+        if not a.dry_run:
+            bigquery.Client(project=a.project, location=a.region).query(sql).result()
+    run(["gcloud", "services", "enable", "cloudscheduler.googleapis.com", f"--project={a.project}"])
+    run(["gcloud", "run", "jobs", "deploy", job, "--source=.", f"--region={a.region}", f"--project={a.project}",
+         f"--service-account={sa}", f"--set-env-vars={env_vars(a)}", "--command=python",
+         "--args=-m,app.modules.roster.attendance_job", "--memory=512Mi", "--cpu=1", "--task-timeout=900",
+         "--max-retries=1", "--quiet"])
+    run(["gcloud", "run", "jobs", "add-iam-policy-binding", job, f"--region={a.region}", f"--project={a.project}",
+         f"--member=serviceAccount:{sa}", "--role=roles/run.invoker", "--quiet"])
+    uri = f"https://run.googleapis.com/v2/projects/{a.project}/locations/{a.region}/jobs/{job}:run"
+    sched = [f"--location={a.region}", f"--project={a.project}", f"--schedule={a.att_schedule}",
+             "--time-zone=Asia/Seoul", f"--uri={uri}", "--http-method=POST", f"--oauth-service-account-email={sa}",
+             "--quiet"]
+    exists = run(["gcloud", "scheduler", "jobs", "describe", job, f"--location={a.region}", f"--project={a.project}",
+                  "--format=value(name)"], ok_fail=True, capture=True)
+    run(["gcloud", "scheduler", "jobs", "update" if exists else "create", "http", job, *sched])
+    print(f"\n✅ 근태 예약: {a.att_schedule} (한국 시간). 처음 한 번 과거 채우기:\n"
+          f"   gcloud run jobs execute {job} --region={a.region} --project={a.project} "
+          "--args=-m,app.modules.roster.attendance_job,--since,2025-12-28")
+
+
 def cmd_deploy(run: Runner, a):
     num = project_number(run, a)
     run(["gcloud", "run", "deploy", a.service, "--source=.", f"--region={a.region}", f"--project={a.project}",
@@ -295,7 +337,8 @@ def cmd_url(run: Runner, a):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("cmd", choices=["setup", "deploy", "grant", "url", "ai-access", "kpi-pipeline"])
+    ap.add_argument("cmd", choices=["setup", "deploy", "grant", "url", "ai-access", "kpi-pipeline",
+                                       "attendance-job"])
     ap.add_argument("--project", required=True)
     ap.add_argument("--region", default="asia-northeast3")
     ap.add_argument("--service", default="agent360")
@@ -311,11 +354,13 @@ def main():
                     help="데이터 에이전트 ID (AI BA CHAT (Volume)). 빈 값이면 AI 끔")
     ap.add_argument("--agent-datasets", default="Dynamic", help="에이전트가 읽는 데이터셋 (쉼표 구분)")
     ap.add_argument("--kpi-days", type=int, default=120, help="kpi-pipeline: 매일 다시 넣을 최근 일수")
+    ap.add_argument("--att-schedule", default="10 * * * *", help="attendance-job: 근태 불러오기 주기 (cron, 한국 시간)")
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     run = Runner(a.dry_run)
     {"setup": cmd_setup, "deploy": cmd_deploy, "grant": cmd_grant, "url": cmd_url,
-     "ai-access": cmd_ai_access, "kpi-pipeline": cmd_kpi_pipeline}[a.cmd](run, a)
+     "ai-access": cmd_ai_access, "kpi-pipeline": cmd_kpi_pipeline,
+     "attendance-job": cmd_attendance_job}[a.cmd](run, a)
 
 
 if __name__ == "__main__":

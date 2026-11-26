@@ -1,8 +1,10 @@
 <section class="card">
-  <h2>근태 · 최근 {{ cfg.attendance_days }}일 <span class="muted small">결근 {{ attendance.absent }} · 지각 {{ attendance.late }} · 연차 {{ attendance.leave }}</span></h2>
+  <h2>근태 · 최근 {{ cfg.attendance_days }}일 <span class="muted small">결근 {{ attendance.absent }} · 지각 {{ attendance.late }} · 조퇴 {{ attendance.early }} · 연차 {{ attendance.leave }}{% if attendance.off_leave %} · 휴가·휴직 {{ attendance.off_leave }}{% endif %}</span></h2>
   <div class="att-strip">
-    {% for d in attendance.days %}<span class="att {{ d.status }}" title="{{ d.date }} {{ d.status }}"></span>{% endfor %}
+    {% for d in attendance.days %}<span class="att {{ d.status }}" title="{{ d.date }} {{ d.status }}{{ ' · ' ~ d.detail if d.detail }}"></span>{% endfor %}
   </div>
   <div class="legend"><span><i style="background:var(--att-ok)"></i>정상</span><span><i style="background:var(--att-absent)"></i>결근</span>
-    <span><i style="background:var(--att-late)"></i>지각</span><span><i style="background:var(--att-leave)"></i>연차</span></div>
+    <span><i style="background:var(--att-late)"></i>지각</span><span><i style="background:var(--att-early)"></i>조퇴</span>
+    <span><i style="background:var(--att-leave)"></i>연차·휴가</span><span><i style="background:var(--att-rest)"></i>휴직</span>
+    <span><i style="background:var(--att-off)"></i>휴무</span><span><i style="background:var(--att-train)"></i>교육</span></div>
 </section>

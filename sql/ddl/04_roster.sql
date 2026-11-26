@@ -189,3 +189,22 @@ SELECT
   m.emp_id IS NULL AS web_only
 FROM `${PROJECT}.roster.mart_agent_info` m
 FULL OUTER JOIN w ON w.emp_id = m.emp_id;
+
+-- ── 근태 ── 원본 시트 'Schedule KR' → common.fact_attendance (바뀐 칸만 MERGE). 불러오기 기록:
+-- 예약 실행: python -m app.modules.roster.attendance_job  (Cloud Run 작업 + Cloud Scheduler, deploy.py attendance-job)
+CREATE TABLE IF NOT EXISTS `${PROJECT}.roster.attendance_loads` (
+  load_id   STRING    NOT NULL,
+  loaded_at TIMESTAMP NOT NULL,
+  loaded_by STRING    OPTIONS (description = '누른 사람 이메일 또는 scheduler'),
+  source    STRING    OPTIONS (description = '시트 ID / 탭'),
+  since     DATE,
+  until     DATE,
+  agents    INT64     OPTIONS (description = '읽은 상담사 수'),
+  cells     INT64     OPTIONS (description = '기간 안 근태 칸 수'),
+  upserts   INT64     OPTIONS (description = '새로 넣거나 고친 칸'),
+  deletes   INT64     OPTIONS (description = '시트에서 지워져 뺀 칸'),
+  by_status STRING    OPTIONS (description = 'JSON {상태: 칸 수}'),
+  unknown   STRING    OPTIONS (description = 'JSON [[모르는 값, 개수], ...] → 기타')
+)
+PARTITION BY DATE(loaded_at)
+OPTIONS (partition_expiration_days = 1095);

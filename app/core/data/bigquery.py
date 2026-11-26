@@ -153,7 +153,7 @@ class BigQueryBackend:
         return out
 
     def attendance(self, agent_id, since):
-        return self._fact("fact_attendance", "agent_id, CAST(date AS STRING) date, status", agent_id, since, "date")
+        return self._fact("fact_attendance", "agent_id, CAST(date AS STRING) date, status, detail", agent_id, since, "date")
 
     def qa(self, agent_id, since):
         return self._fact("fact_qa", "qa_id, agent_id, CAST(date AS STRING) date, score, error_types", agent_id, since, "date DESC")

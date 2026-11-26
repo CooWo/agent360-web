@@ -23,6 +23,7 @@ class RosterSample:
         self._info_path = rt / "roster_info_mart.json"
         self._edits_path = rt / "roster_info_edits.json"
         self._team_path = rt / "roster_team.json"
+        self._att_path = rt / "roster_attendance.json"
         if self._info_path.exists():
             saved = json.loads(self._info_path.read_text(encoding="utf-8"))
             self._info, self._load = saved["rows"], saved["load"]
@@ -108,3 +109,20 @@ class RosterSample:
             ds = self._read(self._drafts_path, {})
             if ds.pop(email.lower(), None) is not None:
                 self._write(self._drafts_path, ds)
+
+    # ── 근태 (Schedule KR 에서 읽은 것만) ──
+    def attendance_rows(self, since: str, until: str) -> list[dict]:
+        rows = self._read(self._att_path, {"rows": [], "loads": []})["rows"]
+        return [dict(r) for r in rows if since <= r["date"] <= until]
+
+    def apply_attendance(self, upserts: list[dict], deletes: list[tuple[str, str]], load: dict) -> None:
+        with self._lock:
+            doc = self._read(self._att_path, {"rows": [], "loads": []})
+            gone = {tuple(k) for k in deletes} | {(u["agent_id"], u["date"]) for u in upserts}
+            doc["rows"] = [r for r in doc["rows"] if (r["agent_id"], r["date"]) not in gone]
+            doc["rows"] += [{**u, "source": "schedule_kr", "load_id": load["load_id"]} for u in upserts]
+            doc["loads"].append({**load, "loaded_at": _now()})
+            self._write(self._att_path, doc)
+
+    def attendance_loads(self, limit: int = 10) -> list[dict]:
+        return list(reversed(self._read(self._att_path, {"rows": [], "loads": []})["loads"]))[:limit]

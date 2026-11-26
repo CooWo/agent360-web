@@ -40,7 +40,14 @@ class DraftStore(Protocol):
     def clear_draft(self, email: str) -> None: ...
 
 
-class RosterStore(AgentInfoSource, TeamRosterSource, InfoEditStore, BoardStore, DraftStore, Protocol):
+class AttendanceStore(Protocol):
+    """근태 (원본 시트 Schedule KR → common.fact_attendance). 시트에서 온 것(source=schedule_kr)만 다룬다."""
+    def attendance_rows(self, since: str, until: str) -> list[dict]: ...
+    def apply_attendance(self, upserts: list[dict], deletes: list[tuple[str, str]], load: dict) -> None: ...
+    def attendance_loads(self, limit: int = 10) -> list[dict]: ...
+
+
+class RosterStore(AgentInfoSource, TeamRosterSource, InfoEditStore, BoardStore, DraftStore, AttendanceStore, Protocol):
     """팀 구성 화면이 쓰는 저장소 전체."""
 
 
@@ -56,7 +63,7 @@ def _sample(sample_dir: str, project: str, location: str, dataset: str):
 @STORES.register("bigquery")
 def _bigquery(sample_dir: str, project: str, location: str, dataset: str):
     from app.modules.roster.data.bigquery import RosterBigQuery
-    return RosterBigQuery(project, location, dataset)
+    return RosterBigQuery(project, location, dataset, get_settings().common_dataset)
 
 
 @lru_cache

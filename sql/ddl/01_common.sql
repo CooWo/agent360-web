@@ -44,12 +44,23 @@ PARTITION BY date
 CLUSTER BY agent_id;
 
 CREATE TABLE IF NOT EXISTS `${PROJECT}.common.fact_attendance` (
-  agent_id STRING NOT NULL,
-  date     DATE   NOT NULL,
-  status   STRING OPTIONS (description = '정상 | 지각 | 조퇴 | 결근 | 휴가')
+  agent_id  STRING NOT NULL,
+  date      DATE   NOT NULL,
+  status    STRING OPTIONS (description = '정상 | 지각 | 조퇴 | 결근 | 연차 | 휴가 | 휴직 | 휴무 | 교육 | 기타 (판정: app/modules/roster/services/attendance.py)'),
+  detail    STRING OPTIONS (description = '원본 칸 글 그대로 (예: 09:00~18:00 NOT (30mins), 육아휴가)'),
+  bg        STRING OPTIONS (description = '원본 칸 배경색 #rrggbb (#ff9900 지각, #f9cb9c 조퇴)'),
+  source    STRING OPTIONS (description = 'schedule_kr = 원본 시트 Schedule KR 에서 읽음'),
+  load_id   STRING OPTIONS (description = 'roster.attendance_loads.load_id'),
+  loaded_at TIMESTAMP
 )
 PARTITION BY date
 CLUSTER BY agent_id;
+-- 예전 표에 열 더하기 (있으면 그대로)
+ALTER TABLE `${PROJECT}.common.fact_attendance` ADD COLUMN IF NOT EXISTS detail STRING;
+ALTER TABLE `${PROJECT}.common.fact_attendance` ADD COLUMN IF NOT EXISTS bg STRING;
+ALTER TABLE `${PROJECT}.common.fact_attendance` ADD COLUMN IF NOT EXISTS source STRING;
+ALTER TABLE `${PROJECT}.common.fact_attendance` ADD COLUMN IF NOT EXISTS load_id STRING;
+ALTER TABLE `${PROJECT}.common.fact_attendance` ADD COLUMN IF NOT EXISTS loaded_at TIMESTAMP;
 
 CREATE TABLE IF NOT EXISTS `${PROJECT}.common.fact_qa` (
   qa_id       STRING NOT NULL,

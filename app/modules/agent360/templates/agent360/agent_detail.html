@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "agent360/_macros.html" import signal_chip %}
-{% from "agent360/_brief.html" import ai_brief %}
+{% from "agent360/_brief.html" import ai_brief with context %}
 {% block title %}{{ agent.name }} · {{ app_title }}{% endblock %}
 {% block content %}
 {% if saved %}<div class="notice ok">코칭 기록을 저장했습니다.</div>{% endif %}

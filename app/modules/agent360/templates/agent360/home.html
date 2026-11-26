@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% from "agent360/_macros.html" import score_badge, signal_chip, status_ctl %}
-{% from "agent360/_brief.html" import ai_brief %}
+{% from "agent360/_brief.html" import ai_brief with context %}
 {% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
 {% block content %}
 <div class="page-head">

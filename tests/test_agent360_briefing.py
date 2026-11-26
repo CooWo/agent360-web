@@ -72,3 +72,5 @@ def test_briefing_api(backend, monkeypatch):
     page = c.get(f"/agent360/agents/{aid}").text
     assert 'class="card ai-brief"' in page and 'data-kind="agent"' in page
     assert 'data-kind="home"' in c.get("/agent360").text
+    monkeypatch.setattr(ai, "get_data_agent", lambda: ag)                       # AI 켜짐 → 카드가 자동 요약을 시작
+    assert 'data-enabled="1"' in c.get("/agent360").text and 'data-enabled="1"' in c.get(f"/agent360/agents/{aid}").text

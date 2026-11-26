@@ -87,6 +87,35 @@ def weekly(rows: list[dict], as_of: str, weeks: int) -> list[dict]:
     return out
 
 
+ATT_SHOW = ("결근", "지각", "조퇴", "연차", "휴가", "휴직", "연장근로")
+
+
+def scorecard(kpi_rows: list[dict], att_rows: list[dict], as_of: str, keys: list[str], weeks: int = 6) -> dict:
+    """코칭 스코어카드 — 끝난 주 weeks 개 + 러닝 주(아직 안 끝난 이번 주, 데이터가 있을 때만). 근태는 주차별 상태 칸 수."""
+    wk = weekly(kpi_rows, as_of, weeks + 1)
+    running = wk[-1] if wk[-1]["partial"] and wk[-1]["days"] else None
+    full = (wk[:-1] if wk[-1]["partial"] else wk)[-weeks:]
+    att: dict[str, Counter] = defaultdict(Counter)
+    for r in att_rows:
+        att[week_end(date.fromisoformat(r["date"])).isoformat()][r["status"]] += 1
+    cols = full + ([running] if running else [])
+    for c in cols:
+        c["att"] = [(s, att[c["week_end"]][s]) for s in ATT_SHOW if att[c["week_end"]][s]]
+        c["att_days"] = sum(att[c["week_end"]].values())
+    rows = []
+    for k in keys:
+        m = BY_KEY[k]
+        target = next((c.get(f"{k}_target") for c in reversed(cols) if c.get(f"{k}_target") is not None), None)
+        cells = []
+        for c in cols:
+            v = c[k]
+            rv, rt = (None, None) if (v is None or target is None) else (round(v, m.digits), round(target, m.digits))
+            ok = None if rv is None else ((rv >= rt) if m.better == "up" else (rv <= rt))   # 보이는 자릿수로 비교
+            cells.append({"v": v, "ok": ok})
+        rows.append({"key": k, "label": m.label, "unit": m.unit, "digits": m.digits, "target": target, "cells": cells})
+    return {"cols": cols, "rows": rows, "running": running is not None}
+
+
 def compare(rows: list[dict], as_of: str, recent_days: int = 28, prior_days: int = 28) -> dict:
     """최근 N일 vs 직전 N일 비교 (요약 카드용)."""
     t = date.fromisoformat(as_of)

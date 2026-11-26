@@ -154,7 +154,24 @@ def coaching(backend, user: User, screens: dict, agent_id: str | None = None,
         "categories": cfg.get("categories") or coaching_svc.CATEGORIES,
         "form": {**default, **(form or {})}, "errors": errors or {},
         "followups": coaching_svc.followups(backend, user, as_of, 7), "recent": recent,
+        "sc": coaching_scorecard(backend, user, screens, (form or {}).get("agent_id") or agent_id),
     }
+
+
+def coaching_scorecard(backend, user: User, screens: dict, agent_id: str | None) -> dict | None:
+    """코칭 기록 위 스코어카드 — 고른 상담사의 NPS·SPD·Throughput·Reopen·근태, 지난 6주 + 러닝 주."""
+    if not agent_id:
+        return None
+    agent = backend.get_agent(user.scope, agent_id)
+    if not agent or not user.can_view_sensitive(agent["team"]):
+        return None
+    cfg = screens["screens"]["coaching"]
+    weeks = cfg.get("scorecard_weeks", 6)
+    as_of = backend.as_of()
+    since = (date.fromisoformat(as_of) - timedelta(days=7 * (weeks + 2))).isoformat()
+    sc = kpi_svc.scorecard(backend.kpi_daily(agent_id, since), backend.attendance(agent_id, since), as_of,
+                           cfg.get("scorecard_metrics", ["nps", "spd", "throughput", "reopen"]), weeks)
+    return {**sc, "agent": agent, "as_of": as_of, "weeks": weeks}
 
 
 def admin(backend, user: User, screens: dict) -> dict:

@@ -11,6 +11,8 @@
 </div>
 
 <div class="split">
+  <div class="stack">
+  <section class="card" id="scorecard">{% include "agent360/_scorecard.html" %}</section>
   <section class="card">
     <h2>새 코칭 기록 <span class="muted small">(Coaching Form)</span></h2>
     {% if errors %}<div class="notice" style="background:var(--danger-weak);color:var(--danger)">입력값을 확인해 주세요.</div>{% endif %}
@@ -98,6 +100,7 @@
       <div class="toolbar" style="margin-top:14px"><button class="btn primary" type="submit">저장</button></div>
     </form>
   </section>
+  </div>
 
   <aside class="stack rail">
     <section class="card">

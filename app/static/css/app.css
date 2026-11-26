@@ -292,6 +292,12 @@ th.ncol, td.ncol { text-align: center; width: 56px; min-width: 56px; padding-lef
 .tl-sheet td.w-shift input { width: 50px; text-align: center; font-weight: 600; } .tl-sheet td.w-id input { width: 78px; }
 .tl-sheet td.w-name input { width: 58px; } .tl-sheet td.w-en input { width: 118px; } .tl-sheet td.w-disp input { width: 96px; }
 .tl-wrap { overflow: auto; max-height: calc(100vh - 230px); border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
+/* 코칭 스코어카드 */
+.scorecard th.running, .scorecard td.running { background: var(--primary-weak); }
+.scorecard td.sc-ok, .sc-ok { color: var(--ok); }
+.scorecard td.sc-bad, .sc-bad { color: var(--danger); }
+.scorecard { width: 100%; font-size: 13px; }
+.scorecard th.ncol, .scorecard td.ncol { width: auto; min-width: 48px; padding-left: 4px; padding-right: 4px; }
 /* 대시보드 */
 a.dash-tile { color: inherit; display: block; }
 a.dash-tile:hover { text-decoration: none; border-color: var(--primary); }

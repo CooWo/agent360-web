@@ -117,6 +117,15 @@
     }
   });
 
+  // ── 코칭 기록: 상담사를 바꾸면 스코어카드 다시 그리기 ──
+  var scBox = document.getElementById('scorecard'), scSel = document.getElementById('agent_id');
+  if (scBox && scSel) scSel.addEventListener('change', function () {
+    scBox.innerHTML = '<div class="muted small">불러오는 중…</div>';
+    fetch('/agent360/coaching/scorecard?agent_id=' + encodeURIComponent(scSel.value))
+      .then(function (r) { return r.text(); }).then(function (h) { scBox.innerHTML = h; })
+      .catch(function () { scBox.innerHTML = '<div class="muted small">스코어카드를 불러오지 못했습니다.</div>'; });
+  });
+
   // ── AI 브리핑 카드: 화면을 열면 자동으로 요약을 묻는다 (같은 탭에서는 기준일까지 다시 묻지 않음) ──
   document.querySelectorAll('.ai-brief').forEach(function (card) {
     var body = card.querySelector('.ai-brief-body'), meta = card.querySelector('.ai-brief-meta');

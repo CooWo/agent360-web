@@ -35,6 +35,8 @@
     "coaching": {
       "title": "코칭 기록",
       "default_followup_days": 7,
+      "scorecard_weeks": 6,
+      "scorecard_metrics": ["nps", "spd", "throughput", "reopen"],
       "categories": {
         "P0": ["ZTP", "Compliance"],
         "P1": ["NPS(CSQ)"],

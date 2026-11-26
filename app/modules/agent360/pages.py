@@ -49,6 +49,13 @@ def coaching_page(agent_id: str | None = None, user: User = Depends(current_user
     return _page("agent360/coaching.html", views.coaching(get_backend(), user, _module().screens, agent_id=agent_id), user, "coaching")
 
 
+@router.get("/coaching/scorecard", response_class=HTMLResponse)
+def coaching_scorecard(agent_id: str | None = None, user: User = Depends(current_user)):
+    """코칭 기록 화면에서 상담사를 바꾸면 스코어카드 조각만 다시 그린다."""
+    sc = views.coaching_scorecard(get_backend(), user, _module().screens, agent_id)
+    return HTMLResponse(render("agent360/_scorecard.html", {"sc": sc}, user=user, module=_module()))
+
+
 @router.post("/coaching", response_class=HTMLResponse)
 async def coaching_save(request: Request, user: User = Depends(current_user)):
     form = dict(await request.form())

@@ -1,0 +1,22 @@
+{# 코칭 스코어카드 — 지난 6주 + 러닝 주. /agent360/coaching/scorecard 가 이 조각만 다시 그린다. #}
+{% if sc %}
+<h2>스코어카드 · {{ sc.agent.name }} <span class="muted small">지난 {{ sc.weeks }}주{% if sc.running %} + 러닝 주{% endif %} (토요일 마감) · 목표 달성
+  <span class="sc-ok">■</span> 미달 <span class="sc-bad">■</span></span></h2>
+<div class="table-wrap">
+  <table class="fit scorecard">
+    <thead><tr><th>지표</th><th class="ncol">목표</th>
+      {% for c in sc.cols %}<th class="ncol{{ ' running' if c.partial }}">{% if c.partial %}러닝<br><span class="small">~{{ c.label }} · {{ c.days }}일</span>{% else %}{{ c.label }}{% endif %}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {% for r in sc.rows %}
+      <tr><td><b>{{ r.label }}</b> <span class="muted small">{{ r.unit }}</span></td>
+        <td class="ncol num muted">{{ r.target|num(r.digits) if r.target is not none else '–' }}</td>
+        {% for x in r.cells %}<td class="ncol num{{ ' sc-ok' if x.ok else (' sc-bad' if x.ok is false else '') }}{{ ' running' if sc.cols[loop.index0].partial }}">{{ x.v|num(r.digits) }}</td>{% endfor %}</tr>
+    {% endfor %}
+      <tr><td><b>근태</b> <span class="muted small">칸 수</span></td><td class="ncol muted">–</td>
+        {% for c in sc.cols %}<td class="ncol small{{ ' running' if c.partial }}">{% for s, n in c.att %}<div class="{{ 'sc-bad' if s in ('결근', '지각', '조퇴') }}">{{ s }} {{ n }}</div>{% else %}<span class="muted">{{ '이상 없음' if c.att_days else '–' }}</span>{% endfor %}</td>{% endfor %}</tr>
+    </tbody>
+  </table>
+</div>
+{% else %}
+<h2>스코어카드</h2><p class="muted small" style="margin:0">상담사를 고르면 NPS · SPD · Throughput · Reopen · 근태를 지난 6주와 러닝 주로 보여 줍니다.</p>
+{% endif %}

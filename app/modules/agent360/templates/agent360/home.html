@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% from "agent360/_macros.html" import score_badge, signal_chip, status_ctl %}
+{% from "agent360/_brief.html" import ai_brief %}
 {% block title %}{{ cfg.title }} · {{ app_title }}{% endblock %}
 {% block content %}
 <div class="page-head">
@@ -9,57 +10,58 @@
   </div>
 </div>
 
-{% if gaps %}
-<section class="card" style="margin-bottom:var(--gap)">
-  <h2>코칭 부족 {{ gaps|length }}명 <span class="muted small">(코칭이 평가보다 적은 사람 · Rate 낮은 순 · <a href="/agent360/qa">QA · 코칭</a>)</span></h2>
-  <div class="table-wrap" style="max-height:420px">
-    <table class="fit">
-      <thead><tr><th class="ncol">순위</th><th>상담사</th><th>팀</th><th class="r">QA 평균</th>
-        <th class="ncol">평가</th><th class="ncol">코칭</th><th class="ncol">Rate</th><th class="ncol">남은 코칭</th><th>코치</th></tr></thead>
-      <tbody>
-      {% for r in gaps %}
-        <tr><td class="ncol num muted">{{ loop.index }}</td>
-          <td><a href="/agent360/agents/{{ r.agent_id }}"><b>{{ r.name }}</b></a></td><td>{{ r.team }}</td>
-          <td class="r num">{{ r.qa_avg|num(1) }}</td>
-          <td class="ncol num">{{ r.evaluations }}</td><td class="ncol num">{{ r.coaching_sessions }}</td>
-          <td class="ncol num" style="color:var(--danger)"><b>{{ r.rate|num(0) }}%</b></td>
-          <td class="ncol num">{{ r.missing }}</td><td class="small">{{ r.coach or '–' }}</td></tr>
-      {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</section>
-{% endif %}
-
-<div class="split">
-  <section class="card">
-    <h2>먼저 볼 상담사 상위 {{ ranked|length }}명</h2>
-    {% for r in ranked %}
-    <div class="agent-row">
-      <div>{{ score_badge(r.score) }}</div>
-      <div class="who-cell">
-        <a class="name" href="/agent360/agents/{{ r.agent.agent_id }}">{{ r.agent.name }}</a>
-        <div class="muted small">{{ teams.get(r.agent.team, r.agent.team) }} · {{ r.agent.agent_id }}</div>
-        {% if r.open %}<div class="small"><span class="badge warn">미확인 {{ r.open }}</span></div>{% endif %}
+<div class="with-rail">
+  <div class="home-main">
+    {% if gaps %}
+    <section class="card gap-card">
+      <h2>코칭 부족 {{ gaps|length }}명 <span class="muted small">(코칭이 평가보다 적은 사람 · Rate 낮은 순 · <a href="/agent360/qa">QA · 코칭</a>)</span></h2>
+      <div class="table-wrap" style="max-height:280px">
+        <table class="fit">
+          <thead><tr><th class="ncol">순위</th><th>상담사</th><th>팀</th><th class="r">QA 평균</th>
+            <th class="ncol">평가</th><th class="ncol">코칭</th><th class="ncol">Rate</th><th class="ncol">남은 코칭</th><th>코치</th></tr></thead>
+          <tbody>
+          {% for r in gaps %}
+            <tr><td class="ncol num muted">{{ loop.index }}</td>
+              <td><a href="/agent360/agents/{{ r.agent_id }}"><b>{{ r.name }}</b></a></td><td>{{ r.team }}</td>
+              <td class="r num">{{ r.qa_avg|num(1) }}</td>
+              <td class="ncol num">{{ r.evaluations }}</td><td class="ncol num">{{ r.coaching_sessions }}</td>
+              <td class="ncol num" style="color:var(--danger)"><b>{{ r.rate|num(0) }}%</b></td>
+              <td class="ncol num">{{ r.missing }}</td><td class="small">{{ r.coach or '–' }}</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
       </div>
-      <div class="sig-list">
-        {% for s in r.signals %}
-        <div class="sig">
-          <div class="sig-main">{{ signal_chip(s) }}<span class="evidence">{{ s.evidence }}</span></div>
-          {{ status_ctl(s, statuses, can_write) }}
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-    {% else %}
-    <div class="empty">오늘 확인할 신호가 없습니다.</div>
-    {% endfor %}
-    {% if ranked_total > ranked|length %}
-    <p class="muted small">나머지 {{ ranked_total - ranked|length }}명은 <a href="/agent360/agents">상담사 목록</a>에서 신호 점수 순으로 볼 수 있습니다.</p>
+    </section>
     {% endif %}
-  </section>
+    <section class="card">
+      <h2>먼저 볼 상담사 상위 {{ ranked|length }}명</h2>
+      {% for r in ranked %}
+      <div class="agent-row">
+        <div>{{ score_badge(r.score) }}</div>
+        <div class="who-cell">
+          <a class="name" href="/agent360/agents/{{ r.agent.agent_id }}">{{ r.agent.name }}</a>
+          <div class="muted small">{{ teams.get(r.agent.team, r.agent.team) }} · {{ r.agent.agent_id }}</div>
+          {% if r.open %}<div class="small"><span class="badge warn">미확인 {{ r.open }}</span></div>{% endif %}
+        </div>
+        <div class="sig-list">
+          {% for s in r.signals %}
+          <div class="sig">
+            <div class="sig-main">{{ signal_chip(s) }}<span class="evidence">{{ s.evidence }}</span></div>
+            {{ status_ctl(s, statuses, can_write) }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="empty">오늘 확인할 신호가 없습니다.</div>
+      {% endfor %}
+      {% if ranked_total > ranked|length %}
+      <p class="muted small">나머지 {{ ranked_total - ranked|length }}명은 <a href="/agent360/agents">상담사 목록</a>에서 신호 점수 순으로 볼 수 있습니다.</p>
+      {% endif %}
+    </section>
+  </div>
 
-  <aside class="stack">
+  <aside class="stack rail">
     <section class="card">
       <h2>코칭 후속 확인</h2>
       {% if followups.overdue %}
@@ -81,10 +83,7 @@
       <div class="muted small">예정 없음</div>
       {% endfor %}
     </section>
-    <section class="card">
-      <h2>아침 브리핑</h2>
-      <p class="muted small" style="margin:0">6단계에서 Gemini 가 위 신호를 문장으로 요약해 이 자리에 보여 줍니다. (숫자는 SQL 결과 그대로)</p>
-    </section>
+    {{ ai_brief("아침 브리핑", "home", as_of, note="먼저 볼 상담사·코칭 부족·후속 확인 숫자를 AI 가 요약합니다. 이름은 가명으로 보내고 숫자는 위 화면 값 그대로입니다.") }}
   </aside>
 </div>
 {% endblock %}

@@ -1,0 +1,15 @@
+{# AI 브리핑 카드 — 화면을 열면 자동으로 AI BA CHAT 에 요약을 묻는다 (static/js/app.js 의 .ai-brief). #}
+{% macro ai_brief(title, kind, as_of, agent_id='', note='') %}
+<section class="card ai-brief" data-kind="{{ kind }}" data-agent="{{ agent_id }}" data-asof="{{ as_of }}"
+         data-enabled="{{ '1' if ai_dock and ai_dock.enabled else '0' }}">
+  <div class="ai-brief-head">
+    <h2>{{ title }} <span class="muted small">AI BA CHAT</span></h2>
+    <button class="btn sm ai-brief-again" type="button" title="캐시 없이 다시 묻기">다시 요약</button>
+  </div>
+  <div class="ai-brief-body small">
+    {% if ai_dock and ai_dock.enabled %}<div class="muted">요약을 준비하는 중…</div>
+    {% else %}<div class="muted">AI 연결이 설정되지 않았습니다.</div>{% endif %}
+  </div>
+  <p class="ai-brief-meta muted small">{{ note }}</p>
+</section>
+{% endmacro %}

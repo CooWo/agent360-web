@@ -100,7 +100,7 @@ def _qa_of(backend, screens: dict, agent_id: str) -> dict | None:
     return {**r, "need": qa_svc.needs_coaching(r, below), "need_below": below}
 
 
-def agent_detail(backend, user: User, screens: dict, agent_id: str) -> dict:
+def agent_detail(backend, user: User, screens: dict, agent_id: str, audit_view: bool = True) -> dict:
     cfg = screens["screens"]["agent_detail"]
     agent = backend.get_agent(user.scope, agent_id)
     if not agent:
@@ -120,7 +120,7 @@ def agent_detail(backend, user: User, screens: dict, agent_id: str) -> dict:
 
     sensitive = user.can_view_sensitive(agent["team"])
     coaching_rows = backend.coaching(user.scope, agent_id=agent_id)
-    if sensitive:
+    if sensitive and audit_view:
         audit(backend, user, "view_sensitive", "agent", agent_id, {"sections": ["coaching", "incentive"]})
     return {
         "cfg": cfg, "as_of": as_of, "agent": agent, "team_label": _team_labels(backend).get(agent["team"], agent["team"]),

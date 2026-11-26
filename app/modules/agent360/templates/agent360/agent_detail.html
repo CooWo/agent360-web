@@ -1,8 +1,11 @@
 {% extends "base.html" %}
 {% from "agent360/_macros.html" import signal_chip %}
+{% from "agent360/_brief.html" import ai_brief %}
 {% block title %}{{ agent.name }} · {{ app_title }}{% endblock %}
 {% block content %}
 {% if saved %}<div class="notice ok">코칭 기록을 저장했습니다.</div>{% endif %}
+<div class="with-rail">
+<div>
 <div class="page-head">
   <div>
     <h1>{{ agent.name }} <span class="muted small mono">{{ agent.agent_id }}{% if agent.ldap %} · {{ agent.ldap }}{% endif %}</span></h1>
@@ -21,5 +24,10 @@
 {% for sec in cfg.sections %}
   {% include "agent360/sections/" ~ sec ~ ".html" %}
 {% endfor %}
+</div>
+</div>
+<aside class="stack rail">
+  {{ ai_brief("AI 요약", "agent", as_of, agent.agent_id, note="이 화면의 KPI·근태·QA·신호 숫자를 AI 가 요약합니다. 이름은 가명으로 보냅니다.") }}
+</aside>
 </div>
 {% endblock %}

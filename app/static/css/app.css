@@ -39,6 +39,17 @@ main { padding: 24px 28px 48px; max-width: 1280px; }
 .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .split { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--gap); align-items: start; }
 .stack > * + * { margin-top: var(--gap); }
+/* 오른쪽 고정 칸 (오늘 볼 상담사·상담사 화면의 후속 확인·AI 브리핑) — 스크롤해도 보이게 */
+.with-rail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, 360px); gap: var(--gap); align-items: start; }
+.rail { position: sticky; top: 68px; max-height: calc(100vh - 84px); overflow-y: auto; }
+.home-main > * + * { margin-top: var(--gap); }
+.gap-card { width: fit-content; max-width: 100%; }
+.ai-brief-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ai-brief-head h2 { margin: 0; }
+.ai-brief-body { margin-top: 8px; line-height: 1.6; }
+.ai-brief-body ul, .ai-brief-body ol { padding-left: 18px; margin: 4px 0; }
+.ai-brief-body p { margin: 4px 0; }
+.ai-brief-meta { margin: 8px 0 0; }
 .kpi-card .label { color: var(--text-2); font-size: 12px; }
 .kpi-card .value { font-size: 22px; font-weight: 700; margin-top: 2px; }
 .delta { font-size: 12px; font-weight: 600; }
@@ -137,7 +148,8 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--primary-wea
   .layout { grid-template-columns: 1fr; }
   .side { display: flex; overflow-x: auto; padding: 8px; border-right: none; border-bottom: 1px solid var(--border); }
   .side a { white-space: nowrap; }
-  .g3, .g4, .split, .g2 { grid-template-columns: 1fr; }
+  .g3, .g4, .split, .g2, .with-rail { grid-template-columns: 1fr; }
+  .rail { position: static; max-height: none; }
   .agent-row { grid-template-columns: 44px 1fr; }
   .agent-row .sig-list { grid-column: 1 / -1; }
 }

@@ -5,6 +5,7 @@ from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel, Field
 
 from app.core.data import get_backend
 from app.core.deps import current_user
@@ -73,3 +74,31 @@ def complete_coaching(coaching_id: str, user: User = Depends(current_user)):
     rec = coaching_svc.complete(get_backend(), user, coaching_id)
     full = [c for c in get_backend().coaching(user.scope) if c["coaching_id"] == coaching_id]
     return full[0] if full else JSONResponse(rec)
+
+
+class BriefIn(BaseModel):
+    kind: str = Field(description="home = 오늘 볼 상담사 아침 브리핑, agent = 상담사 한 명 요약")
+    agent_id: str | None = None
+    refresh: bool = Field(default=False, description="true 면 캐시를 쓰지 않고 다시 묻기")
+
+
+@router.post("/briefing", summary="AI 브리핑 — 화면 숫자를 AI BA CHAT 에 보내 요약 (이름은 가명으로)")
+def briefing(body: BriefIn, user: User = Depends(current_user)):
+    from app.core.ai import get_data_agent
+    from app.core.ai.data_agent import DataAgentError
+    from app.modules.agent360 import views
+    from app.modules.agent360.services import briefing as brief_svc
+    b = get_backend()
+    screens = next(m for m in discover() if m.name == "agent360").screens
+    screen = next(m for m in discover() if m.name == "assistant").screen("ask")
+    alias = brief_svc.Alias()
+    if body.kind == "agent" and body.agent_id:
+        ctx = views.agent_detail(b, user, screens, body.agent_id, audit_view=False)
+        prompt, key = brief_svc.agent_prompt(ctx, alias), f"agent:{body.agent_id}:{ctx['as_of']}"
+    else:
+        ctx = views.home(b, user, screens)
+        prompt, key = brief_svc.home_prompt(ctx, alias), f"home:{ctx['as_of']}"
+    try:
+        return brief_svc.brief(b, get_data_agent(), user, screen, key, prompt, alias, body.refresh)
+    except DataAgentError as e:
+        return JSONResponse({"detail": str(e)}, status_code=e.status if e.status in (400, 401, 403, 404, 429, 503, 504) else 502)

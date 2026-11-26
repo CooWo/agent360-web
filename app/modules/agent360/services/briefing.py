@@ -11,9 +11,11 @@ import html
 import re
 import threading
 import time
+from datetime import datetime, timedelta, timezone
 
 
 CACHE_SECS = 6 * 3600
+KST = timezone(timedelta(hours=9))
 MAX_PROMPT = 4000
 _cache: dict[tuple, tuple[float, dict]] = {}
 _lock = threading.Lock()
@@ -41,6 +43,12 @@ class Alias:
             tag = f"{mo.group(1)}#{mo.group(2)}"
             return f"<b>{html.escape(back[tag])}</b>" if tag in back else mo.group(0)
         return re.sub(r"(상담사|팀)\s*#\s*(\d+)", sub, text_html)
+
+
+def is_suggestions(text: str) -> bool:
+    """에이전트가 답 끝에 붙이는 '다음에 물어볼 질문' 묶음 (문장이 모두 '…해 줘.' 로 끝남) → 브리핑에서는 숨김."""
+    parts = [x.strip() for x in re.split(r"(?<=[.?!])\s*|\n+", str(text or "")) if x.strip()]
+    return bool(parts) and all(re.search(r"(줘|주세요|볼까요|할까요)[.?!]?$", x) for x in parts)
 
 
 def _n(v, d=1) -> str:
@@ -116,8 +124,10 @@ def brief(backend, agent, user, screen: dict, key: str, prompt: str, alias: Alia
     from app.core.ai.render import answer_html
     from app.modules.assistant.services import ask as ask_svc
     ans = ask_svc.ask(backend, agent, user, {**screen, "max_question": MAX_PROMPT}, prompt, None, True)
+    kept = [sg for sg in ans.segments if not (sg["type"] == "text" and is_suggestions(sg["text"]))]
+    ans.segments = kept or ans.segments
     out = {"html": alias.restore(answer_html(ans)), "secs": ans.secs,
-           "asked_at": time.strftime("%H:%M", time.localtime(now))}
+           "asked_at": datetime.fromtimestamp(now, KST).strftime("%H:%M")}
     with _lock:
         _cache[ck] = (now, out)
         for k in [k for k, (t, _) in _cache.items() if now - t > CACHE_SECS]:

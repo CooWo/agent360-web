@@ -14,7 +14,8 @@ class FakeAgent:
 
     def ask(self, question, *, prefix, conversation=None, new=False):
         self.questions.append(question)
-        return Answer(segments=[{"type": "text", "text": "- 상담사#1 먼저 코칭 (팀#1)\n- 상담사 # 2 후속 확인"}], secs=1.5)
+        return Answer(segments=[{"type": "text", "text": "- 상담사#1 먼저 코칭 (팀#1)\n- 상담사 # 2 후속 확인"},
+                                {"type": "text", "text": "상담사#1의 QA 내역 확인해 줘.최근 12주 추이 분석해 줘."}], secs=1.5)
 
 
 @pytest.fixture(autouse=True)
@@ -26,6 +27,11 @@ def test_alias_restore_escapes():
     a = brief_svc.Alias()
     assert a("상담사", "김<가>") == "상담사#1" and a("상담사", "김<가>") == "상담사#1" and a("팀", "정란") == "팀#1"
     assert a.restore("<p>상담사#1 · 팀 #1 · 상담사#9</p>") == "<p><b>김&lt;가&gt;</b> · <b>정란</b> · 상담사#9</p>"
+
+
+def test_suggestions_hidden():
+    assert brief_svc.is_suggestions("이윤희 QA 확인해 줘.정란 코칭 현황 조회해 줘.\n추이 분석해 줘.")
+    assert not brief_svc.is_suggestions("- 상담사#1 먼저 코칭합니다.\n- 후속 확인해 줘.")
 
 
 def test_home_prompt_has_no_names(backend, users, screens):
@@ -47,7 +53,7 @@ def test_agent_prompt_and_cache(backend, users, screens):
     assert ctx["agent"]["name"] not in p and "■ KPI 최근 4주" in p and "■ 근태" in p
     ag = FakeAgent()
     out = brief_svc.brief(backend, ag, u, {"roles": ["manager"]}, "k", p, alias)
-    assert ctx["agent"]["name"] in out["html"] and not out["cached"]
+    assert ctx["agent"]["name"] in out["html"] and not out["cached"] and "확인해 줘" not in out["html"]
     assert brief_svc.brief(backend, ag, u, {"roles": ["manager"]}, "k", p, alias)["cached"]
     brief_svc.brief(backend, ag, u, {"roles": ["manager"]}, "k", p, alias, refresh=True)
     assert len(ag.questions) == 2                                                # 캐시 1번, 다시 요약 1번

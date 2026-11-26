@@ -5,8 +5,8 @@
 2. 인사 표시 (Resignation, Move to …, End of Contract …) → 기록 없음 (근태가 아님, 요약에만 셈)
 3. 글로 정해진 근태: Absent·Planned Absences → 결근, Approved AL(*) → 연차, Sat off·PH → 휴무,
    …휴직·Military → 휴직, …휴가·검진 → 휴가, Training → 교육
-4. 근무시간(09:00~18:00 …, NOT·BOT 표기 포함): 배경 #ff9900 → 지각, #f9cb9c → 조퇴, 글에 Late → 지각,
-   Early → 조퇴, 그 밖 → 정상
+4. 근무시간(09:00~18:00 …): 배경 #ff9900 → 지각, #f9cb9c → 조퇴, 글에 Late → 지각, Early → 조퇴,
+   글에 BOT → 연장근로, 그 밖(NOT 표기 포함) → 정상
 5. Early left → 조퇴, Late → 지각, 시간 없이 BOT → 연장근로 (쉬는 날 하루 연장근로)
 6. 나머지 (NUbase·Blending 등) → 기타 (글은 detail 에 그대로, 요약의 '모르는 값'에 보임)
 숫자는 만들지 않는다: 칸 글(detail)과 배경색(bg)을 그대로 같이 저장한다.
@@ -62,6 +62,8 @@ def classify(text: str, bg: str = "") -> str | None:
             return "지각"
         if bg == EARLY_BG or "early" in k:
             return "조퇴"
+        if "bot" in k:
+            return "연장근로"
         return "정상"
     if k.startswith("early"):
         return "조퇴"

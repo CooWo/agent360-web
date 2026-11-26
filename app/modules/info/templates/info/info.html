@@ -115,7 +115,7 @@
     <h2>근태 불러오기 <span class="small muted">— 원본 시트 Schedule KR → 상담사 360 근태</span></h2>
     <p class="small muted">1시간마다 자동으로 <b>지난달 1일 ~ 오늘</b>을 읽어 바뀐 칸만 반영합니다.
       Approved AL → 연차 · 배경 <span class="swatch" style="background:var(--sheet-late)"></span> 지각 · <span class="swatch" style="background:var(--sheet-early)"></span> 조퇴 ·
-      Absent → 결근 · …휴가/휴직 · Sat off·PH → 휴무 · BOT(시간 없음) → 연장근로 · 근무시간 → 정상 · NUbase·Blending → 기타.
+      Absent → 결근 · …휴가/휴직 · Sat off·PH → 휴무 · BOT → 연장근로 · 근무시간 → 정상 · NUbase·Blending → 기타.
       {% if att_loads %}<br>마지막 반영: {{ att_loads[0].loaded_at[:16]|replace('T', ' ') }} UTC ({{ att_loads[0].loaded_by }}) ·
         {{ att_loads[0].agents }}명 {{ att_loads[0].cells }}칸 · 바뀐 칸 {{ att_loads[0].upserts }} · 뺀 칸 {{ att_loads[0].deletes }}{% endif %}</p>
     <form method="post" action="/info/attendance-sync#attendance" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">

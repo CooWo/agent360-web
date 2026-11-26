@@ -1,0 +1,42 @@
+[
+ {
+  "ldap": "ub_sample02",
+  "resp_date": "2026-11-18",
+  "nps": 2,
+  "is_detractor": 1,
+  "comment": "환불 안내가 늦고 같은 설명을 여러 번 해야 했어요.",
+  "topics": "Support Specialist - Resolution",
+  "cr_parent": "Cancellations and refunds",
+  "cr_child": "Refund status"
+ },
+ {
+  "ldap": "ub_sample02",
+  "resp_date": "2026-11-10",
+  "nps": 5,
+  "is_detractor": 1,
+  "comment": "정책이 이해되지 않았지만 상담원은 친절했습니다.",
+  "topics": "",
+  "cr_parent": "Booking and paying for reservations",
+  "cr_child": "Payment"
+ },
+ {
+  "ldap": "ub_sample02",
+  "resp_date": "2026-11-05",
+  "nps": 9,
+  "is_detractor": 0,
+  "comment": "빠르게 해결해 주셨어요.",
+  "topics": "",
+  "cr_parent": "Problems with your reservation",
+  "cr_child": "Check-in"
+ },
+ {
+  "ldap": "ub_sample02",
+  "resp_date": "2026-10-20",
+  "nps": 10,
+  "is_detractor": 0,
+  "comment": "",
+  "topics": "",
+  "cr_parent": "Problems with your reservation",
+  "cr_child": "Check-in"
+ }
+]

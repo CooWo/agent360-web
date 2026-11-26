@@ -82,6 +82,17 @@ class BriefIn(BaseModel):
     refresh: bool = Field(default=False, description="true 면 캐시를 쓰지 않고 다시 묻기")
 
 
+def templates_detractor_head(facts: dict, since: str, as_of: str) -> str:
+    """디트랙터 건수 줄 (SQL 결과로 서버가 만든 숫자 — AI 가 만든 숫자가 아님)."""
+    import html as h
+    rate = f" ({facts['rate']:.0f}%)" if facts["rate"] is not None else ""
+    wk = " · ".join(f"{w[5:]} {n}" for w, n in facts["weekly"]) or "없음"
+    cr = " · ".join(f"{h.escape(k)} {v}" for k, v in facts["by_cr"]) or "–"
+    return (f'<p><b>디트랙터 {facts["detractors"]}건</b> / 응답 {facts["responses"]}건{rate} '
+            f'<span class="muted">({since} ~ {as_of})</span></p>'
+            f'<p class="muted">주차별(토 마감): {wk}<br>문의 유형: {cr}</p>')
+
+
 @router.post("/briefing", summary="AI 브리핑 — 화면 숫자를 AI BA CHAT 에 보내 요약 (이름은 가명으로)")
 def briefing(body: BriefIn, user: User = Depends(current_user)):
     from app.core.ai import get_data_agent
@@ -98,7 +109,19 @@ def briefing(body: BriefIn, user: User = Depends(current_user)):
             raise NotFound("상담사를 찾을 수 없거나 권한 밖입니다.")
         if not a.get("ldap"):
             return JSONResponse({"detail": "이 상담사의 LDAP 이 없어 디트랙터를 찾을 수 없습니다 (상담사 INFO 확인)."}, status_code=400)
-        prompt, key = brief_svc.detractor_prompt(a["ldap"], b.as_of()), f"detractor:{body.agent_id}:{b.as_of()}"
+        as_of = b.as_of()
+        since = (date.fromisoformat(as_of) - timedelta(days=7 * brief_svc.DETRACTOR_WEEKS)).isoformat()
+        facts = brief_svc.detractor_facts(b.surveys(a["ldap"], since))
+        head = templates_detractor_head(facts, since, as_of)
+        if not facts["comments"]:
+            return {"html": head + '<p class="muted">요약할 디트랙터 코멘트가 없습니다.</p>', "secs": 0, "cached": False,
+                    "asked_at": "", "facts": {k: facts[k] for k in ("responses", "detractors")}}
+        prompt, key = brief_svc.detractor_prompt(facts, as_of), f"detractor:{body.agent_id}:{as_of}"
+        try:
+            out = brief_svc.brief(b, get_data_agent(), user, screen, key, prompt, alias, body.refresh)
+        except DataAgentError as e:
+            return JSONResponse({"detail": str(e)}, status_code=e.status if e.status in (400, 401, 403, 404, 429, 503, 504) else 502)
+        return {**out, "html": head + out["html"], "facts": {k: facts[k] for k in ("responses", "detractors")}}
     elif body.kind == "agent" and body.agent_id:
         ctx = views.agent_detail(b, user, screens, body.agent_id, audit_view=False)
         prompt, key = brief_svc.agent_prompt(ctx, alias), f"agent:{body.agent_id}:{ctx['as_of']}"

@@ -22,7 +22,7 @@ def _sample(s: Settings):
 def _bigquery(s: Settings):
     from app.core.data.bigquery import BigQueryBackend
     return BigQueryBackend(s.gcp_project, s.bq_location, s.common_dataset, s.module_dataset, s.cache_seconds,
-                           s.kpi_dataset)
+                           s.kpi_dataset, s.survey_table)
 
 
 @lru_cache

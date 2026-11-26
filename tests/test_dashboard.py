@@ -70,7 +70,13 @@ def test_root_is_dashboard_and_briefing(backend, users, monkeypatch):
     teams = {t["label"] for t in views.dashboard(backend, users["manager"], screens)["teams"]}
     assert not [t for t in teams if t in ag.questions[0]]                             # 팀 이름은 보내지 않음
     # 디트랙터: LDAP 으로 에이전트가 직접 조회
-    aid = c.get("/api/agent360/agents").json()[0]["agent_id"]
+    aid = "E240002"                                                               # 가짜 설문: ub_sample02 디트랙터 2건 / 응답 4건
+    n = len(ag.questions)
     r = c.post("/api/agent360/briefing", json={"kind": "detractor", "agent_id": aid})
-    assert r.status_code == 200 and "gda_specialist_ldap = 'ub_" in ag.questions[-1]
+    assert r.status_code == 200 and r.json()["facts"] == {"responses": 4, "detractors": 2}
+    assert "디트랙터 2건</b> / 응답 4건 (50%)" in r.json()["html"]                 # 건수는 서버 계산
+    q = ag.questions[-1]
+    assert len(ag.questions) == n + 1 and "환불 안내가 늦고" in q and "ub_sample02" not in q and "정현우" not in q
+    r = c.post("/api/agent360/briefing", json={"kind": "detractor", "agent_id": "E240001"})   # 설문 없음 → AI 안 부름
+    assert r.json()["facts"]["detractors"] == 0 and len(ag.questions) == n + 1
     assert 'data-kind="detractor"' in c.get(f"/agent360/agents/{aid}").text

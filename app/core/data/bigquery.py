@@ -30,7 +30,7 @@ KPI_FIELDS = ("nps_net", "nps_responses", "solved_volume", "assignments", "reope
 
 class BigQueryBackend:
     def __init__(self, project: str, location: str, common_dataset: str, module_dataset: str, cache_seconds: int = 60,
-                 kpi_dataset: str = "kpi"):
+                 kpi_dataset: str = "kpi", survey_table: str = "v11-2026.Dynamic.es_medallia_comments"):
         from google.cloud import bigquery  # 지연 import: sample 모드에서는 패키지 없어도 됨
 
         self._bq = bigquery
@@ -40,6 +40,7 @@ class BigQueryBackend:
         self.m = f"`{self.client.project}.{module_dataset}`"
         self.k = f"`{self.client.project}.{kpi_dataset}`"
         self.agents_t = f"`{self.client.project}.{kpi_dataset}.v_agent`"
+        self.survey_t = f"`{survey_table}`"
         self.ttl = cache_seconds
         self._cache: dict = {}
         self._lock = threading.Lock()
@@ -160,6 +161,12 @@ class BigQueryBackend:
         sql = f"""SELECT agent_id, CAST(date AS STRING) date, status FROM {self.c}.fact_attendance
                   WHERE agent_id IN UNNEST(@ids) AND date >= DATE(@since)"""
         return self._cached(("att_many", tuple(ids), since), lambda: self._q(sql, ids=ids, since=since)) if ids else []
+
+    def surveys(self, ldap, since):
+        sql = f"""SELECT CAST(resp_date AS STRING) resp_date, nps, is_detractor, IFNULL(comment_raw, '') comment,
+                         IFNULL(medallia_topics, '') topics, IFNULL(cr_parent, '') cr_parent, IFNULL(cr_child, '') cr_child
+                  FROM {self.survey_t} WHERE ldap = @ldap AND resp_date >= DATE(@since) ORDER BY resp_date DESC"""
+        return self._cached(("surveys", ldap, since), lambda: self._q(sql, ldap=ldap, since=since))
 
     def qa(self, agent_id, since):
         return self._fact("fact_qa", "qa_id, agent_id, CAST(date AS STRING) date, score, error_types", agent_id, since, "date DESC")

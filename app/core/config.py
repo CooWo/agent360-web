@@ -58,6 +58,7 @@ class Settings:
     capacity_dataset: str = "capacity"
     roster_dataset: str = "roster"
     kpi_dataset: str = "kpi"
+    survey_table: str = "v11-2026.Dynamic.es_medallia_comments"   # 고객 설문 응답(NPS·디트랙터·코멘트), 상담사 ldap
     iap_audience: str = ""
     allowed_domains: tuple[str, ...] = ()
     dev_user: str = "sv.kim@example.com"
@@ -100,6 +101,7 @@ def get_settings() -> Settings:
         capacity_dataset=e("CAPACITY_DATASET", "capacity"),
         roster_dataset=e("ROSTER_DATASET", "roster"),
         kpi_dataset=e("KPI_DATASET", "kpi"),
+        survey_table=e("SURVEY_TABLE", "v11-2026.Dynamic.es_medallia_comments"),
         iap_audience=e("IAP_AUDIENCE", ""),
         allowed_domains=tuple(d.strip().lower().lstrip("@") for d in e("ALLOWED_DOMAINS", "").split(",") if d.strip()),
         dev_user=e("DEV_USER", "sv.kim@example.com"),

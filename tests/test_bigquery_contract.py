@@ -127,7 +127,7 @@ def test_every_sql_param_is_bound(fake_backend):
     b.as_of(); b.get_user("a@ubase.co.kr"); b.list_users(); b.list_teams()
     b.list_agents(sv, q="kim", team="R1-A"); b.list_agents(sv)
     b.kpi_daily("E1", "2026-01-01"); b.kpi_daily("E1", None); b.kpi_daily_many(["E1", "E2"], "2026-01-01")
-    b.attendance("E1", "2026-01-01")
+    b.attendance("E1", "2026-01-01"); b.attendance_many(["E1", "E2"], "2026-01-01"); b.surveys("ub_x", "2026-01-01")
     b.qa("E1", "2026-01-01"); b.training("E1"); b.incentive("E1")
     b.coaching(sv); b.coaching(sv, "E1")
     b.add_coaching({"agent_id": "E1", "sv_email": "s@ubase.co.kr", "date": "2026-11-20", "issue_type": "근태",
@@ -143,7 +143,8 @@ def test_every_sql_param_is_bound(fake_backend):
     for sql, bound in fake.calls:
         used = set(re.findall(r"@(\w+)", sql))
         assert used <= bound, f"넘기지 않은 매개변수 {used - bound}:\n{sql}"
-        assert "`v12-2027.common`" in sql or "`v12-2027.agent360`" in sql or "`v12-2027.kpi`" in sql or "`v12-2027.kpi.v_agent`" in sql
+        assert any(t in sql for t in ("`v12-2027.common`", "`v12-2027.agent360`", "`v12-2027.kpi`", "`v12-2027.kpi.v_agent`",
+                                      "`v11-2026.Dynamic.es_medallia_comments`"))   # 고객 설문은 v11 원천을 읽기만
 
 
 def test_each_ddl_creates_its_dataset():

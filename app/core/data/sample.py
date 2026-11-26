@@ -115,6 +115,11 @@ class SampleBackend:
         want = set(agent_ids)
         return [r for r in self._att if r["agent_id"] in want and r["date"] >= since]
 
+    def surveys(self, ldap, since):
+        p = self.dir / "surveys.json"
+        rows = json.loads(p.read_text(encoding="utf-8")) if p.exists() else []
+        return sorted([r for r in rows if r["ldap"] == ldap and r["resp_date"] >= since], key=lambda r: r["resp_date"], reverse=True)
+
     def qa(self, agent_id, since):
         return sorted([r for r in self._qa if r["agent_id"] == agent_id and r["date"] >= since], key=lambda r: r["date"], reverse=True)
 

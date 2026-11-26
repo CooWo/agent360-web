@@ -11,7 +11,7 @@ import html
 import re
 import threading
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 
 CACHE_SECS = 6 * 3600
@@ -116,18 +116,30 @@ def agent_prompt(ctx: dict, alias: Alias) -> str:
 DETRACTOR_WEEKS = 8
 
 
-def detractor_prompt(ldap: str, as_of: str, weeks: int = DETRACTOR_WEEKS) -> str:
-    """디트랙터(GDA) — 숫자·코멘트가 v11 Dynamic.gda_clean 에만 있어 에이전트가 직접 조회한다 (상담사 LDAP 로만 찾음)."""
-    from datetime import date
-    since = (date.fromisoformat(as_of) - timedelta(days=7 * weeks)).isoformat()
-    return (f"[상담사 디트랙터 요약] Dynamic.gda_clean 에서 gda_specialist_ldap = '{ldap}' 이고 "
-            f"gda_case_solved_date 가 {since} ~ {as_of} 인 디트랙터 평가(GDA)를 조회해 주세요.\n"
-            "1) 디트랙터 건수 합계와 주차(gda_week)별 건수\n"
-            "2) 주요 원인 테마(gda_q1_theme_l1, gda_q2_primary) 상위 3개와 건수\n"
-            "3) 고객 코멘트(gda_q1_comment)·케이스 요약(gda_q5_case_summary)·평가자 코멘트(gda_q6_evaluator_comment)를 "
-            "주제별로 묶어 3~5줄 한국어 요약 (원문을 길게 옮기지 말고, 고객 이름·연락처·예약번호 같은 개인정보는 쓰지 마세요)\n"
-            "4) 이 상담사 코칭 포인트 1~2줄\n"
-            "건수는 조회 결과 그대로 쓰고, 해당 기간 데이터가 없으면 '최근 디트랙터 없음' 이라고만 답하세요. 짧은 글머리표로.")
+def detractor_facts(rows: list[dict]) -> dict:
+    """설문 응답 → 디트랙터 건수·주차별·문의 유형 상위 (숫자는 여기서만 만든다)."""
+    from collections import Counter
+
+    from app.modules.agent360.services.kpi import week_end
+    det = [r for r in rows if r.get("is_detractor")]
+    weekly = Counter(week_end(date.fromisoformat(r["resp_date"])).isoformat() for r in det)
+    return {"responses": len(rows), "detractors": len(det),
+            "rate": (len(det) / len(rows) * 100) if rows else None,
+            "weekly": sorted(weekly.items()), "by_cr": Counter(r.get("cr_parent") or "(없음)" for r in det).most_common(3),
+            "comments": [r for r in det if (r.get("comment") or "").strip()]}
+
+
+def detractor_prompt(facts: dict, as_of: str, weeks: int = DETRACTOR_WEEKS) -> str:
+    """디트랙터 코멘트 요약 질문 — 건수는 이미 계산한 값, 코멘트만 AI 가 주제별로 묶는다 (상담사 이름·LDAP 은 안 보냄)."""
+    lines = [f"[상담사 디트랙터 코멘트 요약] 기준일 {as_of}, 최근 {weeks}주 고객 설문: 응답 {facts['responses']}건 중 "
+             f"디트랙터(NPS 0~6) {facts['detractors']}건.",
+             "■ 문의 유형 상위: " + ", ".join(f"{k} {v}건" for k, v in facts["by_cr"]),
+             "■ 디트랙터 코멘트 (날짜 · NPS · 문의 유형 · 코멘트)"]
+    for r in facts["comments"][:15]:
+        lines.append(f"- {r['resp_date']} · {r['nps']} · {r.get('cr_child') or r.get('cr_parent')} · {(r['comment'] or '')[:300]}")
+    lines.append("요청: 코멘트를 주제별로 묶어 3~5줄로 요약하고 (상담사 응대 문제인지, 정책·제품 문제인지 구분), "
+                 "마지막에 이 상담사 코칭 포인트 1~2줄. 코멘트 원문을 길게 옮기지 말고, 고객 이름·연락처·예약번호 같은 개인정보는 쓰지 마세요. " + RULES)
+    return "\n".join(lines)[:MAX_PROMPT]
 
 
 def brief(backend, agent, user, screen: dict, key: str, prompt: str, alias: Alias, refresh: bool = False) -> dict:

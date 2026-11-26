@@ -24,7 +24,7 @@ W, LATE, EARLY = "#ffffff", "#ff9900", "#f9cb9c"
     ("12:00~21:00 NOT (30mins)", "#ffff00", "정상"),
     ("8:02~17:00", LATE, "지각"),
     ("10:00 ~ 19:00 Late (15mins) NOT (30mins)", W, "지각"),
-    ("Early left", W, "조퇴"),
+    ("Early left", W, "조퇴"), ("8:00–21:40 BOT 240 mins + NOT 40 mins", W, "정상"),
     ("Approved AL", "#3c78d8", "연차"), ("Approved AL*", "#93c47d", "연차"), ("Approved AL(4)", W, "연차"),
     ("Absent", "#ff0000", "결근"), ("Planned Absences", "#c60000", "결근"),
     ("Sat off", "#f2dcdb", "휴무"), ("PH", "#38761d", "휴무"),

@@ -20,7 +20,7 @@ from datetime import date
 LATE_BG, EARLY_BG = "#ff9900", "#f9cb9c"
 STATUSES = ("정상", "지각", "조퇴", "결근", "연차", "휴가", "휴직", "휴무", "교육", "기타")
 _TIME = r"\d{1,2}\s*:\s*\d{2}"
-SHIFT_RE = re.compile(rf"{_TIME}\s*:?\s*[~\-]\s*{_TIME}")
+SHIFT_RE = re.compile(rf"{_TIME}\s*:?\s*[~\-–—～]\s*{_TIME}")
 DATE_RE = re.compile(r"^\s*(\d{4})\s*[.\-/]\s*(\d{1,2})\s*[.\-/]\s*(\d{1,2})\s*\.?\s*$")
 EMP_RE = re.compile(r"^\d{8}$")
 HR_MARKS = ("resignation", "end of contract", "move to", "transfer to", "transition to", "back to", "rejoin")

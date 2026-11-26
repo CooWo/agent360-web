@@ -40,9 +40,12 @@ def line_chart(labels: list[str], values: list[float | None], *, unit: str = "",
         if ref_label:
             out.append(f'<text class="axis ref-label" x="{width - pad_r}" y="{y(ref) - 3:.1f}" text-anchor="end">{escape(ref_label)}</text>')
     step = max(1, len(labels) // 4)
+    last = len(labels) - 1
     for i, lab in enumerate(labels):
-        if i % step == 0 or i == len(labels) - 1:
-            out.append(f'<text class="axis" x="{x(i):.1f}" y="{height - 6}" text-anchor="middle">{escape(lab)}</text>')
+        # 마지막 라벨은 오른쪽 끝에 맞춰 잘리지 않게, 바로 앞 간격 라벨과 겹치면 그 라벨은 뺀다
+        if i == last or (i % step == 0 and (last - i) >= max(2, step // 2 + 1)):
+            anchor = "end" if i == last else ("start" if i == 0 else "middle")
+            out.append(f'<text class="axis" x="{x(i):.1f}" y="{height - 6}" text-anchor="{anchor}">{escape(lab)}</text>')
     path = " ".join(f"{'M' if k == 0 else 'L'}{x(i):.1f},{y(v):.1f}" for k, (i, v) in enumerate(pts))
     out.append(f'<path class="line" d="{path}"/>')
     for i, v in pts:

@@ -1,7 +1,9 @@
 """대시보드 계산 — 순수 Python (데이터는 인자로 받음). 비율은 항상 Σ분자 / Σ분모 (kpi.py 와 같은 규칙)."""
 from __future__ import annotations
 
+import math
 from collections import Counter, defaultdict
+from dataclasses import dataclass
 from datetime import date, timedelta
 
 from app.modules.agent360.services import kpi as kpi_svc
@@ -10,16 +12,101 @@ ABSENCE = ("결근", "지각", "조퇴")
 LEAVE = ("연차", "휴가", "휴직")
 
 
+@dataclass(frozen=True)
+class Period:
+    """대시보드 보는 기간. mode = weeks(최근 N주) | range(달력으로 고른 날짜). start·end 포함."""
+    mode: str
+    start: date
+    end: date
+    weeks: int | None = None
+
+    @property
+    def days(self) -> int:
+        return (self.end - self.start).days + 1
+
+    @property
+    def prior_start(self) -> date:
+        return self.start - timedelta(days=self.days)
+
+    @property
+    def prior_end(self) -> date:
+        return self.start - timedelta(days=1)
+
+    @property
+    def range_text(self) -> str:
+        return f"{self.start.isoformat()[5:]} ~ {self.end.isoformat()[5:]}"
+
+    @property
+    def short(self) -> str:
+        return f"최근 {self.weeks}주" if self.mode == "weeks" else self.range_text
+
+    @property
+    def label(self) -> str:
+        return f"최근 {self.weeks}주 ({self.range_text})" if self.mode == "weeks" else f"{self.range_text} ({self.days}일)"
+
+    @property
+    def prior_text(self) -> str:
+        return f"직전 {self.days}일 ({self.prior_start.isoformat()[5:]} ~ {self.prior_end.isoformat()[5:]})"
+
+    @property
+    def query(self) -> str:
+        return f"weeks={self.weeks}" if self.mode == "weeks" else f"start={self.start.isoformat()}&end={self.end.isoformat()}"
+
+    @property
+    def key(self) -> str:
+        return f"w{self.weeks}" if self.mode == "weeks" else f"{self.start.isoformat()}_{self.end.isoformat()}"
+
+
+def resolve_period(as_of: str, weeks: str | int | None = None, start: str | None = None, end: str | None = None,
+                   default_weeks: int = 4, max_weeks: int = 26, max_days: int = 366) -> tuple[Period, str | None]:
+    """화면 입력 → 기간. 잘못된 입력은 기본(최근 default_weeks 주)으로 돌리고 안내 문구를 함께 돌려준다.
+    데이터 마지막 날 = 기준일 전날 (KPI 는 기준일 전날까지 있음)."""
+    last = date.fromisoformat(as_of) - timedelta(days=1)
+
+    def by_weeks(n: int) -> Period:
+        return Period("weeks", last - timedelta(days=7 * n - 1), last, n)
+
+    if start or end:
+        try:
+            s, e = date.fromisoformat(str(start)), date.fromisoformat(str(end))
+        except ValueError:
+            return by_weeks(default_weeks), "시작일과 끝일을 모두 달력에서 골라 주세요."
+        if s > e:
+            return by_weeks(default_weeks), "시작일이 끝일보다 늦습니다. 날짜를 다시 골라 주세요."
+        note = None
+        if e > last:
+            e, note = last, f"데이터가 있는 {last.isoformat()} 까지로 맞췄습니다."
+            if s > e:
+                return by_weeks(default_weeks), f"시작일이 데이터 마지막 날({last.isoformat()})보다 늦습니다."
+        if (e - s).days + 1 > max_days:
+            return by_weeks(default_weeks), f"한 번에 {max_days}일까지 볼 수 있습니다."
+        return Period("range", s, e), note
+    if weeks not in (None, ""):
+        try:
+            n = int(weeks)
+        except (TypeError, ValueError):
+            n = 0
+        if not 1 <= n <= max_weeks:
+            return by_weeks(default_weeks), f"주차는 1 ~ {max_weeks} 사이 숫자로 넣어 주세요."
+        return by_weeks(n), None
+    return by_weeks(default_weeks), None
+
+
+def chart_weeks(period: Period) -> int:
+    """KPI 추이 차트 주 수 = 보는 기간 + 직전 기간 (4 ~ 52주)."""
+    return max(4, min(52, 2 * math.ceil(period.days / 7)))
+
+
 def headcount(agents: list[dict], as_of: str, new_hire_days: int) -> dict:
     t = date.fromisoformat(as_of)
     new = [a for a in agents if a.get("hire_date") and (t - date.fromisoformat(str(a["hire_date"])[:10])).days <= new_hire_days]
     return {"agents": len(agents), "teams": len({a["team"] for a in agents}), "new_hires": len(new)}
 
 
-def kpi_overview(rows: list[dict], as_of: str, keys: list[str], weeks: int) -> dict:
-    """담당 전체 KPI: 최근 4주 vs 직전 4주, 주차 추이. 목표는 섹터·테뉴어마다 달라 전체에는 쓰지 않는다."""
-    cmp_ = kpi_svc.compare(rows, as_of)
-    wk = kpi_svc.weekly(rows, as_of, weeks)
+def kpi_overview(rows: list[dict], period: Period, keys: list[str]) -> dict:
+    """담당 전체 KPI: 보는 기간 vs 직전 같은 길이 기간, 주차 추이. 목표는 섹터·테뉴어마다 달라 전체에는 쓰지 않는다."""
+    cmp_ = kpi_svc.compare_range(rows, period.start, period.end)
+    wk = kpi_svc.weekly(rows, (period.end + timedelta(days=1)).isoformat(), chart_weeks(period))
     out = []
     for k in keys:
         m = kpi_svc.BY_KEY[k]
@@ -33,24 +120,24 @@ def kpi_overview(rows: list[dict], as_of: str, keys: list[str], weeks: int) -> d
 
 
 def team_table(agents: list[dict], kpi_by_agent: dict[str, list[dict]], att: list[dict], qa_rows: list[dict],
-               labels: dict, as_of: str, keys: list[str], att_days: int) -> list[dict]:
-    """팀(TL)별 한 줄: 인원 · KPI 최근 4주 · 근태(결근·지각·조퇴) · QA 평균 · 코칭 Rate."""
+               labels: dict, period: Period, keys: list[str]) -> list[dict]:
+    """팀(TL)별 한 줄: 인원 · KPI·근태(결근·지각·조퇴)는 보는 기간 · QA 평균 · 코칭 Rate."""
     team_of = {a["agent_id"]: a["team"] for a in agents}
-    since = (date.fromisoformat(as_of) - timedelta(days=att_days)).isoformat()
+    since, until = period.start.isoformat(), period.end.isoformat()
     by_team: dict[str, dict] = defaultdict(lambda: {"agents": 0, "kpi": [], "att": Counter(), "qa": []})
     for a in agents:
         t = by_team[a["team"]]
         t["agents"] += 1
         t["kpi"] += kpi_by_agent.get(a["agent_id"], [])
     for r in att:
-        if r["agent_id"] in team_of and r["date"] >= since:
+        if r["agent_id"] in team_of and since <= r["date"] <= until:
             by_team[team_of[r["agent_id"]]]["att"][r["status"]] += 1
     for r in qa_rows:
         if r["agent_id"] in team_of:
             by_team[team_of[r["agent_id"]]]["qa"].append(r)
     out = []
     for team, t in by_team.items():
-        rec = kpi_svc.compare(t["kpi"], as_of)["recent"]
+        rec = kpi_svc.compare_range(t["kpi"], period.start, period.end)["recent"]
         ev = sum(r.get("evaluations") or 0 for r in t["qa"])
         co = sum(r.get("coaching_sessions") or 0 for r in t["qa"])
         qa_w = [(r["qa_avg"], r.get("evaluations") or 0) for r in t["qa"] if r.get("qa_avg") is not None]
@@ -65,10 +152,10 @@ def team_table(agents: list[dict], kpi_by_agent: dict[str, list[dict]], att: lis
     return out
 
 
-def attendance_overview(att: list[dict], as_of: str, days: int) -> dict:
-    """최근 N일 상태별 칸 수, 주차별 결근·지각·조퇴, 마지막 날(가장 최근 근태일) 현황."""
-    since = (date.fromisoformat(as_of) - timedelta(days=days)).isoformat()
-    rows = [r for r in att if since <= r["date"] <= as_of]
+def attendance_overview(att: list[dict], period: Period) -> dict:
+    """보는 기간의 상태별 칸 수, 마지막 날(기간 안 가장 최근 근태일) 현황."""
+    since, until, days = period.start.isoformat(), period.end.isoformat(), period.days
+    rows = [r for r in att if since <= r["date"] <= until]
     total = Counter(r["status"] for r in rows)
     work = sum(v for k, v in total.items() if k not in ("휴무",) + LEAVE)
     last = max((r["date"] for r in rows), default=None)
@@ -151,12 +238,14 @@ def briefing_prompt(ctx: dict, alias) -> str:
     h, q, a = ctx["headcount"], ctx["qa"], ctx["attendance"]
     lines = [f"[상담 운영 대시보드 브리핑 요청] 기준일 {ctx['as_of']}. 상담사 {h['agents']}명, 팀 {h['teams']}개, "
              f"최근 {ctx['cfg'].get('new_hire_days', 90)}일 입사 {h['new_hires']}명."]
-    lines.append("■ KPI 최근 4주 (직전 4주 대비)")
+    p = ctx["period"]
+    lines.append(f"■ 보는 기간 {p.label}, 비교 {p.prior_text}")
+    lines.append("■ KPI (직전 같은 길이 기간 대비)")
     for m in ctx["kpi"]["metrics"]:
         lines.append(f"- {m['label']} {_n(m['recent'], m['digits'])}{m['unit']} (직전 {_n(m['prior'], m['digits'])}, "
                      f"{'좋아짐' if m['good'] else ('나빠짐' if m['good'] is False else '변화 없음')})")
     c = a["count"]
-    lines.append(f"■ 근태 최근 {a['days']}일: " + ", ".join(f"{k} {c.get(k, 0)}" for k in ("결근", "지각", "조퇴", "연차", "휴가", "휴직", "연장근로"))
+    lines.append(f"■ 근태 {p.short}: " + ", ".join(f"{k} {c.get(k, 0)}" for k in ("결근", "지각", "조퇴", "연차", "휴가", "휴직", "연장근로"))
                  + (f", 결근·지각·조퇴 비율 {_n(a['absence_rate'])}%" if a["absence_rate"] is not None else ""))
     lines.append(f"■ QA·코칭: QA 평균 {_n(q['qa_avg'])}점, 평가 {q['evaluations']} · 코칭 {q['coaching']} (Rate {_n(q['rate'], 0)}%), "
                  f"코칭 부족 {q['gaps']}명, QA 80점 미만 {q['below80']}명")

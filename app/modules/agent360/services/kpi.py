@@ -127,6 +127,17 @@ def compare(rows: list[dict], as_of: str, recent_days: int = 28, prior_days: int
     return {"recent": a, "prior": b, "delta": delta}
 
 
+def compare_range(rows: list[dict], start: date, end: date) -> dict:
+    """start~end(포함) vs 바로 앞 같은 길이 기간. 대시보드 기간 조회용."""
+    days = (end - start).days + 1
+    p_end, p_start = start - timedelta(days=1), start - timedelta(days=days)
+    s, e, ps, pe = start.isoformat(), end.isoformat(), p_start.isoformat(), p_end.isoformat()
+    a = _agg([r for r in rows if s <= r["date"] <= e])
+    b = _agg([r for r in rows if ps <= r["date"] <= pe])
+    delta = {m.key: (a[m.key] - b[m.key]) if (a[m.key] is not None and b[m.key] is not None) else None for m in METRICS}
+    return {"recent": a, "prior": b, "delta": delta}
+
+
 def attendance_summary(rows: list[dict], as_of: str, days: int) -> dict:
     t = date.fromisoformat(as_of)
     recent = sorted([r for r in rows if 0 < (t - date.fromisoformat(r["date"])).days <= days], key=lambda r: r["date"])

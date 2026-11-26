@@ -126,6 +126,13 @@
       .catch(function () { scBox.innerHTML = '<div class="muted small">스코어카드를 불러오지 못했습니다.</div>'; });
   });
 
+  // ── 대시보드 기간: 끝일은 시작일보다 앞을 고를 수 없게 ──
+  document.querySelectorAll('.period-form').forEach(function (f) {
+    var s = f.querySelector('[data-role=start]'), e = f.querySelector('[data-role=end]');
+    if (!s || !e) return;
+    s.addEventListener('change', function () { e.min = s.value; if (e.value && e.value < s.value) e.value = s.value; });
+  });
+
   // ── AI 브리핑 카드: 화면을 열면 자동으로 요약을 묻는다 (같은 탭에서는 기준일까지 다시 묻지 않음) ──
   document.querySelectorAll('.ai-brief').forEach(function (card) {
     var body = card.querySelector('.ai-brief-body'), meta = card.querySelector('.ai-brief-meta');

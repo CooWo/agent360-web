@@ -1,4 +1,6 @@
 """대시보드 — 계산(손 검산), 역할별 화면, 첫 화면 연결, AI 브리핑(가짜 에이전트), 디트랙터 카드."""
+from datetime import date
+
 import pytest
 
 from app.core.ai.data_agent import Answer
@@ -9,7 +11,7 @@ from app.modules.dashboard.services import summary
 def test_attendance_and_qa_overview_hand_checked():
     att = [{"agent_id": "A", "date": "2026-11-16", "status": s} for s in ("정상", "정상", "결근", "지각", "연차", "휴무")]
     att += [{"agent_id": "A", "date": "2026-11-20", "status": "정상"}, {"agent_id": "A", "date": "2026-11-20", "status": "결근"}]
-    o = summary.attendance_overview(att, "2026-11-20", 28)
+    o = summary.attendance_overview(att, summary.Period("range", date(2026, 10, 24), date(2026, 11, 20)))
     # 근무일 = 휴무·연차·휴가·휴직 뺀 6칸, 결근·지각·조퇴 3칸 → 50%
     assert o["work_days"] == 6 and o["absence_rate"] == 50.0
     assert o["last_day"] == "2026-11-20" and o["last"] == {"정상": 1, "결근": 1}
@@ -124,3 +126,49 @@ def test_attendance_weekly_vs_prev_and_avg_hand_checked():
 def test_attendance_weekly_on_saturday_has_no_running_week():
     w = summary.attendance_weekly([{"date": "2026-11-21", "status": "지각"}], "2026-11-21", 2)
     assert not w["running"] and w["base"] == "2026-11-21" and [r["week_end"] for r in w["rows"]] == ["2026-11-14", "2026-11-21"]
+
+
+def test_resolve_period_hand_checked():
+    # 기준일 11-20 → 데이터 마지막 날 11-19
+    p, err = summary.resolve_period("2026-11-20")
+    assert err is None and p.mode == "weeks" and p.weeks == 4
+    assert (p.start, p.end, p.days) == (date(2026, 10, 23), date(2026, 11, 19), 28)          # 11-19 − 27일
+    assert (p.prior_start, p.prior_end) == (date(2026, 9, 25), date(2026, 10, 22))
+    assert p.label == "최근 4주 (10-23 ~ 11-19)" and p.query == "weeks=4"
+    p, _ = summary.resolve_period("2026-11-20", weeks="8")
+    assert p.start == date(2026, 9, 25) and p.days == 56
+    p, err = summary.resolve_period("2026-11-20", start="2026-10-01", end="2026-10-31")    # 달력 기간이 주차보다 우선
+    assert err is None and p.mode == "range" and p.days == 31 and p.label == "10-01 ~ 10-31 (31일)"
+    assert (p.prior_start, p.prior_end) == (date(2026, 8, 31), date(2026, 9, 30))
+    assert p.query == "start=2026-10-01&end=2026-10-31"
+    p, err = summary.resolve_period("2026-11-20", start="2026-11-01", end="2026-11-25")     # 끝일이 데이터 뒤 → 맞춤
+    assert p.end == date(2026, 11, 19) and "2026-11-19" in err
+
+
+@pytest.mark.parametrize("kw", [{"weeks": "0"}, {"weeks": "27"}, {"weeks": "abc"}, {"start": "2026-11-10", "end": "2026-11-01"},
+                                {"start": "2026-11-10"}, {"start": "2025-01-01", "end": "2026-11-01"}])
+def test_resolve_period_bad_input_falls_back_with_message(kw):
+    p, err = summary.resolve_period("2026-11-20", **kw)
+    assert err and p.mode == "weeks" and p.weeks == 4
+
+
+def test_compare_range_hand_checked():
+    from app.modules.agent360.services.kpi import compare_range
+    r = lambda d, net, resp: {"date": d, "nps_net": net, "nps_responses": resp}            # noqa: E731
+    rows = [r("2026-11-06", 0, 10), r("2026-11-08", 9, 10), r("2026-11-10", 8, 10), r("2026-11-12", 2, 10), r("2026-11-13", 0, 10)]
+    c = compare_range(rows, date(2026, 11, 10), date(2026, 11, 12))      # 3일 vs 직전 11-07~11-09
+    assert c["recent"]["nps"] == 50.0 and c["prior"]["nps"] == 90.0 and c["delta"]["nps"] == -40.0
+
+
+def test_dashboard_period_query(backend):
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+    c = TestClient(app)
+    c.cookies.set("dev_user", "manager@example.com")
+    html = c.get("/dashboard?weeks=8").text
+    assert 'name="weeks"' in html and 'value="8"' in html and "최근 8주" in html and 'type="date"' in html
+    assert "/api/dashboard/briefing?weeks=8" in html
+    html = c.get("/dashboard?start=2026-10-01&end=2026-10-31").text
+    assert "10-01 ~ 10-31 (31일)" in html and "기본(최근 4주)" in html and "start=2026-10-01&amp;end=2026-10-31" in html
+    assert "주차는 1 ~ 26" in c.get("/dashboard?weeks=99").text

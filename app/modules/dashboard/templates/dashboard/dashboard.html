@@ -9,12 +9,31 @@
 {% endif %}
 {%- endmacro %}
 {% block content %}
-<div class="page-head">
-  <div>
+{% set p = period %}
+<div class="page-head dash-head">
+  <div class="dash-title">
     <h1>{{ cfg.title }}</h1>
-    <p class="muted">{{ as_of }} 기준 · {{ cfg.subtitle }}</p>
+    <div class="period-box" role="group" aria-label="보는 기간">
+      <form method="get" action="/dashboard" class="period-form{{ ' on' if p.mode == 'weeks' }}">
+        <span class="period-tag">주차</span>
+        <label class="period-weeks">최근 <input type="number" name="weeks" min="1" max="{{ cfg.max_weeks }}" step="1" required
+          value="{{ p.weeks if p.mode == 'weeks' else cfg.default_weeks }}" aria-label="최근 몇 주"> 주</label>
+        <button class="btn sm primary" type="submit">보기</button>
+      </form>
+      <span class="period-or">또는</span>
+      <form method="get" action="/dashboard" class="period-form{{ ' on' if p.mode == 'range' }}">
+        <span class="period-tag">기간</span>
+        <input type="date" name="start" required value="{{ p.start.isoformat() }}" max="{{ data_last }}" aria-label="시작일" class="period-date" data-role="start">
+        <span class="muted">~</span>
+        <input type="date" name="end" required value="{{ p.end.isoformat() }}" max="{{ data_last }}" min="{{ p.start.isoformat() }}" aria-label="끝일" class="period-date" data-role="end">
+        <button class="btn sm primary" type="submit">조회</button>
+      </form>
+      {% if p.mode != 'weeks' or p.weeks != cfg.default_weeks %}<a class="small period-reset" href="/dashboard">기본(최근 {{ cfg.default_weeks }}주)</a>{% endif %}
+    </div>
   </div>
+  <p class="muted">{{ as_of }} 기준 · 보는 기간 <b>{{ p.label }}</b> · 비교 {{ p.prior_text }} · {{ cfg.subtitle }}</p>
 </div>
+{% if period_note %}<div class="notice" style="background:var(--warn-weak);color:var(--warn)">{{ period_note }}</div>{% endif %}
 
 <div class="with-rail">
   <div class="stack">
@@ -26,7 +45,7 @@
         <div class="small muted">팀 {{ headcount.teams }}개 · 최근 {{ cfg.new_hire_days }}일 입사 {{ headcount.new_hires }}명</div>
       </a>
       <div class="card kpi-card dash-tile">
-        <div class="label">근태 · 최근 {{ attendance.days }}일</div>
+        <div class="label">근태 · {{ p.short }}</div>
         <div class="value num">{{ attendance.absence_rate|num(1) }}<span class="small muted"> % 결근·지각·조퇴</span></div>
         <div class="small muted">결근 {{ attendance.count.get('결근', 0) }} · 지각 {{ attendance.count.get('지각', 0) }} · 조퇴 {{ attendance.count.get('조퇴', 0) }}
           · 연차 {{ attendance.count.get('연차', 0) }}</div>
@@ -46,7 +65,7 @@
 
     {# 2. KPI 최근 4주 + 8주 추이 #}
     <section class="card">
-      <h2>KPI · 최근 4주 <span class="muted small">(담당 전체 합계 · 직전 4주 대비 · 점선 = 직전 4주 · 응답 {{ kpi.responses }}건 · 처리 {{ kpi.assignments }}건)</span></h2>
+      <h2>KPI · {{ p.short }} <span class="muted small">(담당 전체 합계 · {{ p.prior_text }} 대비 · 점선 = 직전 기간 · 응답 {{ kpi.responses }}건 · 처리 {{ kpi.assignments }}건)</span></h2>
       <div class="grid g3">
         {% for m in kpi.metrics %}
         <div class="dash-kpi">
@@ -61,7 +80,7 @@
 
     {# 3. 팀별 비교 #}
     <section class="card">
-      <h2>팀별 비교 <span class="muted small">(KPI 최근 4주 · 근태 최근 {{ attendance.days }}일 · QA·코칭은 올린 파일)</span></h2>
+      <h2>팀별 비교 <span class="muted small">(KPI·근태 = {{ p.label }} · QA·코칭은 올린 파일)</span></h2>
       <div class="table-wrap">
         <table>
           <thead><tr><th>팀(TL)</th><th class="r">인원</th>
@@ -85,7 +104,7 @@
     {# 4. 근태 주차별 — 전 주·평균 대비 + 항목별 막대 #}
     {% set aw = att_weekly %}
     <section class="card">
-      <h2>근태 주차별 <span class="muted small">(원본 시트 Schedule KR · 칸 수 · 토요일 마감)</span></h2>
+      <h2>근태 주차별 <span class="muted small">(원본 시트 Schedule KR · 칸 수 · 토요일 마감 · {{ p.end.isoformat()[5:] }} 까지 {{ aw.weeks }}주)</span></h2>
       {% if aw.base %}
       <p class="small muted" style="margin:0 0 10px">비교 기준 <b>{{ aw.base[5:] }} 주</b> — 전 주({{ aw.prev[5:] if aw.prev else '–' }}) 대비 ·
         앞선 {{ aw.avg_weeks }}주 평균 대비 · 결근·지각·조퇴는 <span class="delta bad">▲ 늘면 빨강</span> <span class="delta good">▼ 줄면 초록</span>,
@@ -113,7 +132,7 @@
           </thead>
           <tbody>{% for w in aw.rows|reverse %}<tr class="{{ 'running' if w.partial }}{{ ' base' if w.week_end == aw.base }}">
             <td class="wk"><span class="num">{{ w.start[5:] }} ~ {{ w.end[5:] }}</span>
-              {% if w.partial %}<span class="badge neutral">러닝 · {{ w.days }}일</span>{% elif w.week_end == aw.base %}<span class="badge base">기준</span>{% endif %}</td>
+              {% if w.partial %}<span class="badge neutral">{{ '러닝' if p.mode == 'weeks' else '일부' }} · {{ w.days }}일</span>{% elif w.week_end == aw.base %}<span class="badge base">기준</span>{% endif %}</td>
             {% for c in aw.compare %}{% set v = w.counts[c.status] %}{% set d = w.delta[c.status] %}
             <td class="awc {{ 'heat-bad' if c.bad_up else 'heat-leave' }}{{ ' grp-start' if loop.index0 == 3 }}"
                 {% if v is not none and c.max %}style="--heat: {{ '%.2f'|format(v / c.max) }}"{% endif %}>
@@ -129,7 +148,7 @@
   </div>
 
   <aside class="stack rail">
-    {{ ai_brief("AI 브리핑", "dashboard", as_of, url="/api/dashboard/briefing",
+    {{ ai_brief("AI 브리핑", "dashboard", as_of ~ "." ~ p.key, url="/api/dashboard/briefing?" ~ p.query,
                 note="이 화면의 KPI·근태·QA·코칭·신호 숫자를 AI 가 요약합니다. 팀 이름은 가명으로 보냅니다.") }}
     <section class="card">
       <h2>먼저 볼 상담사 <span class="muted small"><a href="/agent360">전체 {{ signals.agents }}명</a></span></h2>

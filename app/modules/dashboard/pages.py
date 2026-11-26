@@ -19,8 +19,10 @@ def _module():
 
 
 @router.get("", response_class=HTMLResponse)
-def dashboard(user: User = Depends(current_user)):
-    ctx = views.dashboard(get_backend(), user, _module().screens)
+def dashboard(weeks: str | None = None, start: str | None = None, end: str | None = None,
+              user: User = Depends(current_user)):
+    """?weeks=N (최근 N주) 또는 ?start=YYYY-MM-DD&end=YYYY-MM-DD (달력으로 고른 기간)."""
+    ctx = views.dashboard(get_backend(), user, _module().screens, weeks, start, end)
     return HTMLResponse(render("dashboard/dashboard.html", ctx, user=user, module=_module(), active="dashboard",
                                users_for_switch=dev_users()))
 

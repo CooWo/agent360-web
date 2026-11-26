@@ -10,7 +10,10 @@
   "screens": {
     "dashboard": {
       "title": "대시보드",
-      "subtitle": "담당 범위 전체 — KPI 최근 4주 · 근태 · QA·코칭 · 오늘 할 일",
+      "subtitle": "담당 범위 전체 — KPI · 근태 · QA·코칭 · 오늘 할 일",
+      "default_weeks": 4,
+      "max_weeks": 26,
+      "max_days": 366,
       "kpi_weeks": 8,
       "kpi_metrics": ["nps", "spd", "throughput", "reopen", "ttresp", "work_time"],
       "team_metrics": ["nps", "spd", "throughput", "reopen"],

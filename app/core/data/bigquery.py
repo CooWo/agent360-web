@@ -163,7 +163,7 @@ class BigQueryBackend:
         return self._cached(("att_many", tuple(ids), since), lambda: self._q(sql, ids=ids, since=since)) if ids else []
 
     def surveys(self, ldap, since):
-        sql = f"""SELECT CAST(resp_date AS STRING) resp_date, nps, is_detractor, IFNULL(comment_raw, '') comment,
+        sql = f"""SELECT CAST(resp_date AS STRING) resp_date, IFNULL(case_number, '') case_id, nps, is_detractor, IFNULL(comment_raw, '') comment,
                          IFNULL(medallia_topics, '') topics, IFNULL(cr_parent, '') cr_parent, IFNULL(cr_child, '') cr_child
                   FROM {self.survey_t} WHERE ldap = @ldap AND resp_date >= DATE(@since) ORDER BY resp_date DESC"""
         return self._cached(("surveys", ldap, since), lambda: self._q(sql, ldap=ldap, since=since))

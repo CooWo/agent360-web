@@ -80,6 +80,9 @@ def test_root_is_dashboard_and_briefing(backend, users, monkeypatch):
     assert "디트랙터 2건</b> / 응답 4건 (50%)" in r.json()["html"]                 # 건수는 서버 계산
     q = ag.questions[-1]
     assert len(ag.questions) == n + 1 and "환불 안내가 늦고" in q and "ub_sample02" not in q and "정현우" not in q
+    cases = [s["case_id"] for s in backend.surveys("ub_sample02", "2000-01-01") if s["is_detractor"]]
+    assert len(cases) == 2 and all(f"[{cid}]" in q for cid in cases)                 # AI 에 케이스 ID 같이 보냄
+    assert "디트랙터 케이스 2건" in r.json()["html"] and all(cid in r.json()["html"] for cid in cases)   # 서버 표
     r = c.post("/api/agent360/briefing", json={"kind": "detractor", "agent_id": "E240001"})   # 설문 없음 → AI 안 부름
     assert r.json()["facts"]["detractors"] == 0 and len(ag.questions) == n + 1
     assert 'data-kind="detractor"' in c.get(f"/agent360/agents/{aid}").text

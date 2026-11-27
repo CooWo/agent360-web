@@ -90,7 +90,21 @@ def templates_detractor_head(facts: dict, since: str, as_of: str) -> str:
     cr = " · ".join(f"{h.escape(k)} {v}" for k, v in facts["by_cr"]) or "–"
     return (f'<p><b>디트랙터 {facts["detractors"]}건</b> / 응답 {facts["responses"]}건{rate} '
             f'<span class="muted">({since} ~ {as_of})</span></p>'
-            f'<p class="muted">주차별(토 마감): {wk}<br>문의 유형: {cr}</p>')
+            f'<p class="muted">주차별(토 마감): {wk}<br>문의 유형: {cr}</p>' + detractor_cases_html(facts["cases"]))
+
+
+def detractor_cases_html(cases: list[dict]) -> str:
+    """디트랙터 케이스 목록 (설문 원본 값 그대로 — AI 를 거치지 않음)."""
+    import html as h
+    if not cases:
+        return ""
+    rows = "".join(
+        f'<tr><td class="num">{h.escape(r.get("case_id") or "–")}</td><td class="num">{h.escape(r["resp_date"][5:])}</td>'
+        f'<td class="num">{r["nps"]}</td><td>{h.escape(r.get("cr_child") or r.get("cr_parent") or "–")}'
+        f'{"" if (r.get("comment") or "").strip() else " <span class=\"muted\">(코멘트 없음)</span>"}</td></tr>' for r in cases)
+    return (f'<details class="det-cases"{" open" if len(cases) <= 5 else ""}><summary>디트랙터 케이스 {len(cases)}건 · 케이스 ID</summary>'
+            '<table class="det-case-table"><thead><tr><th>케이스 ID</th><th>응답일</th><th>NPS</th><th>문의 유형</th></tr></thead>'
+            f'<tbody>{rows}</tbody></table></details>')
 
 
 @router.post("/briefing", summary="AI 브리핑 — 화면 숫자를 AI BA CHAT 에 보내 요약 (이름은 가명으로)")

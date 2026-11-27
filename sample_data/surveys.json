@@ -7,7 +7,8 @@
   "comment": "환불 안내가 늦고 같은 설명을 여러 번 해야 했어요.",
   "topics": "Support Specialist - Resolution",
   "cr_parent": "Cancellations and refunds",
-  "cr_child": "Refund status"
+  "cr_child": "Refund status",
+  "case_id": "SAMPLE-90001"
  },
  {
   "ldap": "ub_sample02",
@@ -17,7 +18,8 @@
   "comment": "정책이 이해되지 않았지만 상담원은 친절했습니다.",
   "topics": "",
   "cr_parent": "Booking and paying for reservations",
-  "cr_child": "Payment"
+  "cr_child": "Payment",
+  "case_id": "SAMPLE-90002"
  },
  {
   "ldap": "ub_sample02",
@@ -27,7 +29,8 @@
   "comment": "빠르게 해결해 주셨어요.",
   "topics": "",
   "cr_parent": "Problems with your reservation",
-  "cr_child": "Check-in"
+  "cr_child": "Check-in",
+  "case_id": "SAMPLE-90003"
  },
  {
   "ldap": "ub_sample02",
@@ -37,6 +40,7 @@
   "comment": "",
   "topics": "",
   "cr_parent": "Problems with your reservation",
-  "cr_child": "Check-in"
+  "cr_child": "Check-in",
+  "case_id": "SAMPLE-90004"
  }
 ]

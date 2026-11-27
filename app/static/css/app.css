@@ -62,6 +62,13 @@ main { padding: 24px 28px 48px; max-width: 1280px; }
 .ai-brief-body ul, .ai-brief-body ol { padding-left: 18px; margin: 4px 0; }
 .ai-brief-body p { margin: 4px 0; }
 .ai-brief-meta { margin: 8px 0 0; }
+.det-cases { margin: 6px 0 10px; }
+.det-cases summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text-2); }
+.det-case-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 6px; }
+.det-case-table th, .det-case-table td { padding: 5px 6px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+.det-case-table th { background: var(--surface-2); font-weight: 600; }
+.det-case-table td.num { font-variant-numeric: tabular-nums; }
+.det-case-table td:nth-child(4) { white-space: normal; }
 .kpi-card .label { color: var(--text-2); font-size: 12px; }
 .kpi-card .value { font-size: 22px; font-weight: 700; margin-top: 2px; }
 .delta { font-size: 12px; font-weight: 600; }

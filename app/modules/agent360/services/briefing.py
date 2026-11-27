@@ -126,7 +126,8 @@ def detractor_facts(rows: list[dict]) -> dict:
     return {"responses": len(rows), "detractors": len(det),
             "rate": (len(det) / len(rows) * 100) if rows else None,
             "weekly": sorted(weekly.items()), "by_cr": Counter(r.get("cr_parent") or "(없음)" for r in det).most_common(3),
-            "comments": [r for r in det if (r.get("comment") or "").strip()]}
+            "comments": [r for r in det if (r.get("comment") or "").strip()],
+            "cases": det}                                     # 디트랙터 전체 (케이스 ID 목록용, 최신순)
 
 
 def detractor_prompt(facts: dict, as_of: str, weeks: int = DETRACTOR_WEEKS) -> str:
@@ -134,11 +135,11 @@ def detractor_prompt(facts: dict, as_of: str, weeks: int = DETRACTOR_WEEKS) -> s
     lines = [f"[상담사 디트랙터 코멘트 요약] 기준일 {as_of}, 최근 {weeks}주 고객 설문: 응답 {facts['responses']}건 중 "
              f"디트랙터(NPS 0~6) {facts['detractors']}건.",
              "■ 문의 유형 상위: " + ", ".join(f"{k} {v}건" for k, v in facts["by_cr"]),
-             "■ 디트랙터 코멘트 (날짜 · NPS · 문의 유형 · 코멘트)"]
+             "■ 디트랙터 코멘트 (케이스 ID · 날짜 · NPS · 문의 유형 · 코멘트)"]
     for r in facts["comments"][:15]:
-        lines.append(f"- {r['resp_date']} · {r['nps']} · {r.get('cr_child') or r.get('cr_parent')} · {(r['comment'] or '')[:300]}")
+        lines.append(f"- [{r.get('case_id') or '케이스 없음'}] {r['resp_date']} · {r['nps']} · {r.get('cr_child') or r.get('cr_parent')} · {(r['comment'] or '')[:300]}")
     lines.append("요청: 코멘트를 주제별로 묶어 3~5줄로 요약하고 (상담사 응대 문제인지, 정책·제품 문제인지 구분), "
-                 "마지막에 이 상담사 코칭 포인트 1~2줄. 코멘트 원문을 길게 옮기지 말고, 고객 이름·연락처·예약번호 같은 개인정보는 쓰지 마세요. " + RULES)
+                 "주제마다 근거가 된 케이스 ID 를 [ ] 안에 그대로 적고 (예: [12345678]), 마지막에 이 상담사 코칭 포인트 1~2줄. 코멘트 원문을 길게 옮기지 말고, 고객 이름·연락처·예약번호 같은 개인정보는 쓰지 마세요. " + RULES)
     return "\n".join(lines)[:MAX_PROMPT]
 
 
